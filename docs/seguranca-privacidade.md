@@ -40,6 +40,10 @@ Qualquer mudança nesta tabela é uma decisão de produto: precisa estar explíc
 - [ ] O envio é registrado antes e não pode duplicar em chamadas concorrentes?
 - [ ] O conteúdo não inclui senhas, convites privados ou dados de outras pessoas?
 
+**Política de privacidade**
+
+- [ ] Mudou o que é coletado, quem vê, por quanto tempo ou algum serviço externo? Atualize `src/pages/Privacy.tsx` (com a data da última atualização) e a seção "Dados e privacidade" do README no mesmo PR.
+
 **Configuração e operação**
 
 - [ ] Algum secret ou variável novo está documentado em [Operação](operacao.md) e listado no PR?

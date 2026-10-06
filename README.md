@@ -15,6 +15,8 @@ Código da plataforma do [readline club](https://readline.club), um clube do liv
 
 ## Dados e privacidade
 
+A [política de privacidade](https://readline.club/privacidade) completa fica no site. Em resumo:
+
 **O que é guardado:** nome, e-mail, senha (somente em formato protegido, nunca o texto original), nível de experiência, motivação informada no cadastro, status da aprovação e a confirmação de leitura das orientações da comunidade. Para limitar tentativas de login e cadastro, o endereço IP é registrado apenas em formato de hash.
 
 **Quem vê o quê:**

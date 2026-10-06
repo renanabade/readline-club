@@ -31,6 +31,7 @@ import {
   Account,
 } from "./pages/Members";
 import Admin from "./pages/Admin";
+import Privacy from "./pages/Privacy";
 import type { ReactNode } from "react";
 import { instance } from "./instance";
 function Protected({
@@ -190,6 +191,7 @@ function Layout() {
             element={<Auth key="reset" mode="reset" />}
           />
           <Route path="/biblioteca" element={<Library />} />
+          <Route path="/privacidade" element={<Privacy />} />
           <Route
             path="/livros/:id"
             element={
@@ -268,9 +270,12 @@ function Layout() {
             </a>
           </p>
         )}
-        <Link to="/comunidade">
-          Sobre o clube <ArrowUpRight size={14} />
-        </Link>
+        <nav className="footer-links" aria-label="Rodapé">
+          <Link to="/comunidade">
+            Sobre o clube <ArrowUpRight size={14} />
+          </Link>
+          <Link to="/privacidade">Privacidade</Link>
+        </nav>
       </footer>
     </>
   );
