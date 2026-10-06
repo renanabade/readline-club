@@ -53,7 +53,7 @@ O painel diferencia acesso aprovado de aviso enviado. Para contas já aprovadas 
 
 ### Pendências do administrador
 
-O mesmo Worker envia um resumo para o endereço configurado no secret `ADMIN_NOTIFY_EMAIL` às **9h e às 18h de Brasília** (`0 12,21 * * *`, em UTC). Não há e-mail por cadastro e nenhum resumo é enviado quando não há pendências. O e-mail contém apenas a quantidade e o link da administração; nomes e endereços dos inscritos ficam no painel. A tabela `admin_digest_notifications` registra cada horário e impede disparos duplicados. Falhas conhecidas podem ser tentadas novamente até três vezes no mesmo horário; resultados desconhecidos ficam bloqueados para inspeção. Não há repetição automática fora dos dois horários.
+O mesmo Worker envia um resumo para o endereço do secret `ADMIN_NOTIFY_EMAIL` às **9h e às 18h de Brasília** (`0 12,21 * * *`, em UTC). Não há e-mail por cadastro e nenhum resumo é enviado quando não há pendências. O e-mail contém apenas a quantidade e o link da administração; nomes e endereços dos inscritos ficam no painel. A tabela `admin_digest_notifications` registra cada horário e impede disparos duplicados. Falhas conhecidas podem ser tentadas novamente até três vezes no mesmo horário; resultados desconhecidos ficam bloqueados para inspeção. Não há repetição automática fora dos dois horários.
 
 Pendentes aparecem primeiro (mais antigos antes), seguidos de integrantes aprovados, suspensos e recusados, com separação visual. **Aceitar todos** confirma uma fotografia dos IDs pendentes e envia lotes de até 20; o servidor só altera os que ainda estiverem pendentes e forem membros. Novos cadastros que chegarem depois ficam para a próxima revisão. Suspensos e recusados nunca são incluídos no lote. A liberação de uma pessoa suspensa reutiliza a conta e a senha existentes.
 
@@ -87,9 +87,10 @@ npx wrangler login
 npm run db:migrate:remote
 npx wrangler pages secret put TURNSTILE_SECRET --project-name readlineclub
 npx wrangler pages secret put ADMIN_EMAIL --project-name readlineclub
-npx wrangler secret put ADMIN_NOTIFY_EMAIL --config wrangler.mailer.jsonc
 npm run deploy
 ```
+
+Antes do primeiro deploy, copie `.env.mailer.example` para `.env.mailer` e preencha `ADMIN_NOTIFY_EMAIL`. O arquivo fica fora do git e é enviado como secret do mailer a cada `npm run deploy`; sem ele, o deploy do mailer falha.
 
 Ao criar um novo banco, as migrations adicionam apenas o livro Entendendo Algoritmos e o primeiro ciclo, sem datas, membros ou vídeos fictícios. Nunca edite migrations que já foram aplicadas. Antes de novas alterações de schema em produção, exporte o banco com `wrangler d1 export DB --remote --output backup.sql` e guarde o backup em local privado. Rollback do Worker não desfaz alterações no D1.
 

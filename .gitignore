@@ -4,5 +4,6 @@ dist/
 .dev.vars
 .env*
 !.env.example
+!.env.mailer.example
 *.log
 
