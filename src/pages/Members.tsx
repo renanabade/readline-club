@@ -1,7 +1,7 @@
 import { NextMeetingNotice } from "../components/NextMeetingNotice";
 import { CalendarActions } from "../components/CalendarActions";
 import { useState, type FormEvent } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowUpRight,
   ArrowRight,
@@ -451,6 +451,54 @@ export function Status() {
     </div>
   );
 }
+function DeleteAccount() {
+  const { refresh } = useSession();
+  const navigate = useNavigate();
+  const [error, setError] = useState(""),
+    [busy, setBusy] = useState(false);
+  async function remove(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setBusy(true);
+    setError("");
+    const form = new FormData(e.currentTarget);
+    try {
+      await save("/auth/account/delete", { password: form.get("password") });
+      await refresh();
+      navigate("/", { replace: true });
+    } catch (e) {
+      setError((e as Error).message);
+      setBusy(false);
+    }
+  }
+  return (
+    <form className="password-form delete-account" onSubmit={remove}>
+      <h2>Excluir minha conta</h2>
+      <p>
+        Apaga seu cadastro, seus dados e suas sessões abertas. Não dá para
+        desfazer: para voltar ao clube, será preciso se inscrever e aguardar uma
+        nova aprovação. Os grupos de WhatsApp e Discord são separados da
+        plataforma; se quiser, saia deles por lá.
+      </p>
+      <label>
+        Senha atual
+        <input
+          type="password"
+          name="password"
+          required
+          autoComplete="current-password"
+        />
+      </label>
+      <label className="onboarding-confirm">
+        <input type="checkbox" required />
+        Entendo que a exclusão é permanente.
+      </label>
+      {error && <Notice>{error}</Notice>}
+      <button className="button" disabled={busy}>
+        {busy ? "Excluindo…" : "Excluir minha conta"}
+      </button>
+    </form>
+  );
+}
 export function Account({ required = false }: { required?: boolean }) {
   const { user, refresh } = useSession();
   const [error, setError] = useState(""),
@@ -536,6 +584,7 @@ export function Account({ required = false }: { required?: boolean }) {
             {busy ? "Salvando…" : "Salvar nova senha"}
           </button>
         </form>
+        {!required && user?.role !== "admin" && <DeleteAccount />}
       </div>
     </>
   );
