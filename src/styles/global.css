@@ -1620,6 +1620,10 @@ textarea {
   font-size: 1.6rem;
   margin-bottom: 5px;
 }
+.delete-account > p {
+  color: var(--muted);
+  margin-bottom: 18px;
+}
 .account-page .button {
   justify-self: start;
 }

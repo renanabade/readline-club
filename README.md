@@ -28,6 +28,8 @@ Código da plataforma do [readline club](https://readline.club), um clube do liv
 
 Nenhum membro vê dados de outros membros.
 
+**Excluir a conta:** em **Minha conta**, qualquer pessoa pode excluir o próprio cadastro confirmando a senha. A exclusão apaga nome, e-mail, senha, respostas do cadastro, sessões e registros ligados à conta, e não pode ser desfeita. Os grupos de WhatsApp e Discord são serviços separados; sair deles é feito por lá.
+
 **Serviços externos:**
 
 - **Cloudflare:** hospedagem, banco de dados, envio de e-mails e a verificação anti-robô (Turnstile) da tela de cadastro.

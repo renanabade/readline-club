@@ -159,6 +159,40 @@ auth.post("/password", requireUser, async (c) => {
   await startSession(c, c.get("identity").userId);
   return c.json({ ok: true });
 });
+auth.post("/account/delete", requireUser, async (c) => {
+  const data = await input(
+    c,
+    z.object({ password: z.string().min(1).max(128) }),
+  );
+  const { userId } = c.get("identity");
+  await rateLimit(c, "delete-account", 10, userId);
+  const user = await c.env.DB.prepare(
+    "SELECT email,role,password_hash FROM users WHERE id=?",
+  )
+    .bind(userId)
+    .first<{ email: string; role: string; password_hash: string }>();
+  if (!user || !verifyPassword(data.password, user.password_hash))
+    throw new HTTPException(400, { message: "A senha não confere." });
+  // Removing the only administrator would lock the club out of its panel.
+  if (user.role === "admin")
+    throw new HTTPException(403, {
+      message: "A conta administrativa não pode ser excluída por aqui.",
+    });
+  // Sessions, reset links and onboarding cascade from users. Approval notices
+  // have no cascade, so they go first.
+  await c.env.DB.batch([
+    c.env.DB.prepare(
+      "DELETE FROM approval_notifications WHERE application_id IN (SELECT id FROM applications WHERE email=?)",
+    ).bind(user.email),
+    c.env.DB.prepare("DELETE FROM applications WHERE email=?").bind(user.email),
+    c.env.DB.prepare("DELETE FROM users WHERE id=?").bind(userId),
+    c.env.DB.prepare("DELETE FROM auth_limits WHERE key=?").bind(
+      digest("login-email:" + user.email),
+    ),
+  ]);
+  await endSession(c);
+  return c.json({ ok: true });
+});
 auth.post("/reset", async (c) => {
   const data = await input(
     c,
