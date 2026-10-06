@@ -13,7 +13,7 @@
     "db:migrate:local": "wrangler d1 migrations apply DB --local --config wrangler.local.jsonc",
     "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
     "deploy": "npm run verify && npm run deploy:mailer && wrangler pages deploy dist --project-name readlineclub --branch main",
-    "deploy:mailer": "wrangler deploy --config wrangler.mailer.jsonc",
+    "deploy:mailer": "wrangler deploy --config wrangler.mailer.jsonc --secrets-file .env.mailer",
     "build:mailer": "wrangler deploy --config wrangler.mailer.jsonc --dry-run",
     "build:pages": "wrangler pages functions build functions --outdir .wrangler/pages-check --compatibility-date 2026-09-27 --compatibility-flags nodejs_compat",
     "deploy:legacy": "wrangler deploy --config wrangler.legacy.jsonc",
