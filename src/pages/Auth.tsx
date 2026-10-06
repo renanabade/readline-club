@@ -185,8 +185,15 @@ export default function Auth({ mode }: { mode: "login" | "signup" | "reset" }) {
                       orientações do clube
                     </Link>{" "}
                     e com o uso dos meus dados para organizar minha
-                    participação. Estou ciente de que os encontros serão
-                    gravados.
+                    participação, conforme a{" "}
+                    <Link
+                      to="/privacidade"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      política de privacidade
+                    </Link>
+                    . Estou ciente de que os encontros serão gravados.
                   </span>
                 </label>
                 {home?.turnstileSiteKey ? (

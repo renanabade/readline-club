@@ -866,6 +866,21 @@ main {
   color: var(--ink);
   font-weight: 500;
 }
+.footer-links {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.privacy-page h2 {
+  font-size: 1.4rem;
+  margin: 36px 0 10px;
+}
+.privacy-page ul {
+  padding-left: 1.2em;
+}
+.privacy-page li + li {
+  margin-top: 10px;
+}
 @media (max-width: 800px) {
   .footer {
     flex-wrap: wrap;
@@ -880,7 +895,7 @@ main {
     margin-left: 0;
   }
 }
-.footer > a {
+.footer-links a {
   display: flex;
   align-items: center;
   gap: 5px;
@@ -1951,7 +1966,7 @@ legend {
   .footer > span {
     display: none;
   }
-  .footer > a {
+  .footer-links {
     margin-left: auto;
   }
   .admin-stats {
@@ -2145,8 +2160,10 @@ legend {
     padding-block: 25px;
     font-size: 0.65rem;
   }
-  .footer > a {
+  .footer-links {
     margin: 0;
+  }
+  .footer-links a {
     min-height: 30px;
   }
   .footer > div {
