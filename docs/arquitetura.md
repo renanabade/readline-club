@@ -65,7 +65,7 @@ O código não pode conter dados de uma instalação específica. Use, nesta ord
 2. **Variáveis e secrets do Wrangler:** domínio (`APP_ORIGIN`), remetente (`EMAIL_FROM`), e-mails de administração, chaves do Turnstile.
 3. **`src/instance.ts`:** marca exibida na interface (crédito e banner).
 
-Nunca escreva no código domínios, e-mails, convites, datas de encontros ou nomes de pessoas. Migrations criam apenas schema e o conteúdo inicial documentado no README.
+Nunca escreva no código domínios, e-mails, convites, datas de encontros ou nomes de pessoas. Migrations criam apenas schema e o conteúdo inicial documentado em [Operação](operacao.md#deploy).
 
 ## Migrations
 

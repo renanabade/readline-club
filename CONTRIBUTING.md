@@ -7,6 +7,4 @@ O código do readline club é aberto **por transparência**: para que membros e 
 - **Bugs** podem ser relatados em uma issue, pelo template. Não inclua dados pessoais.
 - **Vulnerabilidades de segurança** nunca devem ser relatadas em issues: siga o [SECURITY.md](SECURITY.md).
 
-Você pode usar o código para rodar a sua própria instalação, nos termos da [licença](LICENSE). O [README](README.md) explica como.
-
 O processo interno de desenvolvimento (escopo, commits, testes e revisão) está documentado em [`docs/`](docs/README.md).
