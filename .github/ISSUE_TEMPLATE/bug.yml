@@ -1,0 +1,39 @@
+name: Relatar um bug
+description: Algo no código não funciona como deveria.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Este repositório é público por transparência e aceita apenas relatos de bug. Pedidos de funcionalidade e pull requests externos não são aceitos (veja o CONTRIBUTING.md).
+
+        **Não inclua dados pessoais** (seus ou de outras pessoas) e **não relate vulnerabilidades aqui**: use o relato privado do SECURITY.md.
+  - type: textarea
+    id: problema
+    attributes:
+      label: O que aconteceu
+      description: Descreva o comportamento observado.
+    validations:
+      required: true
+  - type: textarea
+    id: esperado
+    attributes:
+      label: O que era esperado
+    validations:
+      required: true
+  - type: textarea
+    id: reproducao
+    attributes:
+      label: Como reproduzir
+      description: Passos a partir de uma instalação local (`npm run dev`), quando possível.
+      placeholder: |
+        1. Acesse ...
+        2. Clique em ...
+        3. Veja ...
+    validations:
+      required: true
+  - type: input
+    id: ambiente
+    attributes:
+      label: Ambiente
+      placeholder: Navegador, sistema, versão do Node.js

@@ -1,0 +1,32 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "readlineclub",
+  "pages_build_output_dir": "./dist",
+  "compatibility_date": "2026-09-27",
+  "compatibility_flags": ["nodejs_compat"],
+  "services": [
+    { "binding": "APPROVAL_EMAIL", "service": "readlineclub-mailer" },
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "clube-do-livro-db",
+      "database_id": "92e680ce-93bc-4178-ad0b-8eb8a4e6d8c7",
+      "migrations_dir": "migrations",
+    },
+  ],
+  "vars": {
+    "APP_ORIGIN": "https://readline.club",
+    "TURNSTILE_SITE_KEY": "0x4AAAAAAFFqjumFUxHqIhJD",
+  },
+  "env": {
+    "preview": {
+      "services": [],
+      "d1_databases": [],
+      "vars": {
+        "APP_ORIGIN": "https://readline.club",
+        "TURNSTILE_SITE_KEY": "",
+      },
+    },
+  },
+}

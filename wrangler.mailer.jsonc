@@ -1,0 +1,27 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "readlineclub-mailer",
+  "main": "worker/approval-mailer.ts",
+  "compatibility_date": "2026-09-27",
+  "workers_dev": false,
+  "preview_urls": false,
+  "triggers": { "crons": ["0 12,21 * * *"] },
+  "observability": { "enabled": true, "traces": { "enabled": true } },
+  "send_email": [
+    {
+      "name": "EMAIL",
+      "allowed_sender_addresses": ["renan@readline.club"],
+    },
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "clube-do-livro-db",
+      "database_id": "92e680ce-93bc-4178-ad0b-8eb8a4e6d8c7",
+    },
+  ],
+  "vars": {
+    "EMAIL_FROM": "renan@readline.club",
+    "APP_ORIGIN": "https://readline.club",
+  },
+}

@@ -1,0 +1,1 @@
+UPDATE settings SET description='Livros técnicos de computação, leitura por capítulos e discussões entre quem está começando e quem já trabalha na área. Para entender os fundamentos e colocar suas decisões técnicas em perspectiva.' WHERE id=1;

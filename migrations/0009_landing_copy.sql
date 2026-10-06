@@ -1,0 +1,1 @@
+UPDATE settings SET description='A gente escolhe um livro, combina os capítulos e se encontra para conversar sobre a leitura. Pode chegar com dúvidas: tem gente começando e gente que já trabalha com programação.' WHERE id=1;
