@@ -18,7 +18,7 @@ O código é público e a plataforma guarda nome e e-mail de pessoas reais. Toda
 | Membro aprovado    | Encontros, links de chamada, gravações publicadas, materiais, convites (após o onboarding).                                                      |
 | Administrador      | Tudo, incluindo cadastros e gravações não publicadas.                                                                                            |
 
-Qualquer mudança nesta tabela é uma decisão de produto: precisa estar explícita no PR e refletida no README.
+Qualquer mudança nesta tabela é uma decisão de produto: precisa estar explícita no PR e refletida na seção "Dados e privacidade" do README.
 
 ## Checklist
 
@@ -42,7 +42,7 @@ Qualquer mudança nesta tabela é uma decisão de produto: precisa estar explíc
 
 **Configuração e operação**
 
-- [ ] Algum secret ou variável novo está documentado no README e listado no PR?
+- [ ] Algum secret ou variável novo está documentado em [Operação](operacao.md) e listado no PR?
 - [ ] Logs novos registram só eventos e status?
 - [ ] Nada da instância ou de pessoas reais foi escrito no código, nos testes ou nas fixtures (use `example.test`)?
 

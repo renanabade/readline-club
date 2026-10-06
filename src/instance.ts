@@ -1,5 +1,4 @@
-// Branding of the instance published at readline.club. Forks should replace
-// these values or set them to null to hide the corresponding element.
+// Branding shown in the interface. Set an entry to null to hide its element.
 export const instance: {
   author: { name: string; url: string } | null;
   promo: { name: string; tagline: string; url: string } | null;

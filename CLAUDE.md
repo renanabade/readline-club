@@ -8,6 +8,9 @@ Antes de qualquer mudança, siga a documentação interna:
 - `docs/arquitetura.md` — onde cada coisa fica, padrões de backend e frontend, valores da instância, migrations.
 - `docs/testes.md` — o que cada tipo de mudança precisa testar e como.
 - `docs/seguranca-privacidade.md` — checklist obrigatório; o repositório é público.
+- `docs/operacao.md` — ambiente local, conta administrativa, e-mails e deploy.
+
+O `README.md` é só explicativo, para o público (o que é a plataforma e como os dados são tratados); instruções operacionais ficam em `docs/`.
 
 Regras que não podem ser quebradas:
 
