@@ -34,7 +34,7 @@ import Admin from "./pages/Admin";
 import Privacy from "./pages/Privacy";
 import type { ReactNode } from "react";
 import { instance } from "./instance";
-function Protected({
+export function Protected({
   children,
   admin = false,
 }: {
@@ -42,8 +42,16 @@ function Protected({
   admin?: boolean;
 }) {
   const { user, loading } = useSession();
+  const location = useLocation();
   if (loading) return <Loading />;
-  if (!user) return <Navigate to="/entrar" replace />;
+  if (!user)
+    return (
+      <Navigate
+        to="/entrar"
+        replace
+        state={{ from: location.pathname + location.search }}
+      />
+    );
   if (user.mustChangePassword) return <Account required />;
   if (user.role !== "admin" && user.status !== "approved") return <Status />;
   if (admin && user.role !== "admin") return <Navigate to="/" replace />;
