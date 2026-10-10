@@ -7,6 +7,7 @@ import {
   signupSchema,
   emailSchema,
   passwordSchema,
+  preferencesSchema,
 } from "../../shared/validation";
 import {
   hashPassword,
@@ -192,6 +193,21 @@ auth.post("/account/delete", requireUser, async (c) => {
   ]);
   await endSession(c);
   return c.json({ ok: true });
+});
+auth.get("/preferences", requireUser, async (c) => {
+  const meetingEmails = await c.env.DB.prepare(
+    "SELECT meeting_emails FROM users WHERE id=?",
+  )
+    .bind(c.get("identity").userId)
+    .first<number>("meeting_emails");
+  return c.json({ meetingEmails: meetingEmails === 1 });
+});
+auth.patch("/preferences", requireUser, async (c) => {
+  const { meetingEmails } = await input(c, preferencesSchema);
+  await c.env.DB.prepare("UPDATE users SET meeting_emails=? WHERE id=?")
+    .bind(meetingEmails ? 1 : 0, c.get("identity").userId)
+    .run();
+  return c.json({ meetingEmails });
 });
 auth.post("/reset", async (c) => {
   const data = await input(

@@ -17,16 +17,16 @@ Código da plataforma do [readline club](https://readline.club), um clube do liv
 
 A [política de privacidade](https://readline.club/privacidade) completa fica no site. Em resumo:
 
-**O que é guardado:** nome, e-mail, senha (somente em formato protegido, nunca o texto original), nível de experiência, motivação informada no cadastro, status da aprovação e a confirmação de leitura das orientações da comunidade. Para limitar tentativas de login e cadastro, o endereço IP é registrado apenas em formato de hash.
+**O que é guardado:** nome, e-mail, senha (somente em formato protegido, nunca o texto original), nível de experiência, motivação informada no cadastro, status da aprovação, a confirmação de leitura das orientações da comunidade, as respostas de presença nos encontros e a escolha de receber ou não os convites de encontros por e-mail. Para limitar tentativas de login e cadastro, o endereço IP é registrado apenas em formato de hash.
 
 **Quem vê o quê:**
 
-| Quem                       | Acesso                                                                                                                              |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Qualquer visitante         | Nome e apresentação do clube, livros, número de membros e o anúncio do próximo encontro (título, livro, capítulos, data e duração). |
-| Conta aguardando aprovação | O próprio cadastro e o status.                                                                                                      |
-| Membro aprovado            | Encontros com links de chamada, gravações publicadas, materiais e convites dos grupos.                                              |
-| Organização                | Os cadastros (nome, e-mail, experiência e motivação) e todo o conteúdo do painel.                                                   |
+| Quem                       | Acesso                                                                                                                                           |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Qualquer visitante         | Nome e apresentação do clube, livros, número de membros e o anúncio do próximo encontro (título, livro, capítulos, data e duração).              |
+| Conta aguardando aprovação | O próprio cadastro e o status.                                                                                                                   |
+| Membro aprovado            | Encontros com links de chamada, gravações publicadas, materiais e convites dos grupos.                                                           |
+| Organização                | Os cadastros (nome, e-mail, experiência e motivação), o total de confirmações de cada encontro (não quem confirmou) e todo o conteúdo do painel. |
 
 Nenhum membro vê dados de outros membros.
 
@@ -36,9 +36,9 @@ Nenhum membro vê dados de outros membros.
 
 - **Cloudflare:** hospedagem, banco de dados, envio de e-mails e a verificação anti-robô (Turnstile) da tela de cadastro.
 - **YouTube:** as gravações são exibidas pelo player `youtube-nocookie.com`, apenas para membros aprovados.
-- **Google Agenda:** só é acessado se a pessoa clicar para adicionar um encontro ao calendário.
+- **Google Agenda:** só é acessado se a pessoa clicar para adicionar um encontro ao calendário, na plataforma ou no convite por e-mail. A plataforma nunca envia e-mails de membros ao Google.
 
-**O que a plataforma não faz:** não tem pagamentos, anúncios de terceiros, ferramentas de análise ou rastreamento, nem login com redes sociais. O navegador guarda apenas o cookie de sessão e a preferência de tema claro/escuro. Os únicos e-mails automáticos são o aviso de aprovação e um resumo para a organização com a quantidade de cadastros pendentes, sem nomes ou endereços.
+**O que a plataforma não faz:** não tem pagamentos, anúncios de terceiros, ferramentas de análise ou rastreamento, nem login com redes sociais. O navegador guarda apenas o cookie de sessão e a preferência de tema claro/escuro. Os e-mails enviados são o aviso de aprovação, o convite de cada encontro (que o membro pode desligar em **Minha conta**) e um resumo para a organização com a quantidade de cadastros pendentes, sem nomes ou endereços.
 
 ## Segurança
 

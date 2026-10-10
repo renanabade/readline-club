@@ -1,4 +1,4 @@
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import { z } from "zod";
 import { HTTPException } from "hono/http-exception";
 import type { AppEnv } from "../env";
@@ -14,6 +14,7 @@ import { books, meetingQuery } from "./catalog";
 import { parseYouTubeId } from "../lib/youtube";
 import { digest, randomToken } from "../auth/password";
 import { notifyApproval } from "../lib/approval-email";
+import { requestInvitationBatch } from "../lib/invitation-request";
 const admin = new Hono<AppEnv>();
 admin.get("/overview", async (c) => {
   const [
@@ -25,6 +26,8 @@ admin.get("/overview", async (c) => {
     resources,
     recordings,
     settings,
+    invitations,
+    rsvps,
   ] = await Promise.all([
     c.env.DB.prepare(
       "SELECT a.*,u.id user_id,n.status approval_email_status,n.sent_at approval_email_sent_at,n.error_code approval_email_error FROM applications a LEFT JOIN users u ON u.email=a.email LEFT JOIN approval_notifications n ON n.application_id=a.id ORDER BY CASE a.status WHEN 'pending' THEN 0 WHEN 'approved' THEN 1 WHEN 'suspended' THEN 2 ELSE 3 END, CASE WHEN a.status='pending' THEN a.created_at END ASC, a.created_at DESC,a.id",
@@ -38,6 +41,13 @@ admin.get("/overview", async (c) => {
     c.env.DB.prepare("SELECT * FROM resources").all(),
     c.env.DB.prepare("SELECT * FROM recordings").all(),
     c.env.DB.prepare("SELECT * FROM settings WHERE id=1").first(),
+    // Totals only: the panel shows how many confirmed, never who.
+    c.env.DB.prepare(
+      "SELECT meeting_id,status,COUNT(*) AS total FROM meeting_invitations GROUP BY meeting_id,status",
+    ).all(),
+    c.env.DB.prepare(
+      "SELECT meeting_id,response,COUNT(*) AS total FROM meeting_rsvps GROUP BY meeting_id,response",
+    ).all(),
   ]);
   return c.json({
     applications: applications.results,
@@ -48,6 +58,8 @@ admin.get("/overview", async (c) => {
     resources: resources.results,
     recordings: recordings.results,
     settings,
+    invitations: invitations.results,
+    rsvps: rsvps.results,
   });
 });
 admin.post("/applications/approve-all", async (c) => {
@@ -105,6 +117,51 @@ admin.post("/applications/:id/notify", async (c) => {
     ok: true,
     ...(await notifyApproval(c.env, c.req.param("id"))),
   });
+});
+async function invitableMeeting(c: Context<AppEnv>) {
+  const meeting = await c.env.DB.prepare(
+    "SELECT id,status,starts_at FROM meetings WHERE id=?",
+  )
+    .bind(c.req.param("id"))
+    .first<{ id: string; status: string; starts_at: string | null }>();
+  if (!meeting) return missing();
+  if (
+    meeting.status !== "scheduled" ||
+    !meeting.starts_at ||
+    Date.parse(meeting.starts_at) <= Date.now()
+  )
+    throw new HTTPException(409, {
+      message:
+        "Só é possível convidar para encontros agendados que ainda não aconteceram.",
+    });
+  return meeting.id;
+}
+admin.post("/meetings/:id/invitations", async (c) => {
+  const id = await invitableMeeting(c);
+  // Approved members who accept meeting emails and were not invited yet.
+  // Known failures and skipped invitations get another chance; sent and
+  // unknown outcomes are never queued again.
+  const [inserted] = await c.env.DB.batch([
+    c.env.DB.prepare(
+      `INSERT INTO meeting_invitations(meeting_id,user_id)
+      SELECT ?,u.id FROM users u JOIN applications a ON a.email=u.email
+      WHERE a.status='approved' AND u.role='member' AND u.meeting_emails=1
+      ON CONFLICT(meeting_id,user_id) DO NOTHING`,
+    ).bind(id),
+    c.env.DB.prepare(
+      "UPDATE meeting_invitations SET status='queued',error_code=NULL WHERE meeting_id=? AND status IN ('failed','skipped')",
+    ).bind(id),
+  ]);
+  const queued = await c.env.DB.prepare(
+    "SELECT COUNT(*) AS total FROM meeting_invitations WHERE meeting_id=? AND status='queued'",
+  )
+    .bind(id)
+    .first<number>("total");
+  return c.json({ added: inserted?.meta.changes ?? 0, queued: queued ?? 0 });
+});
+admin.post("/meetings/:id/invitations/send", async (c) => {
+  const id = await invitableMeeting(c);
+  return c.json(await requestInvitationBatch(c.env, id));
 });
 admin.post("/members/:id/reset", async (c) => {
   const user = await c.env.DB.prepare(

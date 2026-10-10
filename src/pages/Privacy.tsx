@@ -30,8 +30,9 @@ export default function Privacy() {
         </li>
         <li>
           <strong>Durante o uso:</strong> o status da sua inscrição, a
-          confirmação de que leu como a comunidade funciona e as sessões abertas
-          na sua conta.
+          confirmação de que leu como a comunidade funciona, as sessões abertas
+          na sua conta, suas respostas de presença nos encontros, sua escolha
+          sobre receber avisos de encontros e o registro dos convites enviados.
         </li>
         <li>
           <strong>Para segurança:</strong> o endereço IP e o e-mail usados em
@@ -43,18 +44,22 @@ export default function Privacy() {
       <h2>Para que usamos</h2>
       <p className="prose">
         Para avaliar sua inscrição, liberar seu acesso, avisar por e-mail quando
-        ele for aprovado e manter a plataforma segura. Tratamos os dados com
-        base no consentimento que você dá no cadastro e no que é necessário para
-        oferecer a plataforma. Não vendemos dados, não exibimos anúncios de
-        terceiros e não usamos ferramentas de análise ou rastreamento.
+        ele for aprovado, enviar o convite de cada encontro e manter a
+        plataforma segura. Você pode deixar de receber os convites de encontros
+        a qualquer momento em <Link to="/conta">Minha conta</Link>. Tratamos os
+        dados com base no consentimento que você dá no cadastro e no que é
+        necessário para oferecer a plataforma. Não vendemos dados, não exibimos
+        anúncios de terceiros e não usamos ferramentas de análise ou
+        rastreamento.
       </p>
 
       <h2>Quem vê seus dados</h2>
       <p className="prose">
         A organização do clube vê os cadastros (nome, e-mail, experiência e
-        motivação) para aprovar as inscrições. Outros membros não veem seus
-        dados pela plataforma. A página inicial mostra apenas o número total de
-        membros.
+        motivação) para aprovar as inscrições. Das confirmações de presença, a
+        organização vê apenas o total de cada encontro, não quem respondeu.
+        Outros membros não veem seus dados pela plataforma. A página inicial
+        mostra apenas o número total de membros.
       </p>
 
       <h2>Serviços de terceiros</h2>
@@ -72,7 +77,8 @@ export default function Privacy() {
         </li>
         <li>
           <strong>Google Agenda:</strong> só é acessado se você clicar para
-          adicionar um encontro ao calendário.
+          adicionar um encontro ao calendário, na plataforma ou no convite por
+          e-mail. Seu e-mail nunca é enviado ao Google pela plataforma.
         </li>
         <li>
           <strong>WhatsApp e Discord:</strong> os grupos do clube são serviços
@@ -108,7 +114,7 @@ export default function Privacy() {
       <h2>Mudanças nesta política</h2>
       <p className="prose">
         Quando esta política mudar, a nova versão será publicada nesta página.
-        Última atualização: 6 de outubro de 2026.
+        Última atualização: 10 de outubro de 2026.
       </p>
     </div>
   );

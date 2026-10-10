@@ -7,8 +7,11 @@ import type {
   Resource,
   Cycle,
   Settings,
+  MeetingRsvp,
 } from "../../shared/contracts";
-import { missing } from "../errors";
+import { HTTPException } from "hono/http-exception";
+import { input, missing } from "../errors";
+import { rsvpSchema } from "../../shared/validation";
 import { meetingToIcs } from "../lib/calendar";
 export async function books(db: Env["DB"], all = false): Promise<Book[]> {
   const rows = await db
@@ -67,7 +70,40 @@ catalog.get("/meetings/:id", async (c) => {
   )
     .bind(meeting.id)
     .all<Resource>();
-  return c.json({ meeting, resources: resources.results });
+  const rsvp = await c.env.DB.prepare(
+    "SELECT response FROM meeting_rsvps WHERE meeting_id=? AND user_id=?",
+  )
+    .bind(meeting.id, c.get("identity").userId)
+    .first<MeetingRsvp>("response");
+  return c.json({ meeting, resources: resources.results, rsvp: rsvp ?? null });
+});
+catalog.put("/meetings/:id/rsvp", async (c) => {
+  const { response } = await input(c, rsvpSchema);
+  const meeting = await c.env.DB.prepare(
+    meetingQuery + " WHERE m.id=? AND b.status!='archived'",
+  )
+    .bind(c.req.param("id"))
+    .first<Meeting>();
+  if (!meeting) return missing();
+  if (
+    meeting.status !== "scheduled" ||
+    !meeting.starts_at ||
+    Date.parse(meeting.starts_at) <= Date.now()
+  )
+    throw new HTTPException(409, {
+      message: "A confirmação de presença está encerrada para este encontro.",
+    });
+  await c.env.DB.prepare(
+    "INSERT INTO meeting_rsvps(meeting_id,user_id,response,updated_at) VALUES(?,?,?,?) ON CONFLICT(meeting_id,user_id) DO UPDATE SET response=excluded.response,updated_at=excluded.updated_at",
+  )
+    .bind(
+      meeting.id,
+      c.get("identity").userId,
+      response,
+      new Date().toISOString(),
+    )
+    .run();
+  return c.json({ rsvp: response });
 });
 catalog.get("/meetings/:id/calendar.ics", async (c) => {
   const m = await c.env.DB.prepare(

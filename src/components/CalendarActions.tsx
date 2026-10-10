@@ -1,6 +1,7 @@
 import { CalendarDays } from "lucide-react";
 import { useSession } from "../lib/session";
 import type { Meeting } from "../../shared/contracts";
+import { googleCalendarUrl } from "../../shared/calendar";
 
 export function CalendarActions({
   meeting,
@@ -18,26 +19,8 @@ export function CalendarActions({
     meeting.status !== "scheduled"
   )
     return null;
-  const start = new Date(meeting.starts_at);
-  if (!Number.isFinite(start.getTime())) return null;
-  const end = new Date(start.getTime() + meeting.duration_minutes * 60000);
-  const stamp = (date: Date) =>
-    date
-      .toISOString()
-      .replace(/[-:]/g, "")
-      .replace(/\.\d{3}/, "");
-  const params = new URLSearchParams({
-    action: "TEMPLATE",
-    text: meeting.title,
-    dates: stamp(start) + "/" + stamp(end),
-    ctz: "America/Sao_Paulo",
-    details:
-      meeting.chapters +
-      "\nO link da chamada será informado no clube.\n" +
-      window.location.origin +
-      "/encontros/" +
-      encodeURIComponent(meeting.id),
-  });
+  const google = googleCalendarUrl(meeting, window.location.origin);
+  if (!google) return null;
   const member = user.role === "admin" || user.status === "approved";
   return (
     <div className="calendar-actions">
@@ -47,9 +30,7 @@ export function CalendarActions({
       <div className="whatsapp-actions">
         <a
           className="button"
-          href={
-            "https://calendar.google.com/calendar/render?" + params.toString()
-          }
+          href={google}
           target="_blank"
           rel="noopener noreferrer"
         >

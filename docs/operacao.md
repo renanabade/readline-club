@@ -53,6 +53,12 @@ A aprovação chama o Worker privado `readlineclub-mailer` por service binding. 
 
 O painel diferencia acesso aprovado de aviso enviado. Para contas já aprovadas antes da integração, use **Enviar aviso de aprovação**. Erros confirmados permitem nova tentativa após um minuto; avisos aceitos pelo provedor não são repetidos. Um resultado desconhecido fica bloqueado para evitar duplicação: consulte os logs do provedor antes de qualquer intervenção. Aceitação pelo provedor não comprova chegada à caixa de entrada.
 
+### Convite para encontro
+
+No painel, cada encontro agendado e ainda não realizado tem o botão **Enviar convite por e-mail**. Depois da confirmação, a plataforma põe na fila os membros aprovados que aceitam avisos de encontros (opção em **Minha conta**, ligada por padrão) e o mailer envia em lotes de 20, pelo mesmo remetente `EMAIL_FROM`. O e-mail traz data, horário, leitura, o botão **Confirmar presença** (página do encontro, com login), o link para o Google Agenda e o arquivo `.ics` anexado. O link da chamada não vai no e-mail.
+
+A tabela `meeting_invitations` registra cada convite e impede duplicação: enviar de novo só alcança quem ainda não recebeu (por exemplo, membros aprovados depois), além de repetir falhas confirmadas. Resultados desconhecidos ficam bloqueados para inspeção, como nos outros e-mails. Antes de cada envio, o mailer confere de novo se a pessoa continua aprovada e aceitando avisos. As respostas ficam em `meeting_rsvps`, e o painel mostra só os totais de cada encontro.
+
 ### Resumo de pendências
 
 O mesmo Worker envia um resumo para o endereço do secret `ADMIN_NOTIFY_EMAIL` às **9h e às 18h de Brasília** (`0 12,21 * * *`, em UTC). Não há e-mail por cadastro e nenhum resumo é enviado quando não há pendências. O e-mail contém apenas a quantidade e o link da administração; nomes e endereços dos inscritos ficam no painel. A tabela `admin_digest_notifications` registra cada horário e impede disparos duplicados. Falhas conhecidas podem ser tentadas novamente até três vezes no mesmo horário; resultados desconhecidos ficam bloqueados para inspeção. Não há repetição automática fora dos dois horários.

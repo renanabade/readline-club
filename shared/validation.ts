@@ -82,3 +82,7 @@ export const settingsSchema = z.object({
     .default(""),
   community_guidelines: text.default(""),
 });
+export const rsvpSchema = z.object({
+  response: z.enum(["yes", "no"], "Escolha se vai participar."),
+});
+export const preferencesSchema = z.object({ meetingEmails: z.boolean() });

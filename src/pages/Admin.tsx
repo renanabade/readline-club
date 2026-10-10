@@ -9,6 +9,7 @@ import {
   CalendarDays,
   Video,
   Link2,
+  Mail,
   X,
 } from "lucide-react";
 import { useData } from "../lib/useData";
@@ -19,6 +20,7 @@ import type {
   AdminData,
   Application,
   Book,
+  InvitationBatch,
   Meeting,
 } from "../../shared/contracts";
 type Entity =
@@ -51,11 +53,15 @@ export default function Admin() {
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState(""),
     [resetLink, setResetLink] = useState(""),
-    [confirmation, setConfirmation] = useState<MemberConfirmation | null>(null);
+    [confirmation, setConfirmation] = useState<MemberConfirmation | null>(null),
+    [inviting, setInviting] = useState<Meeting | null>(null);
   const actionRunning = useRef(false);
   useDialogFocus(!!resetLink, () => setResetLink(""));
   useDialogFocus(!!confirmation, () => {
     if (!actionRunning.current) setConfirmation(null);
+  });
+  useDialogFocus(!!inviting, () => {
+    if (!actionRunning.current) setInviting(null);
   });
   async function action(
     path: string,
@@ -132,6 +138,49 @@ export default function Admin() {
       setConfirmation(null);
       await reload();
       window.dispatchEvent(new Event("content-refresh"));
+      actionRunning.current = false;
+      setBusy(false);
+    }
+  }
+  async function sendInvitations() {
+    if (!inviting || actionRunning.current) return;
+    const path = "/admin/meetings/" + encodeURIComponent(inviting.id);
+    actionRunning.current = true;
+    setBusy(true);
+    setMessage("");
+    setActionError("");
+    let sent = 0,
+      failed = 0;
+    try {
+      await save(path + "/invitations", {});
+      // The mailer sends in small batches; keep asking while each batch
+      // makes progress, so a stuck queue cannot loop forever.
+      for (;;) {
+        const batch = await save<InvitationBatch>(
+          path + "/invitations/send",
+          {},
+        );
+        sent += batch.sent;
+        failed += batch.failed;
+        if (!batch.remaining || !(batch.sent + batch.failed + batch.skipped))
+          break;
+      }
+      setMessage(
+        sent
+          ? `${sent} ${sent === 1 ? "convite enviado" : "convites enviados"}.`
+          : "Nenhum convite novo: todos os membros já foram convidados.",
+      );
+      if (failed)
+        setActionError(
+          `${failed} ${failed === 1 ? "convite não teve" : "convites não tiveram"} envio confirmado. Envie de novo mais tarde para tentar outra vez.`,
+        );
+    } catch (e) {
+      setActionError(
+        `Não foi possível enviar todos os convites. ${sent} ${sent === 1 ? "foi enviado" : "foram enviados"}; envie de novo para continuar de onde parou. ${(e as Error).message}`,
+      );
+    } finally {
+      setInviting(null);
+      await reload();
       actionRunning.current = false;
       setBusy(false);
     }
@@ -514,7 +563,20 @@ export default function Admin() {
                     <Link2 size={16} />
                     Adicionar material
                   </button>
+                  {m.status === "scheduled" &&
+                    !!m.starts_at &&
+                    Date.parse(m.starts_at) > Date.now() && (
+                      <button
+                        className="button small-button"
+                        disabled={busy}
+                        onClick={() => setInviting(m)}
+                      >
+                        <Mail size={16} />
+                        Enviar convite por e-mail
+                      </button>
+                    )}
                 </div>
+                <MeetingTotals data={data} meetingId={m.id} />
                 {data.resources
                   .filter((r) => r.meeting_id === m.id)
                   .map((r) => (
@@ -624,6 +686,48 @@ export default function Admin() {
           </section>
         </div>
       )}
+      {inviting && (
+        <div className="modal-overlay">
+          <section
+            className="dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="invite-title"
+          >
+            <button
+              className="dialog-close icon-btn"
+              disabled={busy}
+              onClick={() => setInviting(null)}
+              aria-label="Cancelar"
+            >
+              <X />
+            </button>
+            <h2 id="invite-title">Enviar convite de “{inviting.title}”?</h2>
+            <p>
+              Os membros aprovados que aceitam avisos de encontros recebem um
+              e-mail com a data ({dateLabel(inviting.starts_at)}, Brasília), o
+              botão para confirmar presença e o convite para a agenda. Quem já
+              recebeu este convite não recebe de novo.
+            </p>
+            <div className="row-actions">
+              <button
+                className="button"
+                disabled={busy}
+                onClick={() => setInviting(null)}
+              >
+                Cancelar
+              </button>
+              <button
+                className="button primary"
+                disabled={busy}
+                onClick={() => void sendInvitations()}
+              >
+                {busy ? "Enviando convites…" : "Confirmar e enviar"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
       {resetLink && (
         <div className="modal-overlay">
           <section
@@ -665,6 +769,31 @@ export default function Admin() {
         </div>
       )}
     </div>
+  );
+}
+function MeetingTotals({
+  data,
+  meetingId,
+}: {
+  data: AdminData;
+  meetingId: string;
+}) {
+  const invited = data.invitations
+    .filter((i) => i.meeting_id === meetingId && i.status === "sent")
+    .reduce((sum, i) => sum + i.total, 0);
+  const answer = (response: string) =>
+    data.rsvps.find(
+      (r) => r.meeting_id === meetingId && r.response === response,
+    )?.total ?? 0;
+  const yes = answer("yes"),
+    no = answer("no");
+  if (!invited && !yes && !no) return null;
+  return (
+    <p className="muted">
+      {invited} {invited === 1 ? "convite enviado" : "convites enviados"} ·{" "}
+      {yes} {yes === 1 ? "confirmou presença" : "confirmaram presença"} · {no}{" "}
+      {no === 1 ? "não vai" : "não vão"}
+    </p>
   );
 }
 function Editor({
