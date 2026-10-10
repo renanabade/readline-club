@@ -105,7 +105,7 @@ Antes de pedir revisão ou fazer o merge, confira a lista de **pronto**:
 
 O deploy é manual e feito depois do merge, a partir da `main` atualizada:
 
-1. **Se houver migration:** exporte o banco (`wrangler d1 export DB --remote --output backup.sql`, guardado fora do repositório) e aplique com `npm run db:migrate:remote`.
+1. **Se houver migration:** exporte o banco para fora do repositório (`npx wrangler d1 export DB --remote --output /caminho/privado/backup.sql`) e aplique com `npm run db:migrate:remote`.
 2. **Se houver configuração nova:** crie secrets e variáveis antes do deploy (a descrição do PR deve listá-los).
 3. `npm run deploy` (roda o `verify`, publica o mailer e o Pages).
 4. Verifique em produção o critério de pronto definido no escopo.

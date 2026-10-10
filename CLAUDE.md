@@ -15,7 +15,10 @@ O `README.md` é só explicativo, para o público (o que é a plataforma e como 
 Regras que não podem ser quebradas:
 
 - Toda entrega em branch própria e PR; nunca commit direto na `main`. Commit e push só quando pedido.
-- Nada da instância ou de pessoas reais fixo no código (domínios, e-mails, convites, datas, nomes). Testes usam `example.test`.
+- O repositório é público e o histórico é permanente. Revise `git diff --cached` antes de cada commit e adicione arquivos pelo nome, nunca com `git add .` ou `git add -A`.
+- Valores da instância (domínio, remetente, responsável pela política de privacidade) ficam só nos lugares listados em `docs/arquitetura.md#valores-da-instância`. Fora deles, nada da instância ou de pessoas reais fixo no código (domínios, e-mails, convites, datas, nomes). Testes usam `example.test`.
+- Nunca rode comandos `--remote` do Wrangler (`d1 execute`, `d1 export`, `d1 migrations apply`, `deploy`, `secret put`) sem pedido explícito. Resultados de produção (dados de membros, logs) nunca vão para código, testes, commits, PRs ou issues.
+- Backups, exports e credenciais ficam sempre fora do repositório.
 - Migration aplicada nunca é editada; migration nova entra em `tests/helpers.ts`.
 - Antes de declarar pronto: `npm run verify`, `npm run build:pages`, `npx prettier --check .` (e `npm run build:mailer` se o mailer mudou), com o resultado relatado.
 - Código, nomes e comentários em inglês; interface, mensagens da API, documentação, commits e PRs em português.

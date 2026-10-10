@@ -7,3 +7,11 @@ dist/
 !.env.mailer.example
 *.log
 
+
+# Private data that must never reach the public repository:
+# database exports, credentials from bootstrap-admin and other local dumps.
+*.sql
+!migrations/*.sql
+backup*
+acesso*.txt
+*.private.*
