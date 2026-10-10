@@ -1,7 +1,8 @@
 import { scryptSync, randomBytes } from "node:crypto";
 import { writeFileSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { join, resolve, relative, isAbsolute } from "node:path";
+import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 const args = process.argv.slice(2);
 const option = (k) => args[args.indexOf(k) + 1];
@@ -16,6 +17,13 @@ const email = option("--email").trim().toLowerCase();
 const name = args.includes("--name") ? option("--name").trim() : "Organizador";
 if (!name || name.length > 200) throw Error("Invalid name");
 if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw Error("Invalid email");
+// The repository is public: refuse to write credentials anywhere inside it,
+// before touching the database.
+const output = resolve(option("--output"));
+const project = fileURLToPath(new URL("..", import.meta.url));
+const inside = relative(project, output);
+if (!inside.startsWith("..") && !isAbsolute(inside))
+  throw Error("Choose an --output path outside the repository.");
 const password = randomBytes(24).toString("base64url");
 const salt = randomBytes(16).toString("hex");
 const hash = scryptSync(password, salt, 64, {
@@ -57,7 +65,7 @@ if (result.status !== 0) {
   process.exit(1);
 }
 writeFileSync(
-  resolve(option("--output")),
+  output,
   "ACESSO PRIVADO — não enviar ao GitHub\n\nE-mail: " +
     email +
     "\nSenha inicial: " +

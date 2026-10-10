@@ -21,10 +21,10 @@ Copie `.dev.vars.example` para `.dev.vars` e preencha `TURNSTILE_SITE_KEY` e `TU
 A primeira conta administrativa é criada fora do cadastro público:
 
 ```sh
-node scripts/bootstrap-admin.mjs --local --email organizador@exemplo.com --name "Seu nome" --output /caminho/privado/acesso.txt
+node scripts/bootstrap-admin.mjs --local --email organizador@example.test --name "Seu nome" --output /caminho/privado/acesso.txt
 ```
 
-Para produção, substitua `--local` por `--remote`. O script gera uma senha aleatória, não substitui contas existentes e exige troca no primeiro login. Guarde a saída fora do repositório. A variável protegida `ADMIN_EMAIL` reserva o endereço no cadastro público e limita o acesso administrativo a esse único e-mail. O servidor exige também o papel `admin` persistido no banco; informar o e-mail no cadastro nunca concede privilégios.
+Para produção, substitua `--local` por `--remote`. O script gera uma senha aleatória, não substitui contas existentes e exige troca no primeiro login. O script recusa um `--output` dentro do repositório, porque o arquivo contém a senha inicial. A variável protegida `ADMIN_EMAIL` reserva o endereço no cadastro público e limita o acesso administrativo a esse único e-mail. O servidor exige também o papel `admin` persistido no banco; informar o e-mail no cadastro nunca concede privilégios.
 
 No painel é possível:
 
@@ -94,7 +94,7 @@ npm run deploy
 
 Antes do primeiro deploy, copie `.env.mailer.example` para `.env.mailer` e preencha `ADMIN_NOTIFY_EMAIL`. O arquivo fica fora do git e é enviado como secret do mailer a cada `npm run deploy`; sem ele, o deploy do mailer falha.
 
-Ao criar um novo banco, as migrations adicionam apenas o livro Entendendo Algoritmos e o primeiro ciclo, sem datas, membros ou vídeos fictícios. Nunca edite migrations que já foram aplicadas. Antes de novas alterações de schema em produção, exporte o banco com `wrangler d1 export DB --remote --output backup.sql` e guarde o backup em local privado. Rollback do Worker não desfaz alterações no D1.
+Ao criar um novo banco, as migrations adicionam apenas o livro Entendendo Algoritmos e o primeiro ciclo, sem datas, membros ou vídeos fictícios. Nunca edite migrations que já foram aplicadas. Antes de novas alterações de schema em produção, exporte o banco com `npx wrangler d1 export DB --remote --output /caminho/privado/backup.sql`, sempre fora do repositório: o arquivo contém nomes, e-mails e hashes de senha de todos os membros. Rollback do Worker não desfaz alterações no D1.
 
 A integração GitHub Actions executa testes, build e compilação de Pages Functions em pushes para main e pull requests. A publicação é feita por `npm run deploy`, usando Direct Upload na branch `main`; não existe deploy automático configurado. Migrations remotas continuam uma etapa explícita anterior ao deploy quando houver schema novo. O ambiente `preview` não possui binding para o D1 de produção, e a API recusa hostnames diferentes de `APP_ORIGIN`, inclusive aliases de deployment.
 

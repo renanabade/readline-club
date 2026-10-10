@@ -50,10 +50,25 @@ Qualquer mudança nesta tabela é uma decisão de produto: precisa estar explíc
 - [ ] Logs novos registram só eventos e status?
 - [ ] Nada da instância ou de pessoas reais foi escrito no código, nos testes ou nas fixtures (use `example.test`)?
 
+**Commit e publicação**
+
+- [ ] `git diff --cached` revisado antes de cada commit, arquivo por arquivo? Prefira `git add <arquivo>` a `git add .`.
+- [ ] Os commits usam o e-mail `noreply` do GitHub (`git config user.email`), não um e-mail pessoal?
+- [ ] Descrição do PR, comentários e capturas de tela sem dados reais de membros?
+
 **Dependências**
 
 - [ ] `npm audit` continua sem vulnerabilidades?
 - [ ] Dependência nova é realmente necessária e mantida?
+
+## Dados de produção e arquivos locais
+
+O histórico do git é público e permanente: um arquivo commitado por engano continua acessível mesmo depois de apagado.
+
+- **Backups, exports do D1 e credenciais** (como a saída de `scripts/bootstrap-admin.mjs`) ficam sempre **fora do repositório**. O `.gitignore` bloqueia os nomes mais comuns (`*.sql` fora de `migrations/`, `backup*`, `acesso*.txt`, `*.private.*`), mas é só uma rede de segurança.
+- **Consultas ao banco de produção** (`wrangler d1 execute --remote`, `wrangler d1 export --remote`) só com autorização explícita de quem administra a plataforma, e apenas para operação ou diagnóstico.
+- **O resultado de uma consulta de produção nunca é citado** em código, testes, commits, PRs, issues ou capturas de tela. Para descrever um problema, use contagens ou dados fictícios com `example.test`.
+- **Logs da Cloudflare** seguem a mesma regra: podem ser lidos para diagnóstico, mas não copiados para o GitHub.
 
 ## Vulnerabilidades
 
