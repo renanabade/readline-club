@@ -1,13 +1,24 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowRight, BookOpen, Check } from "lucide-react";
 import { useSession } from "../lib/session";
 import { save } from "../lib/api";
 import { Notice } from "../components/ui";
 import { Turnstile } from "../components/Turnstile";
+// Only same-site paths: "//host" and "/\\host" would leave the site.
+export function returnPath(state: unknown) {
+  const from = (state as { from?: unknown } | null)?.from;
+  return typeof from === "string" &&
+    from.startsWith("/") &&
+    !from.startsWith("//") &&
+    !from.startsWith("/\\")
+    ? from
+    : "/conta";
+}
 export default function Auth({ mode }: { mode: "login" | "signup" | "reset" }) {
   const { home, refresh } = useSession();
   const navigate = useNavigate();
+  const location = useLocation();
   const [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [done, setDone] = useState(false),
@@ -39,7 +50,9 @@ export default function Auth({ mode }: { mode: "login" | "signup" | "reset" }) {
       } else {
         await save("/auth/login", d);
         await refresh();
-        navigate("/conta");
+        // Back to the page that asked for login, e.g. a meeting opened from
+        // the invitation email.
+        navigate(returnPath(location.state), { replace: true });
       }
     } catch (e) {
       setError((e as Error).message);

@@ -206,6 +206,7 @@ export function MeetingPage() {
           </span>
           {m.status === "cancelled" && <span className="tag">Cancelado</span>}
         </div>
+        <MeetingRsvp meeting={m} initial={data.rsvp} />
       </div>
       <div className="meeting-layout">
         <div>
@@ -260,7 +261,6 @@ export function MeetingPage() {
               Participar do encontro <ExternalLink size={16} />
             </a>
           )}
-          <MeetingRsvp meeting={m} initial={data.rsvp} />
           <CalendarActions meeting={m} />
           <hr />
           <h3>Materiais complementares</h3>
