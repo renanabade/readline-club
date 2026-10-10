@@ -7,7 +7,8 @@ interface InvitationEnv {
   EMAIL_FROM: string;
   APP_ORIGIN: string;
 }
-export const invitationBatchSize = 20;
+export const invitationBatchSize = 50;
+const sendConcurrency = 10;
 const escapeHtml = (s: string) =>
   s.replace(
     /[&<>"']/g,
@@ -78,8 +79,16 @@ export async function sendInvitationBatch(
     !meeting?.starts_at ||
     meeting.status !== "scheduled" ||
     Date.parse(meeting.starts_at) <= Date.now()
-  )
+  ) {
+    // The meeting passed or was cancelled: drop what is still queued, so the
+    // scheduled drain stops picking it up.
+    await env.DB.prepare(
+      "UPDATE meeting_invitations SET status='skipped' WHERE meeting_id=? AND status='queued'",
+    )
+      .bind(meetingId)
+      .run();
     return { status: "ineligible" as const };
+  }
   const startsAt = meeting.starts_at;
   // Claim a batch atomically: concurrent calls get disjoint rows, so nobody
   // receives the same invitation twice.
@@ -112,9 +121,7 @@ export async function sendInvitationBatch(
     )
       .bind(meetingId, JSON.stringify(skipped))
       .run();
-  let sent = 0,
-    failed = 0;
-  for (const recipient of recipients) {
+  const sendOne = async (recipient: (typeof recipients)[number]) => {
     let messageId: string;
     try {
       const result = await env.EMAIL.send(
@@ -136,15 +143,25 @@ export async function sendInvitationBatch(
           recipient.id,
         )
         .run();
-      failed++;
-      continue;
+      return false;
     }
     await env.DB.prepare(
       "UPDATE meeting_invitations SET status='sent',sent_at=?,provider_id=? WHERE meeting_id=? AND user_id=?",
     )
       .bind(new Date().toISOString(), messageId, meetingId, recipient.id)
       .run();
-    sent++;
+    return true;
+  };
+  // A few sends at a time: each one waits on the provider, so sending them
+  // one by one made a batch take minutes.
+  let sent = 0,
+    failed = 0;
+  for (let i = 0; i < recipients.length; i += sendConcurrency) {
+    const results = await Promise.all(
+      recipients.slice(i, i + sendConcurrency).map(sendOne),
+    );
+    sent += results.filter(Boolean).length;
+    failed += results.filter((ok) => !ok).length;
   }
   const remaining =
     (await env.DB.prepare(
@@ -159,4 +176,21 @@ export async function sendInvitationBatch(
     skipped: skipped.length,
     remaining,
   };
+}
+// Runs from the mailer's cron: each run sends one batch per meeting with
+// queued invitations, so the organizer can close the page after queueing.
+export async function drainInvitations(env: InvitationEnv) {
+  const meetings = await env.DB.prepare(
+    "SELECT DISTINCT meeting_id FROM meeting_invitations WHERE status='queued'",
+  ).all<{ meeting_id: string }>();
+  let sent = 0,
+    failed = 0;
+  for (const { meeting_id } of meetings.results) {
+    const result = await sendInvitationBatch(env, meeting_id);
+    if (result.status === "processed") {
+      sent += result.sent;
+      failed += result.failed;
+    }
+  }
+  return { meetings: meetings.results.length, sent, failed };
 }

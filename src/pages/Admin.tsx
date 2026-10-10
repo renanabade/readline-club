@@ -20,7 +20,7 @@ import type {
   AdminData,
   Application,
   Book,
-  InvitationBatch,
+  InvitationQueue,
   Meeting,
 } from "../../shared/contracts";
 type Entity =
@@ -144,40 +144,22 @@ export default function Admin() {
   }
   async function sendInvitations() {
     if (!inviting || actionRunning.current) return;
-    const path = "/admin/meetings/" + encodeURIComponent(inviting.id);
     actionRunning.current = true;
     setBusy(true);
     setMessage("");
     setActionError("");
-    let sent = 0,
-      failed = 0;
     try {
-      await save(path + "/invitations", {});
-      // The mailer sends in small batches; keep asking while each batch
-      // makes progress, so a stuck queue cannot loop forever.
-      for (;;) {
-        const batch = await save<InvitationBatch>(
-          path + "/invitations/send",
-          {},
-        );
-        sent += batch.sent;
-        failed += batch.failed;
-        if (!batch.remaining || !(batch.sent + batch.failed + batch.skipped))
-          break;
-      }
+      const { queued } = await save<InvitationQueue>(
+        "/admin/meetings/" + encodeURIComponent(inviting.id) + "/invitations",
+        {},
+      );
       setMessage(
-        sent
-          ? `${sent} ${sent === 1 ? "convite enviado" : "convites enviados"}.`
+        queued
+          ? `${queued} ${queued === 1 ? "convite na fila" : "convites na fila"}. O envio continua no servidor nos próximos minutos; você pode fechar esta página.`
           : "Nenhum convite novo: todos os membros já foram convidados.",
       );
-      if (failed)
-        setActionError(
-          `${failed} ${failed === 1 ? "convite não teve" : "convites não tiveram"} envio confirmado. Envie de novo mais tarde para tentar outra vez.`,
-        );
     } catch (e) {
-      setActionError(
-        `Não foi possível enviar todos os convites. ${sent} ${sent === 1 ? "foi enviado" : "foram enviados"}; envie de novo para continuar de onde parou. ${(e as Error).message}`,
-      );
+      setActionError((e as Error).message);
     } finally {
       setInviting(null);
       await reload();
@@ -704,10 +686,12 @@ export default function Admin() {
             </button>
             <h2 id="invite-title">Enviar convite de “{inviting.title}”?</h2>
             <p>
-              Os membros aprovados que aceitam avisos de encontros recebem um
-              e-mail com a data ({dateLabel(inviting.starts_at)}, Brasília), o
-              botão para confirmar presença e o convite para a agenda. Quem já
-              recebeu este convite não recebe de novo.
+              Todos os membros aprovados recebem um e-mail com a data (
+              {dateLabel(inviting.starts_at)}, Brasília), o botão para confirmar
+              presença e o convite para a agenda, exceto quem desligou os avisos
+              em Minha conta. Quem já recebeu este convite não recebe de novo. O
+              envio acontece no servidor: depois de confirmar, você pode fechar
+              a página.
             </p>
             <div className="row-actions">
               <button
@@ -722,7 +706,7 @@ export default function Admin() {
                 disabled={busy}
                 onClick={() => void sendInvitations()}
               >
-                {busy ? "Enviando convites…" : "Confirmar e enviar"}
+                {busy ? "Preparando convites…" : "Confirmar e enviar"}
               </button>
             </div>
           </section>
@@ -778,20 +762,27 @@ function MeetingTotals({
   data: AdminData;
   meetingId: string;
 }) {
-  const invited = data.invitations
-    .filter((i) => i.meeting_id === meetingId && i.status === "sent")
-    .reduce((sum, i) => sum + i.total, 0);
+  const count = (statuses: string[]) =>
+    data.invitations
+      .filter((i) => i.meeting_id === meetingId && statuses.includes(i.status))
+      .reduce((sum, i) => sum + i.total, 0);
   const answer = (response: string) =>
     data.rsvps.find(
       (r) => r.meeting_id === meetingId && r.response === response,
     )?.total ?? 0;
-  const yes = answer("yes"),
+  const sent = count(["sent"]),
+    pending = count(["queued", "sending"]),
+    failed = count(["failed"]),
+    yes = answer("yes"),
     no = answer("no");
-  if (!invited && !yes && !no) return null;
+  if (!sent && !pending && !failed && !yes && !no) return null;
   return (
     <p className="muted">
-      {invited} {invited === 1 ? "convite enviado" : "convites enviados"} ·{" "}
-      {yes} {yes === 1 ? "confirmou presença" : "confirmaram presença"} · {no}{" "}
+      {sent} {sent === 1 ? "convite enviado" : "convites enviados"}
+      {pending > 0 && ` · ${pending} na fila`}
+      {failed > 0 &&
+        ` · ${failed} com falha (envie de novo para tentar outra vez)`}{" "}
+      · {yes} {yes === 1 ? "confirmou presença" : "confirmaram presença"} · {no}{" "}
       {no === 1 ? "não vai" : "não vão"}
     </p>
   );

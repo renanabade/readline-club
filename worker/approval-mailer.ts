@@ -1,5 +1,7 @@
-import { sendInvitationBatch } from "./lib/meeting-invitation";
+import { drainInvitations } from "./lib/meeting-invitation";
 import { sendPendingDigest } from "./lib/admin-digest";
+// Must match the every-minute trigger in wrangler.mailer.jsonc.
+export const invitationCron = "* * * * *";
 interface MailerEnv {
   DB: D1Database;
   EMAIL: SendEmail;
@@ -10,6 +12,14 @@ interface MailerEnv {
 
 export default {
   async scheduled(controller: ScheduledController, env: MailerEnv) {
+    if (controller.cron === invitationCron) {
+      const { meetings, sent, failed } = await drainInvitations(env);
+      if (meetings)
+        console.log(
+          JSON.stringify({ event: "meeting_invitations", sent, failed }),
+        );
+      return;
+    }
     const status = await sendPendingDigest(env, controller.scheduledTime);
     console.log(JSON.stringify({ event: "admin_digest", status }));
   },
@@ -17,14 +27,7 @@ export default {
     if (request.method !== "POST") return new Response(null, { status: 405 });
     const body = (await request.json().catch(() => null)) as {
       applicationId?: unknown;
-      meetingId?: unknown;
     } | null;
-    if (typeof body?.meetingId === "string" && body.meetingId.length <= 100) {
-      const result = await sendInvitationBatch(env, body.meetingId);
-      return Response.json(result, {
-        status: result.status === "ineligible" ? 409 : 200,
-      });
-    }
     if (
       typeof body?.applicationId !== "string" ||
       body.applicationId.length > 100

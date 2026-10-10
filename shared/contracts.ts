@@ -117,9 +117,7 @@ export interface AdminData {
   }[];
   rsvps: { meeting_id: string; response: MeetingRsvp; total: number }[];
 }
-export interface InvitationBatch {
-  sent: number;
-  failed: number;
-  skipped: number;
-  remaining: number;
+export interface InvitationQueue {
+  added: number;
+  queued: number;
 }
