@@ -19,6 +19,6 @@ export async function input<T>(
     });
   return result.data;
 }
-export function missing() {
+export function missing(): never {
   throw new HTTPException(404, { message: "Não encontramos este conteúdo." });
 }

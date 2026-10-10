@@ -1,3 +1,4 @@
+import { sendInvitationBatch } from "./lib/meeting-invitation";
 import { sendPendingDigest } from "./lib/admin-digest";
 interface MailerEnv {
   DB: D1Database;
@@ -16,7 +17,14 @@ export default {
     if (request.method !== "POST") return new Response(null, { status: 405 });
     const body = (await request.json().catch(() => null)) as {
       applicationId?: unknown;
+      meetingId?: unknown;
     } | null;
+    if (typeof body?.meetingId === "string" && body.meetingId.length <= 100) {
+      const result = await sendInvitationBatch(env, body.meetingId);
+      return Response.json(result, {
+        status: result.status === "ineligible" ? 409 : 200,
+      });
+    }
     if (
       typeof body?.applicationId !== "string" ||
       body.applicationId.length > 100

@@ -1,5 +1,6 @@
 import { NextMeetingNotice } from "../components/NextMeetingNotice";
 import { CalendarActions } from "../components/CalendarActions";
+import { MeetingRsvp } from "../components/MeetingRsvp";
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
@@ -28,7 +29,13 @@ import {
   Empty,
   MeetingRow,
 } from "../components/ui";
-import type { Book, Meeting, Cycle, Resource } from "../../shared/contracts";
+import type {
+  Book,
+  Meeting,
+  Cycle,
+  Resource,
+  MeetingDetail,
+} from "../../shared/contracts";
 export function Library() {
   const { home, user } = useSession();
   const [filter, setFilter] = useState("all"),
@@ -170,10 +177,7 @@ export function BookPage() {
 }
 export function MeetingPage() {
   const { id } = useParams();
-  const { data, error, loading } = useData<{
-    meeting: Meeting;
-    resources: Resource[];
-  }>("/meetings/" + id);
+  const { data, error, loading } = useData<MeetingDetail>("/meetings/" + id);
   if (loading) return <Loading />;
   if (error || !data)
     return (
@@ -256,6 +260,7 @@ export function MeetingPage() {
               Participar do encontro <ExternalLink size={16} />
             </a>
           )}
+          <MeetingRsvp meeting={m} initial={data.rsvp} />
           <CalendarActions meeting={m} />
           <hr />
           <h3>Materiais complementares</h3>
@@ -451,6 +456,50 @@ export function Status() {
     </div>
   );
 }
+function MeetingEmails() {
+  const { data, error, loading } = useData<{ meetingEmails: boolean }>(
+    "/auth/preferences",
+  );
+  const [value, setValue] = useState<boolean | null>(null),
+    [saveError, setSaveError] = useState(""),
+    [busy, setBusy] = useState(false);
+  const checked = value ?? data?.meetingEmails ?? true;
+  async function change(next: boolean) {
+    setBusy(true);
+    setSaveError("");
+    try {
+      const result = await save<{ meetingEmails: boolean }>(
+        "/auth/preferences",
+        { meetingEmails: next },
+        "PATCH",
+      );
+      setValue(result.meetingEmails);
+    } catch (e) {
+      setSaveError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <section className="password-form">
+      <h2>Avisos de encontros</h2>
+      <p>
+        Enviamos por e-mail o convite de cada encontro, com a data, o horário e
+        o link para confirmar presença.
+      </p>
+      <label className="onboarding-confirm">
+        <input
+          type="checkbox"
+          checked={checked}
+          disabled={loading || busy || !!error}
+          onChange={(e) => void change(e.currentTarget.checked)}
+        />
+        Receber avisos de encontros por e-mail
+      </label>
+      {(error || saveError) && <Notice>{error || saveError}</Notice>}
+    </section>
+  );
+}
 function DeleteAccount() {
   const { refresh } = useSession();
   const navigate = useNavigate();
@@ -584,6 +633,9 @@ export function Account({ required = false }: { required?: boolean }) {
             {busy ? "Salvando…" : "Salvar nova senha"}
           </button>
         </form>
+        {!required && user?.role !== "admin" && user?.status === "approved" && (
+          <MeetingEmails />
+        )}
         {!required && user?.role !== "admin" && <DeleteAccount />}
       </div>
     </>

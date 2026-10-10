@@ -44,6 +44,12 @@ export interface Meeting {
   book_id?: string;
   youtube_id?: string | null;
 }
+export type MeetingRsvp = "yes" | "no";
+export interface MeetingDetail {
+  meeting: Meeting;
+  resources: Resource[];
+  rsvp: MeetingRsvp | null;
+}
 export interface Resource {
   id: string;
   meeting_id: string;
@@ -104,4 +110,16 @@ export interface AdminData {
     published: number;
   }[];
   settings: Settings;
+  invitations: {
+    meeting_id: string;
+    status: "queued" | "sending" | "sent" | "failed" | "skipped";
+    total: number;
+  }[];
+  rsvps: { meeting_id: string; response: MeetingRsvp; total: number }[];
+}
+export interface InvitationBatch {
+  sent: number;
+  failed: number;
+  skipped: number;
+  remaining: number;
 }
