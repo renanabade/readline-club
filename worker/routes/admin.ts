@@ -14,7 +14,6 @@ import { books, meetingQuery } from "./catalog";
 import { parseYouTubeId } from "../lib/youtube";
 import { digest, randomToken } from "../auth/password";
 import { notifyApproval } from "../lib/approval-email";
-import { requestInvitationBatch } from "../lib/invitation-request";
 const admin = new Hono<AppEnv>();
 admin.get("/overview", async (c) => {
   const [
@@ -138,7 +137,8 @@ async function invitableMeeting(c: Context<AppEnv>) {
 }
 admin.post("/meetings/:id/invitations", async (c) => {
   const id = await invitableMeeting(c);
-  // Approved members who accept meeting emails and were not invited yet.
+  // Approved members who did not turn meeting emails off and were not invited
+  // yet. The mailer's cron sends the queue in the background.
   // Known failures and skipped invitations get another chance; sent and
   // unknown outcomes are never queued again.
   const [inserted] = await c.env.DB.batch([
@@ -158,10 +158,6 @@ admin.post("/meetings/:id/invitations", async (c) => {
     .bind(id)
     .first<number>("total");
   return c.json({ added: inserted?.meta.changes ?? 0, queued: queued ?? 0 });
-});
-admin.post("/meetings/:id/invitations/send", async (c) => {
-  const id = await invitableMeeting(c);
-  return c.json(await requestInvitationBatch(c.env, id));
 });
 admin.post("/members/:id/reset", async (c) => {
   const user = await c.env.DB.prepare(

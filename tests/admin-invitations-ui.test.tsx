@@ -52,7 +52,10 @@ beforeEach(() => {
     resources: [],
     recordings: [],
     settings: {},
-    invitations: [{ meeting_id: "next", status: "sent", total: 3 }],
+    invitations: [
+      { meeting_id: "next", status: "sent", total: 3 },
+      { meeting_id: "next", status: "queued", total: 2 },
+    ],
     rsvps: [
       { meeting_id: "next", response: "yes", total: 2 },
       { meeting_id: "next", response: "no", total: 1 },
@@ -69,7 +72,7 @@ test("upcoming meetings show totals and offer the invitation; past ones do not",
   openMeetings();
   expect(
     screen.getByText(
-      "3 convites enviados · 2 confirmaram presença · 1 não vai",
+      "3 convites enviados · 2 na fila · 2 confirmaram presença · 1 não vai",
     ),
   ).toBeTruthy();
   expect(
@@ -77,38 +80,27 @@ test("upcoming meetings show totals and offer the invitation; past ones do not",
   ).toHaveLength(1);
 });
 
-test("the invitation is confirmed, queued once and sent in batches until done", async () => {
-  mocks.save
-    .mockResolvedValueOnce({ added: 25, queued: 25 })
-    .mockResolvedValueOnce({ sent: 20, failed: 0, skipped: 0, remaining: 5 })
-    .mockResolvedValueOnce({ sent: 4, failed: 1, skipped: 0, remaining: 0 });
+test("confirming only queues the invitation and says the page can be closed", async () => {
+  mocks.save.mockResolvedValueOnce({ added: 25, queued: 25 });
   openMeetings();
   fireEvent.click(
     screen.getByRole("button", { name: "Enviar convite por e-mail" }),
   );
   const dialog = screen.getByRole("dialog");
+  expect(dialog.textContent).toContain("exceto quem desligou os avisos");
   expect(mocks.save).not.toHaveBeenCalled();
   fireEvent.click(
     within(dialog).getByRole("button", { name: "Confirmar e enviar" }),
   );
-  expect(await screen.findByText("24 convites enviados.")).toBeTruthy();
-  expect(screen.getByText(/1 convite não teve envio confirmado/)).toBeTruthy();
-  expect(mocks.save.mock.calls.map((call) => call[0])).toEqual([
+  expect(
+    await screen.findByText(
+      /25 convites na fila\. .*você pode fechar esta página/,
+    ),
+  ).toBeTruthy();
+  expect(mocks.save).toHaveBeenCalledOnce();
+  expect(mocks.save).toHaveBeenCalledWith(
     "/admin/meetings/next/invitations",
-    "/admin/meetings/next/invitations/send",
-    "/admin/meetings/next/invitations/send",
-  ]);
-});
-
-test("sending stops when a batch makes no progress", async () => {
-  mocks.save
-    .mockResolvedValueOnce({ added: 0, queued: 3 })
-    .mockResolvedValue({ sent: 0, failed: 0, skipped: 0, remaining: 3 });
-  openMeetings();
-  fireEvent.click(
-    screen.getByRole("button", { name: "Enviar convite por e-mail" }),
+    {},
   );
-  fireEvent.click(screen.getByRole("button", { name: "Confirmar e enviar" }));
   await waitFor(() => expect(mocks.reload).toHaveBeenCalled());
-  expect(mocks.save).toHaveBeenCalledTimes(2);
 });

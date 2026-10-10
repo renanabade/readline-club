@@ -5,7 +5,7 @@
   "compatibility_date": "2026-09-27",
   "workers_dev": false,
   "preview_urls": false,
-  "triggers": { "crons": ["0 12,21 * * *"] },
+  "triggers": { "crons": ["0 12,21 * * *", "* * * * *"] },
   "observability": { "enabled": true, "traces": { "enabled": true } },
   "send_email": [
     {
