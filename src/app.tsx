@@ -7,15 +7,7 @@ import {
   Navigate,
   useLocation,
 } from "react-router-dom";
-import {
-  BookOpen,
-  Sun,
-  Moon,
-  Menu,
-  X,
-  LogOut,
-  ArrowUpRight,
-} from "lucide-react";
+import { Sun, Moon, Menu, X, LogOut, ArrowUpRight } from "lucide-react";
 import { SessionProvider, useSession } from "./lib/session";
 import { api } from "./lib/api";
 import { Loading, Notice } from "./components/ui";
@@ -36,6 +28,7 @@ import RsvpLink from "./pages/RsvpLink";
 import type { ReactNode } from "react";
 import { instance } from "./instance";
 import { SocialLinks } from "./components/SocialLinks";
+import { BrandMark } from "./components/BrandMark";
 function Protected({
   children,
   admin = false,
@@ -50,6 +43,16 @@ function Protected({
   if (user.role !== "admin" && user.status !== "approved") return <Status />;
   if (admin && user.role !== "admin") return <Navigate to="/" replace />;
   return children;
+}
+// Same rhythm as the logo: the first word strong, the rest quieter.
+function Wordmark({ name }: { name: string }) {
+  const [first, ...rest] = name.split(" ");
+  return (
+    <span className="wordmark-name">
+      <strong>{first}</strong>
+      {rest.length > 0 && <span> {rest.join(" ")}</span>}
+    </span>
+  );
 }
 function Layout() {
   const { user, home, error, loading, refresh } = useSession();
@@ -115,11 +118,9 @@ function Layout() {
             className="brand"
             aria-label={home?.settings.club_name || "readline club"}
           >
-            <span className="brand-icon">
-              <BookOpen size={23} strokeWidth={1.5} />
-            </span>
-            <span>
-              {home?.settings.club_name || "readline club"}
+            <BrandMark />
+            <span className="wordmark">
+              <Wordmark name={home?.settings.club_name || "readline club"} />
               <small>clube do livro de computação</small>
             </span>
           </Link>
@@ -255,7 +256,7 @@ function Layout() {
       </main>
       <footer className="footer container">
         <div>
-          <BookOpen size={20} />
+          <BrandMark size={22} />
           <span>
             {home?.settings.club_name || "readline club"} · gratuito, sempre
           </span>

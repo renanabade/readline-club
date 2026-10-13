@@ -67,7 +67,7 @@ Interface em React, API em [Hono](https://hono.dev) sobre Cloudflare Pages Funct
 | `tests/`      | Testes automatizados.                 |
 | `docs/`       | Documentação interna.                 |
 
-A direção visual usa as fontes Literata e Instrument Sans, divisórias discretas e temas claro e escuro.
+A direção visual parte da marca do clube (a fita marcadora ao lado do "r", em teal sobre azul-marinho): fundo cor de papel com texto em azul-marinho no tema claro, as cores da marca no tema escuro, teal só como acento, fontes Instrument Sans e Literata e divisórias discretas.
 
 ## Licença
 
