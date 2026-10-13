@@ -35,7 +35,7 @@ export function createApp() {
       "SELECT book_id FROM reading_cycles WHERE is_current=1",
     ).first<{ book_id: string }>();
     const settings = await c.env.DB.prepare(
-      "SELECT club_name,description,instagram_url,linkedin_url,youtube_url,tiktok_url FROM settings WHERE id=1",
+      "SELECT club_name,description,instagram_url,linkedin_url,youtube_url,x_url FROM settings WHERE id=1",
     ).first();
     const memberCount = await c.env.DB.prepare(
       "SELECT COUNT(*) AS total FROM applications a JOIN users u ON u.email=a.email WHERE a.status='approved' AND u.role='member'",

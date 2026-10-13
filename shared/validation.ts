@@ -118,7 +118,7 @@ export const settingsSchema = z.object({
   instagram_url: socialUrl(["instagram.com"], "Instagram"),
   linkedin_url: socialUrl(["linkedin.com"], "LinkedIn"),
   youtube_url: socialUrl(["youtube.com", "youtu.be"], "YouTube"),
-  tiktok_url: socialUrl(["tiktok.com"], "TikTok"),
+  x_url: socialUrl(["x.com", "twitter.com"], "X"),
 });
 export const rsvpSchema = z.object({
   response: z.enum(["yes", "no"], "Escolha se vai participar."),

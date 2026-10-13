@@ -362,7 +362,7 @@ admin.post("/recordings", async (c) => {
 admin.patch("/settings", async (c) => {
   const d = await input(c, settingsSchema);
   await c.env.DB.prepare(
-    "UPDATE settings SET club_name=?,description=?,whatsapp_url=?,discord_url=?,community_guidelines=?,instagram_url=?,linkedin_url=?,youtube_url=?,tiktok_url=? WHERE id=1",
+    "UPDATE settings SET club_name=?,description=?,whatsapp_url=?,discord_url=?,community_guidelines=?,instagram_url=?,linkedin_url=?,youtube_url=?,x_url=? WHERE id=1",
   )
     .bind(
       d.club_name,
@@ -373,7 +373,7 @@ admin.patch("/settings", async (c) => {
       d.instagram_url,
       d.linkedin_url,
       d.youtube_url,
-      d.tiktok_url,
+      d.x_url,
     )
     .run();
   return c.json({ ok: true });

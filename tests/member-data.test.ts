@@ -193,13 +193,21 @@ test("social links are public, validated by network, and phones never reach publ
     instagram_url: "https://www.instagram.com/clube.example",
     linkedin_url: "https://www.linkedin.com/company/clube-example",
     youtube_url: "https://www.youtube.com/@clube-example",
-    tiktok_url: "",
+    x_url: "https://x.com/clube_example",
   };
   expect(
     (
       await call("/admin/settings", admin.cookie, "PATCH", {
         ...settings,
         instagram_url: "https://instagram.com.evil.example.test/x",
+      })
+    ).status,
+  ).toBe(400);
+  expect(
+    (
+      await call("/admin/settings", admin.cookie, "PATCH", {
+        ...settings,
+        x_url: "https://instagram.com/clube_example",
       })
     ).status,
   ).toBe(400);
@@ -219,7 +227,7 @@ test("social links are public, validated by network, and phones never reach publ
     instagram_url: settings.instagram_url,
     linkedin_url: settings.linkedin_url,
     youtube_url: settings.youtube_url,
-    tiktok_url: "",
+    x_url: settings.x_url,
   });
 });
 

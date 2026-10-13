@@ -264,7 +264,7 @@ function Layout() {
         {instance.author && (
           <p className="footer-author">
             <span>
-              Feito por <strong>{instance.author.name}</strong>
+              Organizado por <strong>{instance.author.name}</strong>
             </span>
             <a
               href={instance.author.url}

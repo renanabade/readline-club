@@ -3,9 +3,9 @@ import { useSession } from "../lib/session";
 import type { SocialLinks as Links } from "../../shared/contracts";
 const networks: [keyof Links, string][] = [
   ["instagram_url", "Instagram"],
+  ["x_url", "X"],
   ["linkedin_url", "LinkedIn"],
   ["youtube_url", "YouTube"],
-  ["tiktok_url", "TikTok"],
 ];
 export function SocialLinks({ title }: { title?: string }) {
   const settings = useSession().home?.settings;

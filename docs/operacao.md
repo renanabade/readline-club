@@ -37,7 +37,7 @@ No painel é possível:
 - Cadastrar datas, capítulos, duração, pauta, notas e links de reunião.
 - Colar links do YouTube e publicar ou retirar a publicação da gravação.
 - Adicionar materiais com tipo (resumo em PDF, resumo em EPUB, slides, transcrição ou material complementar). Resumos e slides aparecem em destaque na página do encontro e como indicação na lista de encontros do livro.
-- Configurar os convites do WhatsApp e do Discord e as redes sociais do clube (Instagram, LinkedIn, YouTube e TikTok), exibidas publicamente no site.
+- Configurar os convites do WhatsApp e do Discord e as redes sociais do clube (Instagram, X, LinkedIn e YouTube), exibidas publicamente no site.
 - Gerar um link de recuperação de senha, de uso único, válido por 30 minutos.
 
 **Recuperação nesta versão:** a pessoa solicita ajuda ao organizador; após confirmar sua identidade pelo canal conhecido, o organizador envia o link em conversa privada. Não há envio automático de recuperação de senha. E-mails do cadastro não são verificados automaticamente, portanto confirme os novos participantes antes de aprová-los. É possível alterar a senha dentro da própria conta.

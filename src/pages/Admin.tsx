@@ -758,9 +758,9 @@ export default function Admin() {
             {(
               [
                 ["Instagram", data.settings.instagram_url],
+                ["X", data.settings.x_url],
                 ["LinkedIn", data.settings.linkedin_url],
                 ["YouTube", data.settings.youtube_url],
-                ["TikTok", data.settings.tiktok_url],
               ] as const
             ).map(([label, url]) => (
               <li key={label} className="break-word">
@@ -1269,9 +1269,9 @@ function Editor({
               <fieldset>
                 <legend>Redes sociais (públicas, aparecem no site)</legend>
                 {field("instagram_url", "Instagram", { type: "url" })}
+                {field("x_url", "X (Twitter)", { type: "url" })}
                 {field("linkedin_url", "LinkedIn", { type: "url" })}
                 {field("youtube_url", "YouTube", { type: "url" })}
-                {field("tiktok_url", "TikTok", { type: "url" })}
               </fieldset>
             </>
           )}

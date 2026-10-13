@@ -72,7 +72,7 @@ export interface SocialLinks {
   instagram_url: string;
   linkedin_url: string;
   youtube_url: string;
-  tiktok_url: string;
+  x_url: string;
 }
 export interface Settings extends SocialLinks {
   discord_url?: string;
