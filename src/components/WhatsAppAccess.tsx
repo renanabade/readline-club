@@ -31,12 +31,13 @@ function ApprovedAccess({ guidelines }: { guidelines: boolean }) {
   }
   return (
     <>
-      <span className="eyebrow">Sua conta já tem acesso</span>
+      <span className="eyebrow">Canais oficiais do clube</span>
       <h2>WhatsApp e Discord do clube.</h2>
       <p>
-        O WhatsApp é nosso grupo de conversa e combinados. O Discord é opcional:
-        dá para estudar em call, ler junto, conversar e trabalhar em projetos.
-        Use o espaço como fizer sentido para você.
+        O grupo do WhatsApp é o canal oficial de avisos, combinados e conversa
+        do dia a dia. O Discord é opcional: dá para estudar em call, ler junto,
+        conversar e trabalhar em projetos. Use cada espaço como fizer sentido
+        para você.
       </p>
       {loading ? (
         <p role="status">Carregando os convites…</p>
@@ -79,15 +80,21 @@ function ApprovedAccess({ guidelines }: { guidelines: boolean }) {
             </p>
           )}
           <p>
-            Os encontros são gravados. A gravação e o resumo em PDF preparado
-            por Renan ficam na área do livro para os integrantes aprovados. Você
-            pode manter câmera e microfone desligados.
+            Os encontros são gravados. A gravação, o resumo escrito em PDF e
+            EPUB (preparado a partir da transcrição, com apoio de IA) e os
+            slides ficam na página do livro para os membros. Você pode manter
+            câmera e microfone desligados.
           </p>
           <p>
-            O WhatsApp está aberto a perguntas, referências e conversa geral.
-            Pode marcar o Renan à vontade. O Discord não é obrigatório e as
+            O WhatsApp está aberto a perguntas, referências e conversa geral, e
+            é por lá que a organização avisa sobre os encontros. Pode chamar a
+            organização sempre que precisar. O Discord não é obrigatório e as
             calls de estudo, leituras em conjunto e projetos podem ser
             combinados entre vocês.
+          </p>
+          <p>
+            Os convites são pessoais: não repasse os links. Quem quiser entrar
+            faz o cadastro na plataforma.
           </p>
           <p>
             Respeite as pessoas e os diferentes ritmos. Peça autorização antes
@@ -166,12 +173,12 @@ export function WhatsAppAccess({
           <ApprovedAccess guidelines={guidelines} />
         ) : (
           <>
-            <span className="eyebrow">Nossos grupos</span>
+            <span className="eyebrow">Canais oficiais</span>
             <h2>A conversa continua no WhatsApp e no Discord.</h2>
             <p>
-              O WhatsApp é para conversar, compartilhar referências e acompanhar
-              os combinados. O Discord é opcional: um espaço para calls de
-              estudo, leitura em conjunto, projetos e o que vocês quiserem
+              O grupo do WhatsApp é o canal oficial de avisos e conversa do
+              clube. O Discord é opcional: um espaço para calls de estudo,
+              leitura em conjunto, projetos e o que a comunidade quiser
               organizar.
             </p>
             <p>

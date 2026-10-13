@@ -11,12 +11,12 @@ O código é público e a plataforma guarda nome e e-mail de pessoas reais. Toda
 
 ## Níveis de acesso
 
-| Nível              | Pode ver                                                                                                                                         |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Visitante          | Nome e apresentação do clube, livros não arquivados, contagem de membros, anúncio do próximo encontro (título, livro, capítulos, data, duração). |
-| Conta não aprovada | O próprio cadastro e o status.                                                                                                                   |
-| Membro aprovado    | Encontros, links de chamada, gravações publicadas, materiais, convites (após o onboarding).                                                      |
-| Administrador      | Tudo, incluindo cadastros e gravações não publicadas.                                                                                            |
+| Nível              | Pode ver                                                                                                                                                                                                                                                             |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Visitante          | Nome e apresentação do clube, redes sociais do clube, livros não arquivados, contagem de membros, anúncio do próximo encontro (título, livro, capítulos, data, duração). Com o link pessoal do convite: o anúncio daquele encontro e a própria resposta de presença. |
+| Conta não aprovada | O próprio cadastro e o status.                                                                                                                                                                                                                                       |
+| Membro aprovado    | Encontros, links de chamada, gravações publicadas, materiais, convites (após o onboarding).                                                                                                                                                                          |
+| Administrador      | Tudo, incluindo cadastros e gravações não publicadas.                                                                                                                                                                                                                |
 
 Qualquer mudança nesta tabela é uma decisão de produto: precisa estar explícita no PR e refletida na seção "Dados e privacidade" do README.
 

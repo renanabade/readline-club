@@ -10,12 +10,16 @@ import {
   Video,
   Link2,
   Mail,
+  Search,
+  UserMinus,
   X,
 } from "lucide-react";
 import { useData } from "../lib/useData";
 import { save, api } from "../lib/api";
 import { inputDate, dateLabel } from "../lib/dates";
 import { Loading, Notice, Empty } from "../components/ui";
+import { materialLabels } from "../lib/meeting";
+import { resourceKinds } from "../../shared/validation";
 import type {
   AdminData,
   Application,
@@ -41,6 +45,22 @@ const names: Record<Entity, string> = {
   settings: "Configurações",
 };
 type Draft = { kind: Entity; value: Record<string, unknown> };
+const pageSize = 30;
+const statusNames = {
+  pending: "Pendentes",
+  approved: "Aprovados",
+  suspended: "Suspensos",
+  rejected: "Recusados",
+};
+const searchable = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+export function phoneLabel(phone: string) {
+  const br = /^\+55(\d{2})(\d{4,5})(\d{4})$/.exec(phone);
+  return br ? `+55 (${br[1]}) ${br[2]}-${br[3]}` : phone;
+}
 type MemberConfirmation =
   | { kind: "bulk"; ids: string[] }
   | { kind: "suspend"; application: Application };
@@ -54,7 +74,10 @@ export default function Admin() {
     [message, setMessage] = useState(""),
     [resetLink, setResetLink] = useState(""),
     [confirmation, setConfirmation] = useState<MemberConfirmation | null>(null),
-    [inviting, setInviting] = useState<Meeting | null>(null);
+    [inviting, setInviting] = useState<Meeting | null>(null),
+    [query, setQuery] = useState(""),
+    [statusFilter, setStatusFilter] = useState("all"),
+    [limit, setLimit] = useState(pageSize);
   const actionRunning = useRef(false);
   useDialogFocus(!!resetLink, () => setResetLink(""));
   useDialogFocus(!!confirmation, () => {
@@ -214,6 +237,17 @@ export default function Admin() {
       </div>
     );
   const pending = data.applications.filter((a) => a.status === "pending");
+  const departures = data.departures ?? [];
+  const term = searchable(query.trim());
+  const digits = query.replace(/\D/g, "");
+  const filtered = data.applications.filter(
+    (a) =>
+      (statusFilter === "all" || a.status === statusFilter) &&
+      (!term ||
+        searchable(a.name + " " + a.email).includes(term) ||
+        (digits.length >= 4 && (a.phone || "").includes(digits))),
+  );
+  const shown = filtered.slice(0, limit);
   return (
     <div className="container page admin-page">
       <div className="page-heading">
@@ -233,8 +267,8 @@ export default function Admin() {
           <span>integrantes aprovados</span>
         </div>
         <div>
-          <strong>{data.books.length}</strong>
-          <span>livros cadastrados</span>
+          <strong>{departures.length}</strong>
+          <span>saídas para retirar dos grupos</span>
         </div>
         <div>
           <strong>{data.meetings.length}</strong>
@@ -286,11 +320,88 @@ export default function Admin() {
             resumos por e-mail chegam às 9h e às 18h (Brasília), quando houver
             pendências.
           </p>
-          {data.applications.length ? (
-            data.applications.map((a, index) => (
+          {!!departures.length && (
+            <section className="departures" aria-labelledby="departures-title">
+              <h3 id="departures-title">
+                <UserMinus size={18} aria-hidden="true" />
+                Saíram da plataforma: retire dos grupos
+              </h3>
+              <p className="small muted">
+                Estas pessoas excluíram a conta. Retire cada uma do grupo do
+                WhatsApp e do Discord e marque como feito: nome e celular são
+                apagados na hora, ou automaticamente depois de 30 dias.
+              </p>
+              {departures.map((d) => (
+                <div className="admin-row" key={d.id}>
+                  <div>
+                    <h3>{d.name}</h3>
+                    <p>
+                      {d.phone ? phoneLabel(d.phone) : "Sem celular cadastrado"}{" "}
+                      · saiu em {dateLabel(d.left_at, false)}
+                    </p>
+                  </div>
+                  <button
+                    className="button small-button"
+                    disabled={busy}
+                    onClick={() =>
+                      void action(
+                        "/admin/departures/" + encodeURIComponent(d.id),
+                        {},
+                        "DELETE",
+                        "Saída concluída. Os dados da pessoa foram apagados.",
+                      )
+                    }
+                  >
+                    Já retirei dos grupos
+                  </button>
+                </div>
+              ))}
+            </section>
+          )}
+          <div className="search-filters admin-search">
+            <label className="search-field">
+              <Search size={17} aria-hidden="true" />
+              <input
+                type="search"
+                aria-label="Buscar por nome, e-mail ou celular"
+                placeholder="Buscar por nome, e-mail ou celular"
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setLimit(pageSize);
+                }}
+              />
+            </label>
+            <select
+              aria-label="Filtrar por situação"
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setLimit(pageSize);
+              }}
+            >
+              <option value="all">Todos ({data.applications.length})</option>
+              {Object.entries(statusNames).map(([status, label]) => (
+                <option key={status} value={status}>
+                  {label} (
+                  {data.applications.filter((a) => a.status === status).length})
+                </option>
+              ))}
+            </select>
+          </div>
+          {(term || statusFilter !== "all") && (
+            <p className="small muted" role="status">
+              {filtered.length}{" "}
+              {filtered.length === 1
+                ? "cadastro encontrado"
+                : "cadastros encontrados"}
+              .
+            </p>
+          )}
+          {shown.length ? (
+            shown.map((a, index) => (
               <Fragment key={a.id}>
-                {(index === 0 ||
-                  data.applications[index - 1].status !== a.status) && (
+                {(index === 0 || shown[index - 1].status !== a.status) && (
                   <h3 className="application-group-title">
                     {
                       {
@@ -307,6 +418,19 @@ export default function Admin() {
                     <div>
                       <h3>{a.name}</h3>
                       <p>{a.email}</p>
+                      <p>
+                        {a.phone ? (
+                          <a
+                            href={"https://wa.me/" + a.phone.slice(1)}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {phoneLabel(a.phone)}
+                          </a>
+                        ) : (
+                          "Sem celular cadastrado"
+                        )}
+                      </p>
                     </div>
                     <span
                       className={
@@ -422,10 +546,22 @@ export default function Admin() {
                 </article>
               </Fragment>
             ))
+          ) : data.applications.length ? (
+            <Empty title="Nenhum cadastro com esses filtros.">
+              Confira a busca ou escolha outra situação.
+            </Empty>
           ) : (
             <Empty title="A primeira inscrição ainda está por vir.">
               Compartilhe a página do clube com quem quer participar.
             </Empty>
+          )}
+          {filtered.length > shown.length && (
+            <button
+              className="button load-more"
+              onClick={() => setLimit(limit + pageSize)}
+            >
+              Mostrar mais ({filtered.length - shown.length} restantes)
+            </button>
           )}
         </>
       )}
@@ -561,7 +697,7 @@ export default function Admin() {
                     onClick={() => edit("resources", { meeting_id: m.id })}
                   >
                     <Link2 size={16} />
-                    Adicionar material
+                    Adicionar resumo ou material
                   </button>
                   {m.status === "scheduled" &&
                     !!m.starts_at &&
@@ -582,6 +718,9 @@ export default function Admin() {
                   .map((r) => (
                     <div className="resource-admin" key={r.id}>
                       <a href={r.url} target="_blank" rel="noreferrer">
+                        <span className="resource-kind">
+                          {materialLabels[r.kind] ?? materialLabels.link}
+                        </span>
                         {r.title}
                       </a>
                       <button
@@ -614,6 +753,21 @@ export default function Admin() {
           <p className="break-word">
             {data.settings.discord_url || "Ainda não configurado."}
           </p>
+          <h3>Redes sociais</h3>
+          <ul className="settings-socials">
+            {(
+              [
+                ["Instagram", data.settings.instagram_url],
+                ["X", data.settings.x_url],
+                ["LinkedIn", data.settings.linkedin_url],
+                ["YouTube", data.settings.youtube_url],
+              ] as const
+            ).map(([label, url]) => (
+              <li key={label} className="break-word">
+                <strong>{label}:</strong> {url || "Ainda não configurado."}
+              </li>
+            ))}
+          </ul>
           <h3>Combinados do clube</h3>
           <p className="preserve">{data.settings.community_guidelines}</p>
           <button
@@ -705,9 +859,10 @@ export default function Admin() {
             <h2 id="invite-title">Enviar convite de “{inviting.title}”?</h2>
             <p>
               Os membros aprovados que aceitam avisos de encontros recebem um
-              e-mail com a data ({dateLabel(inviting.starts_at)}, Brasília), o
-              botão para confirmar presença e o convite para a agenda. Quem já
-              recebeu este convite não recebe de novo.
+              e-mail com a data ({dateLabel(inviting.starts_at)}, Brasília), os
+              botões pessoais para responder a presença com um clique, sem
+              login, e o convite para a agenda. Quem já recebeu este convite não
+              recebe de novo.
             </p>
             <div className="row-actions">
               <button
@@ -1054,8 +1209,24 @@ function Editor({
           {kind === "resources" && (
             <>
               {meetingSelect}
+              <label>
+                Tipo
+                <select name="kind" defaultValue={v("kind", "link")}>
+                  {resourceKinds.map((kind) => (
+                    <option key={kind} value={kind}>
+                      {materialLabels[kind]}
+                    </option>
+                  ))}
+                </select>
+              </label>
               {field("title", "Nome do material", { required: true, max: 200 })}
               {field("url", "Link HTTPS", { required: true, type: "url" })}
+              <p className="small muted">
+                Resumos, slides e transcrições aparecem em destaque na página do
+                encontro, para quem não pôde assistir. Use um link de
+                visualização (por exemplo, do Google Drive) com acesso restrito
+                a quem tem o link.
+              </p>
             </>
           )}
           {kind === "recordings" && (
@@ -1095,6 +1266,13 @@ function Editor({
               {field("community_guidelines", "Combinados da comunidade", {
                 area: true,
               })}
+              <fieldset>
+                <legend>Redes sociais (públicas, aparecem no site)</legend>
+                {field("instagram_url", "Instagram", { type: "url" })}
+                {field("x_url", "X (Twitter)", { type: "url" })}
+                {field("linkedin_url", "LinkedIn", { type: "url" })}
+                {field("youtube_url", "YouTube", { type: "url" })}
+              </fieldset>
             </>
           )}
           {error && <Notice>{error}</Notice>}

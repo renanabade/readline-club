@@ -17,6 +17,9 @@ import {
 import { BookArchive } from "../components/BookArchive";
 import { WhatsAppAccess } from "../components/WhatsAppAccess";
 import { HomeStatus } from "../components/HomeStatus";
+import { SocialLinks } from "../components/SocialLinks";
+import { MemberNextMeeting } from "../components/MemberNextMeeting";
+import { callLabel, materialLabels } from "../lib/meeting";
 import { useSession } from "../lib/session";
 import { useData } from "../lib/useData";
 import { save } from "../lib/api";
@@ -257,19 +260,24 @@ export function MeetingPage() {
               target="_blank"
               rel="noreferrer"
             >
-              Participar do encontro <ExternalLink size={16} />
+              {callLabel(m.meeting_url)} <ExternalLink size={16} />
             </a>
           )}
           <MeetingRsvp meeting={m} initial={data.rsvp} />
           <CalendarActions meeting={m} />
           <hr />
-          <h3>Materiais complementares</h3>
+          <h3>Para revisar sem assistir</h3>
           {data.resources.length ? (
             <ul className="resource-list">
               {data.resources.map((r) => (
                 <li key={r.id}>
                   <a href={r.url} target="_blank" rel="noreferrer">
-                    {r.title}
+                    <span>
+                      <span className="resource-kind">
+                        {materialLabels[r.kind] ?? materialLabels.link}
+                      </span>
+                      {r.title}
+                    </span>
                     <ArrowUpRight size={16} />
                   </a>
                 </li>
@@ -277,7 +285,9 @@ export function MeetingPage() {
             </ul>
           ) : (
             <p className="muted">
-              Os materiais complementares aparecerão aqui.
+              {m.status === "completed"
+                ? "O resumo em PDF e EPUB, os slides e os materiais deste encontro aparecem aqui assim que forem publicados."
+                : "Depois do encontro, o resumo em PDF e EPUB, os slides e os materiais ficam aqui."}
             </p>
           )}
         </aside>
@@ -293,14 +303,16 @@ export function Agenda() {
     tab === "upcoming" ? isUpcoming(m) : !isUpcoming(m),
   );
   if (tab === "past") list.reverse();
+  const next = list.find((m) => m.status === "scheduled" && !!m.starts_at);
   return (
     <div className="container page">
       <div className="page-heading">
         <span className="eyebrow">Agenda do clube</span>
         <h1>Nossos encontros.</h1>
         <p>
-          Acompanhe as discussões de cada leitura. Os horários são exibidos no
-          fuso de Brasília.
+          Confirme presença, entre na chamada e salve as datas na sua agenda.
+          Encontros anteriores ficam com a gravação, o resumo e os slides. Os
+          horários seguem o fuso de Brasília.
         </p>
       </div>
       <div className="tabs">
@@ -318,8 +330,11 @@ export function Agenda() {
         </button>
       </div>
       {error && <Notice>{error}</Notice>}
+      {tab === "upcoming" && next && <MemberNextMeeting meeting={next} />}
       {list.length ? (
-        list.map((m) => <MeetingRow key={m.id} meeting={m} />)
+        list
+          .filter((m) => tab !== "upcoming" || m !== next)
+          .map((m) => <MeetingRow key={m.id} meeting={m} />)
       ) : (
         <Empty
           title={
@@ -341,49 +356,74 @@ export function Community() {
     <div className="container page">
       <div className="page-heading narrow">
         <span className="eyebrow">Sobre o readline club</span>
-        <h1>Leitura técnica com troca de experiência.</h1>
+        <h1>Como o clube funciona.</h1>
         <p>
-          Um clube do livro de computação para estudar fundamentos, discutir
-          decisões técnicas e aprender com pessoas de diferentes níveis.
+          Um clube do livro de computação, gratuito e on-line, para estudar
+          fundamentos, discutir decisões técnicas e aprender com pessoas de
+          diferentes áreas e níveis.
         </p>
       </div>
       <NextMeetingNotice contained />
       <WhatsAppAccess guidelines />
       <div className="community-grid community-about">
         <div>
-          <h2>Fundamentos primeiro.</h2>
+          <h2>Leitura combinada, no seu ritmo.</h2>
           <p className="prose">
-            Nossa primeira leitura é <strong>Entendendo Algoritmos</strong>. O
-            foco está em entender os conceitos, refazer exemplos e discutir onde
-            cada abordagem se aplica. Você pode participar mesmo que esteja
-            começando a estudar computação ou ainda esteja escolhendo uma área.
+            A cada ciclo escolhemos um livro e combinamos um trecho para cada
+            encontro. Você lê quando puder, anota dúvidas e exemplos, e chega à
+            conversa com algo para trocar. Dá para participar mesmo começando a
+            estudar computação ou ainda escolhendo uma área.
           </p>
-          <h2>Experiências diferentes melhoram a discussão.</h2>
+          <h2>Encontros ao vivo, com presença confirmada.</h2>
+          <p className="prose">
+            Os encontros são on-line, pelo Google Meet. Cada um tem sua página,
+            com a pauta, o botão para confirmar presença, o link da chamada e os
+            atalhos para o Google Agenda ou o calendário do seu celular. Os
+            membros também recebem o convite por e-mail, que pode ser desligado
+            em <Link to="/conta">Minha conta</Link>.
+          </p>
+          <h2>Todo encontro vira acervo.</h2>
+          <p className="prose">
+            Todos os encontros são gravados e ficam disponíveis na página do
+            livro para os membros. Como nem sempre dá para assistir uma hora de
+            vídeo, a organização usa a transcrição do encontro, feita com apoio
+            de IA, para preparar:
+          </p>
+          <ul className="principles">
+            <li>
+              <CheckCircle />
+              Um resumo escrito em PDF e EPUB, com o que foi discutido e o
+              conteúdo do livro, para ler no computador, no celular ou no leitor
+              digital.
+            </li>
+            <li>
+              <CheckCircle />
+              Uma versão em slides, para revisar os pontos principais em poucos
+              minutos.
+            </li>
+            <li>
+              <CheckCircle />A transcrição, quando ela ajudar a encontrar um
+              trecho da conversa.
+            </li>
+          </ul>
+          <h2>Canais oficiais.</h2>
+          <p className="prose">
+            A plataforma guarda o acervo e a programação. O grupo do WhatsApp é
+            o canal oficial de avisos e conversa do dia a dia: vale perguntar,
+            compartilhar referências, trocar experiências e falar de outros
+            assuntos de tecnologia. O Discord é opcional e serve para calls de
+            estudo, leitura em conjunto, projetos e o que a comunidade quiser
+            organizar. Os convites dos dois são liberados só para membros
+            aprovados, dentro da plataforma.
+          </p>
+          <SocialLinks title="Redes sociais do clube" />
+          <h2>Comunidade e networking.</h2>
           <p className="prose">
             Quem está começando traz perguntas sobre os fundamentos. Quem já
             trabalha com dados, segurança, desenvolvimento ou outras áreas traz
-            experiências e situações reais. Explicar uma solução e discutir seus
-            trade-offs ajuda os dois lados a aprofundar o entendimento.
-          </p>
-          <h2>Leitura, encontros e acervo.</h2>
-          <p className="prose">
-            Lemos os capítulos combinados e nos reunimos nas datas escolhidas
-            pelo grupo. Os encontros são gravados e ficam disponíveis para quem
-            participa do clube. Renan vai usar a transcrição do áudio para
-            preparar um PDF com os assuntos discutidos e suas explicações,
-            disponível junto ao encontro. Quem faltar ou entrar depois poderá
-            acompanhar pela gravação ou pelo resumo.
-          </p>
-          <h2>A conversa continua nos grupos.</h2>
-          <p className="prose">
-            O grupo é o ponto de encontro do clube no dia a dia. Vale conversar
-            sobre o livro, compartilhar referências, trocar experiências,
-            perguntar e interagir com o pessoal — inclusive conversar sobre
-            outros assuntos. Pode marcar o Renan quando quiser falar com ele. O
-            site guarda o acervo e a programação; no WhatsApp, a gente mantém o
-            contato. O Discord é opcional e serve para calls de estudo, leitura
-            em conjunto, projetos e outras atividades que vocês quiserem
-            combinar.
+            situações reais. Explicar uma solução e discutir seus trade-offs
+            ajuda os dois lados, e as conversas costumam virar contatos,
+            indicações e projetos em conjunto.
           </p>
           <h2>Nossos combinados.</h2>
           <ul className="principles">
@@ -401,6 +441,11 @@ export function Community() {
             </li>
             <li>
               <CheckCircle />
+              Não repasse os convites dos grupos: quem quiser entrar faz o
+              cadastro.
+            </li>
+            <li>
+              <CheckCircle />
               Adquira ou pegue emprestado seu exemplar. Não compartilhamos
               cópias dos livros.
             </li>
@@ -408,15 +453,17 @@ export function Community() {
           <div className="privacy-note">
             <h3>Sobre seu cadastro e as gravações</h3>
             <p>
-              Nome, e-mail e informações de inscrição são usados para organizar
-              sua participação e ficam disponíveis à administração. Sua senha é
-              armazenada com proteção criptográfica. Os encontros são gravados;
-              você pode manter câmera e microfone desligados. As gravações são
-              hospedadas no YouTube e exibidas na área dos integrantes.
+              Nome, e-mail, celular e informações de inscrição são usados para
+              organizar sua participação e ficam disponíveis só para a
+              organização. Sua senha é armazenada com proteção criptográfica. Os
+              encontros são gravados; você pode manter câmera e microfone
+              desligados. As gravações são hospedadas no YouTube e exibidas na
+              área dos membros.
             </p>
             <p>
-              Para corrigir ou excluir seus dados, fale com o organizador pelo
-              canal de contato do clube.
+              Você pode excluir sua conta a qualquer momento em{" "}
+              <Link to="/conta">Minha conta</Link>. Os detalhes estão na{" "}
+              <Link to="/privacidade">política de privacidade</Link>.
             </p>
           </div>
         </div>
@@ -442,10 +489,10 @@ export function Status() {
       </h1>
       <p>
         {status === "suspended"
-          ? "Fale com o organizador para entender o motivo e os próximos passos."
+          ? "Fale com a organização para entender o motivo e os próximos passos."
           : status === "rejected"
-            ? "Sua inscrição não foi aprovada neste momento. Você pode conversar com o organizador."
-            : "O organizador vai revisar sua inscrição. Com a aprovação, você terá acesso aos encontros, às gravações e aos grupos de WhatsApp e Discord. Antes de abrir os convites, você vai ler a apresentação do clube e confirmar que está por dentro. Os grupos ficam na página inicial, em O clube e em Minha conta."}
+            ? "Sua inscrição não foi aprovada neste momento. Você pode conversar com a organização."
+            : "A organização revisa cada inscrição e avisa por e-mail quando o acesso for liberado. Com a aprovação, você confirma presença nos encontros, assiste às gravações, lê os resumos e recebe os convites dos canais oficiais no WhatsApp e no Discord, depois de ler como o clube funciona."}
       </p>
       <button className="button" onClick={() => void refresh()}>
         Atualizar meu acesso
@@ -500,10 +547,78 @@ function MeetingEmails() {
     </section>
   );
 }
+export function MemberPhone() {
+  const { data, error, loading } = useData<{ phone: string }>("/auth/profile");
+  const [phone, setPhone] = useState<string | null>(null),
+    [saveError, setSaveError] = useState(""),
+    [message, setMessage] = useState(""),
+    [busy, setBusy] = useState(false);
+  const current = phone ?? data?.phone ?? "";
+  async function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setBusy(true);
+    setSaveError("");
+    setMessage("");
+    try {
+      const result = await save<{ phone: string }>(
+        "/auth/profile",
+        { phone: new FormData(e.currentTarget).get("phone") },
+        "PATCH",
+      );
+      setPhone(result.phone);
+      setMessage("Celular salvo.");
+    } catch (e) {
+      setSaveError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <form className="password-form" onSubmit={submit}>
+      <h2>Seu celular</h2>
+      <p>
+        A organização usa o número para identificar você no grupo do WhatsApp,
+        que é exclusivo para membros. Ele não aparece para outros membros na
+        plataforma.
+      </p>
+      {!loading && !error && !current && (
+        <p className="notice" role="status">
+          Seu cadastro ainda está sem celular. Adicione o número que você usa no
+          WhatsApp.
+        </p>
+      )}
+      <label>
+        Celular com DDD
+        <input
+          key={data?.phone ?? ""}
+          type="tel"
+          name="phone"
+          required
+          maxLength={40}
+          autoComplete="tel"
+          inputMode="tel"
+          placeholder="(11) 91234-5678"
+          defaultValue={current}
+          disabled={loading || !!error}
+        />
+      </label>
+      {(error || saveError) && <Notice>{error || saveError}</Notice>}
+      {message && (
+        <p className="success" role="status">
+          {message}
+        </p>
+      )}
+      <button className="button" disabled={busy || loading || !!error}>
+        {busy ? "Salvando…" : "Salvar celular"}
+      </button>
+    </form>
+  );
+}
 function DeleteAccount() {
   const { refresh } = useSession();
   const navigate = useNavigate();
-  const [error, setError] = useState(""),
+  const [open, setOpen] = useState(false),
+    [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
   async function remove(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -523,28 +638,57 @@ function DeleteAccount() {
     <form className="password-form delete-account" onSubmit={remove}>
       <h2>Excluir minha conta</h2>
       <p>
-        Apaga seu cadastro, seus dados e suas sessões abertas. Não dá para
-        desfazer: para voltar ao clube, será preciso se inscrever e aguardar uma
-        nova aprovação. Os grupos de WhatsApp e Discord são separados da
-        plataforma; se quiser, saia deles por lá.
+        Apaga seu cadastro, suas respostas de presença e suas sessões abertas.
+        Não dá para desfazer: para voltar ao clube, será preciso se inscrever e
+        aguardar uma nova aprovação.
       </p>
-      <label>
-        Senha atual
-        <input
-          type="password"
-          name="password"
-          required
-          autoComplete="current-password"
-        />
-      </label>
-      <label className="onboarding-confirm">
-        <input type="checkbox" required />
-        Entendo que a exclusão é permanente.
-      </label>
-      {error && <Notice>{error}</Notice>}
-      <button className="button" disabled={busy}>
-        {busy ? "Excluindo…" : "Excluir minha conta"}
-      </button>
+      {open ? (
+        <>
+          <ul className="delete-steps">
+            <li>Nome, e-mail, celular e senha são apagados na hora.</li>
+            <li>
+              Como os grupos do WhatsApp e do Discord são exclusivos para
+              membros, a organização retira você deles. Para isso, guardamos só
+              seu nome e celular até a retirada, por no máximo 30 dias.
+            </li>
+            <li>Você deixa de receber os convites de encontros por e-mail.</li>
+          </ul>
+          <label>
+            Confirme com sua senha
+            <input
+              type="password"
+              name="password"
+              required
+              autoComplete="current-password"
+            />
+          </label>
+          <label className="onboarding-confirm">
+            <input type="checkbox" required />
+            Entendo que a exclusão é permanente.
+          </label>
+          {error && <Notice>{error}</Notice>}
+          <div className="row-actions">
+            <button className="button danger" disabled={busy}>
+              {busy ? "Excluindo…" : "Excluir minha conta"}
+            </button>
+            <button
+              className="button"
+              type="button"
+              disabled={busy}
+              onClick={() => {
+                setOpen(false);
+                setError("");
+              }}
+            >
+              Manter minha conta
+            </button>
+          </div>
+        </>
+      ) : (
+        <button className="button" type="button" onClick={() => setOpen(true)}>
+          Quero excluir minha conta
+        </button>
+      )}
     </form>
   );
 }
@@ -633,6 +777,7 @@ export function Account({ required = false }: { required?: boolean }) {
             {busy ? "Salvando…" : "Salvar nova senha"}
           </button>
         </form>
+        {!required && user?.role !== "admin" && <MemberPhone />}
         {!required && user?.role !== "admin" && user?.status === "approved" && (
           <MeetingEmails />
         )}

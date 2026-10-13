@@ -43,6 +43,8 @@ export interface Meeting {
   book_title?: string;
   book_id?: string;
   youtube_id?: string | null;
+  // Comma-separated kinds of the materials attached to the meeting.
+  material_kinds?: string | null;
 }
 export type MeetingRsvp = "yes" | "no";
 export interface MeetingDetail {
@@ -50,13 +52,29 @@ export interface MeetingDetail {
   resources: Resource[];
   rsvp: MeetingRsvp | null;
 }
+export type ResourceKind =
+  "summary_pdf" | "summary_epub" | "slides" | "transcript" | "link";
+// What a personal email link may reveal: the meeting announcement and the
+// person's own answer. Never the call link, notes or who the person is.
+export interface RsvpLink {
+  meeting: PublicMeeting;
+  rsvp: MeetingRsvp | null;
+  open: boolean;
+}
 export interface Resource {
   id: string;
   meeting_id: string;
   title: string;
   url: string;
+  kind: ResourceKind;
 }
-export interface Settings {
+export interface SocialLinks {
+  instagram_url: string;
+  linkedin_url: string;
+  youtube_url: string;
+  x_url: string;
+}
+export interface Settings extends SocialLinks {
   discord_url?: string;
   club_name: string;
   description: string;
@@ -81,8 +99,16 @@ export interface Application {
   name: string;
   experience: string;
   motivation: string;
+  phone: string;
   status: ApplicationStatus;
   created_at: string;
+}
+// Kept only until the organization removes the person from the groups.
+export interface MemberDeparture {
+  id: string;
+  name: string;
+  phone: string;
+  left_at: string;
 }
 export type PublicMeeting = Pick<
   Meeting,
@@ -91,7 +117,7 @@ export type PublicMeeting = Pick<
 export interface HomeData {
   memberCount: number;
   nextMeeting: PublicMeeting | null;
-  settings: Pick<Settings, "club_name" | "description">;
+  settings: Pick<Settings, "club_name" | "description"> & SocialLinks;
   books: Book[];
   currentBook: Book | null;
   turnstileSiteKey: string;
@@ -116,6 +142,7 @@ export interface AdminData {
     total: number;
   }[];
   rsvps: { meeting_id: string; response: MeetingRsvp; total: number }[];
+  departures: MemberDeparture[];
 }
 export interface InvitationBatch {
   sent: number;

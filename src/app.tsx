@@ -32,8 +32,10 @@ import {
 } from "./pages/Members";
 import Admin from "./pages/Admin";
 import Privacy from "./pages/Privacy";
+import RsvpLink from "./pages/RsvpLink";
 import type { ReactNode } from "react";
 import { instance } from "./instance";
+import { SocialLinks } from "./components/SocialLinks";
 function Protected({
   children,
   admin = false,
@@ -192,6 +194,7 @@ function Layout() {
           />
           <Route path="/biblioteca" element={<Library />} />
           <Route path="/privacidade" element={<Privacy />} />
+          <Route path="/presenca" element={<RsvpLink />} />
           <Route
             path="/livros/:id"
             element={
@@ -253,26 +256,29 @@ function Layout() {
       <footer className="footer container">
         <div>
           <BookOpen size={20} />
-          <span>{home?.settings.club_name || "readline club"}</span>
+          <span>
+            {home?.settings.club_name || "readline club"} · gratuito, sempre
+          </span>
         </div>
+        <SocialLinks />
         {instance.author && (
           <p className="footer-author">
             <span>
-              Criado por <strong>{instance.author.name}</strong>.
+              Organizado por <strong>{instance.author.name}</strong>
             </span>
             <a
               href={instance.author.url}
               target="_blank"
               rel="noopener noreferrer"
             >
-              Conheça meus outros projetos{" "}
+              {new URL(instance.author.url).hostname.replace(/^www\./, "")}
               <ArrowUpRight size={14} aria-hidden="true" />
             </a>
           </p>
         )}
         <nav className="footer-links" aria-label="Rodapé">
           <Link to="/comunidade">
-            Sobre o clube <ArrowUpRight size={14} />
+            Como funciona <ArrowUpRight size={14} />
           </Link>
           <Link to="/privacidade">Privacidade</Link>
         </nav>

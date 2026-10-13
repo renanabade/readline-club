@@ -8,6 +8,7 @@ import {
   emailSchema,
   passwordSchema,
   preferencesSchema,
+  profileSchema,
 } from "../../shared/validation";
 import {
   hashPassword,
@@ -19,6 +20,10 @@ import { startSession, endSession, getIdentity } from "../auth/sessions";
 import { requireUser } from "../auth/guards";
 import { rateLimit } from "../auth/limits";
 const auth = new Hono<AppEnv>();
+export const expireDepartures = (db: D1Database, now = new Date()) =>
+  db
+    .prepare("DELETE FROM member_departures WHERE left_at<?")
+    .bind(new Date(now.getTime() - 30 * 86400000).toISOString());
 auth.post("/register", async (c) => {
   const data = await input(c, signupSchema);
   await rateLimit(c, "signup", 10);
@@ -83,8 +88,15 @@ auth.post("/register", async (c) => {
         "INSERT INTO users(id,email,name,password_hash) VALUES(?,?,?,?)",
       ).bind(id, data.email, data.name, hash),
       c.env.DB.prepare(
-        "INSERT INTO applications(id,email,name,experience,motivation) VALUES(?,?,?,?,?)",
-      ).bind(id, data.email, data.name, data.experience, data.motivation),
+        "INSERT INTO applications(id,email,name,phone,experience,motivation) VALUES(?,?,?,?,?,?)",
+      ).bind(
+        id,
+        data.email,
+        data.name,
+        data.phone,
+        data.experience,
+        data.motivation,
+      ),
     ]);
   } catch (err) {
     const duplicate = await c.env.DB.prepare(
@@ -179,9 +191,31 @@ auth.post("/account/delete", requireUser, async (c) => {
     throw new HTTPException(403, {
       message: "A conta administrativa não pode ser excluída por aqui.",
     });
+  // Whoever had access may still be in the WhatsApp and Discord groups, which
+  // are members-only. Name and phone stay, apart from the account, until the
+  // organization removes the person there, and for 30 days at most.
+  const departure = await c.env.DB.prepare(
+    "SELECT name,phone FROM applications WHERE email=? AND status IN ('approved','suspended')",
+  )
+    .bind(user.email)
+    .first<{ name: string; phone: string }>();
+  const now = new Date();
   // Sessions, reset links and onboarding cascade from users. Approval notices
   // have no cascade, so they go first.
   await c.env.DB.batch([
+    expireDepartures(c.env.DB, now),
+    ...(departure
+      ? [
+          c.env.DB.prepare(
+            "INSERT INTO member_departures(id,name,phone,left_at) VALUES(?,?,?,?)",
+          ).bind(
+            crypto.randomUUID(),
+            departure.name,
+            departure.phone,
+            now.toISOString(),
+          ),
+        ]
+      : []),
     c.env.DB.prepare(
       "DELETE FROM approval_notifications WHERE application_id IN (SELECT id FROM applications WHERE email=?)",
     ).bind(user.email),
@@ -208,6 +242,21 @@ auth.patch("/preferences", requireUser, async (c) => {
     .bind(meetingEmails ? 1 : 0, c.get("identity").userId)
     .run();
   return c.json({ meetingEmails });
+});
+auth.get("/profile", requireUser, async (c) => {
+  const phone = await c.env.DB.prepare(
+    "SELECT phone FROM applications WHERE email=?",
+  )
+    .bind(c.get("identity").email)
+    .first<string>("phone");
+  return c.json({ phone: phone ?? "" });
+});
+auth.patch("/profile", requireUser, async (c) => {
+  const { phone } = await input(c, profileSchema);
+  await c.env.DB.prepare("UPDATE applications SET phone=? WHERE email=?")
+    .bind(phone, c.get("identity").email)
+    .run();
+  return c.json({ phone });
 });
 auth.post("/reset", async (c) => {
   const data = await input(

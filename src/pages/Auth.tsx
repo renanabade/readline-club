@@ -57,8 +57,22 @@ export default function Auth({ mode }: { mode: "login" | "signup" | "reset" }) {
         <h1>Computação em pauta.</h1>
         <p>
           Leia livros técnicos, discuta fundamentos e troque experiências com
-          pessoas em diferentes momentos da carreira.
+          pessoas em diferentes momentos da carreira. Gratuito, sempre.
         </p>
+        <ul className="auth-benefits">
+          <li>
+            <Check size={16} aria-hidden="true" /> Encontros ao vivo pelo Google
+            Meet
+          </li>
+          <li>
+            <Check size={16} aria-hidden="true" /> Gravações, resumos em PDF e
+            EPUB e slides
+          </li>
+          <li>
+            <Check size={16} aria-hidden="true" /> Comunidade oficial no
+            WhatsApp e no Discord
+          </li>
+        </ul>
         <div className="auth-quote">
           Do conceito no livro
           <br />à decisão no código.
@@ -84,7 +98,7 @@ export default function Auth({ mode }: { mode: "login" | "signup" | "reset" }) {
         </h2>
         <p>
           {signup
-            ? "Preencha seu cadastro. O organizador aprovará seu acesso aos encontros e às gravações."
+            ? "Leva um minuto. A organização revisa cada inscrição e avisa por e-mail quando seu acesso for liberado."
             : reset
               ? "O link é individual e só pode ser usado uma vez."
               : "Acesse a biblioteca, os encontros e as gravações do clube."}
@@ -95,7 +109,7 @@ export default function Auth({ mode }: { mode: "login" | "signup" | "reset" }) {
             <h3>{signup ? "Cadastro recebido." : "Senha atualizada."}</h3>
             <p>
               {signup
-                ? "Entre para acompanhar a aprovação do seu acesso. Se já tinha cadastro, use sua senha anterior."
+                ? "Você recebe um e-mail quando o acesso for liberado. Enquanto isso, entre para acompanhar o status. Se já tinha cadastro, use sua senha anterior."
                 : "Agora você pode entrar com sua nova senha."}
             </p>
             <Link
@@ -131,6 +145,25 @@ export default function Auth({ mode }: { mode: "login" | "signup" | "reset" }) {
                   maxLength={254}
                   placeholder="voce@exemplo.com"
                 />
+              </label>
+            )}
+            {signup && (
+              <label>
+                Celular com DDD (WhatsApp)
+                <input
+                  type="tel"
+                  name="phone"
+                  autoComplete="tel"
+                  inputMode="tel"
+                  required
+                  maxLength={40}
+                  placeholder="(11) 91234-5678"
+                  aria-describedby="phone-help"
+                />
+                <span className="field-help" id="phone-help">
+                  Para a organização identificar você no grupo do WhatsApp. Não
+                  aparece para outros membros na plataforma.
+                </span>
               </label>
             )}
             <label>
@@ -234,9 +267,9 @@ export default function Auth({ mode }: { mode: "login" | "signup" | "reset" }) {
             )}
             {forgot && (
               <div className="help-box">
-                Peça ao organizador um link individual de recuperação pelo canal
-                em que você entrou no clube. Por segurança, confirme sua
-                identidade antes de receber o link.
+                Peça à organização um link individual de recuperação, pelo grupo
+                do WhatsApp ou pelo canal em que você entrou no clube. Por
+                segurança, confirme sua identidade antes de receber o link.
               </div>
             )}
             <p className="form-bottom">

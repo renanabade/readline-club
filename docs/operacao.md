@@ -28,13 +28,16 @@ Para produção, substitua `--local` por `--remote`. O script gera uma senha ale
 
 No painel é possível:
 
+- Buscar integrantes por nome, e-mail ou celular e filtrar por situação. A lista mostra 30 por vez.
 - Aprovar, recusar ou suspender integrantes.
+- Ver quem excluiu a conta e precisa sair dos grupos (**Saíram da plataforma**). Depois de retirar a pessoa do WhatsApp e do Discord, **Já retirei dos grupos** apaga nome e celular; registros não tratados são apagados em 30 dias.
 - Aceitar todos os pendentes exibidos na lista e liberar novamente o acesso de uma pessoa suspensa. A suspensão exige confirmação.
 - Cadastrar e editar livros e categorias.
 - Criar ciclos e escolher a leitura atual.
 - Cadastrar datas, capítulos, duração, pauta, notas e links de reunião.
 - Colar links do YouTube e publicar ou retirar a publicação da gravação.
-- Adicionar materiais e configurar os convites do WhatsApp e do Discord.
+- Adicionar materiais com tipo (resumo em PDF, resumo em EPUB, slides, transcrição ou material complementar). Resumos e slides aparecem em destaque na página do encontro e como indicação na lista de encontros do livro.
+- Configurar os convites do WhatsApp e do Discord e as redes sociais do clube (Instagram, X, LinkedIn e YouTube), exibidas publicamente no site.
 - Gerar um link de recuperação de senha, de uso único, válido por 30 minutos.
 
 **Recuperação nesta versão:** a pessoa solicita ajuda ao organizador; após confirmar sua identidade pelo canal conhecido, o organizador envia o link em conversa privada. Não há envio automático de recuperação de senha. E-mails do cadastro não são verificados automaticamente, portanto confirme os novos participantes antes de aprová-los. É possível alterar a senha dentro da própria conta.
@@ -55,7 +58,9 @@ O painel diferencia acesso aprovado de aviso enviado. Para contas já aprovadas 
 
 ### Convite para encontro
 
-No painel, cada encontro agendado e ainda não realizado tem o botão **Enviar convite por e-mail**. Depois da confirmação, a plataforma põe na fila os membros aprovados que aceitam avisos de encontros (opção em **Minha conta**, ligada por padrão) e o mailer envia em lotes de 20, pelo mesmo remetente `EMAIL_FROM`. O e-mail traz data, horário, leitura, o botão **Confirmar presença** (página do encontro, com login), o link para o Google Agenda e o arquivo `.ics` anexado. O link da chamada não vai no e-mail.
+No painel, cada encontro agendado e ainda não realizado tem o botão **Enviar convite por e-mail**. Depois da confirmação, a plataforma põe na fila os membros aprovados que aceitam avisos de encontros (opção em **Minha conta**, ligada por padrão) e o mailer envia em lotes de 20, pelo mesmo remetente `EMAIL_FROM`. O e-mail traz data, horário, leitura, os botões **Vou participar** e **Não vou poder**, o link para o Google Agenda e o arquivo `.ics` anexado. O link da chamada não vai no e-mail.
+
+Os botões de resposta levam a `/presenca`, com um token individual no fragmento da URL (`#...`), que o navegador não envia ao servidor. O mailer gera o token na hora do envio e grava só o hash em `meeting_invitations.rsvp_token_hash`. A página mostra o encontro e responde com **um clique, sem login**: abrir o link não confirma nada, porque filtros de e-mail e antivírus abrem os links das mensagens. O token responde só à presença daquele encontro, para aquela pessoa, enquanto ela continuar aprovada e o encontro não tiver começado; não abre sessão e não revela o link da chamada. Reenviar o convite gera um token novo e invalida o anterior.
 
 A tabela `meeting_invitations` registra cada convite e impede duplicação: enviar de novo só alcança quem ainda não recebeu (por exemplo, membros aprovados depois), além de repetir falhas confirmadas. Resultados desconhecidos ficam bloqueados para inspeção, como nos outros e-mails. Antes de cada envio, o mailer confere de novo se a pessoa continua aprovada e aceitando avisos. As respostas ficam em `meeting_rsvps`, e o painel mostra só os totais de cada encontro.
 

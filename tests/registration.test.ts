@@ -13,6 +13,7 @@ afterEach(() => vi.unstubAllGlobals());
 const data = {
   name: "Ana Leitora",
   email: "ana@example.test",
+  phone: "(11) 91234-5678",
   password: "uma-senha-forte-123",
   experience: "beginner",
   motivation: "",

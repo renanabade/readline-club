@@ -5,9 +5,11 @@ import {
   CalendarDays,
   Video,
   BookOpen,
+  FileText,
 } from "lucide-react";
 import type { Book, Meeting } from "../../shared/contracts";
 import { dateLabel } from "../lib/dates";
+import { materialSummary } from "../lib/meeting";
 import type { ReactNode } from "react";
 export const Arrow = () => <ArrowRight size={18} aria-hidden="true" />;
 export function Notice({ children }: { children: ReactNode }) {
@@ -154,6 +156,7 @@ export function BookCard({ book }: { book: Book }) {
   );
 }
 export function MeetingRow({ meeting }: { meeting: Meeting }) {
+  const materials = materialSummary(meeting);
   return (
     <Link className="meeting-row" to={"/encontros/" + meeting.id}>
       <span className="date-icon">
@@ -163,6 +166,12 @@ export function MeetingRow({ meeting }: { meeting: Meeting }) {
         <span className="muted small">{dateLabel(meeting.starts_at)}</span>
         <h3>{meeting.title}</h3>
         <p>{meeting.chapters || meeting.book_title}</p>
+        {!!materials.length && (
+          <p className="meeting-materials">
+            <FileText size={14} aria-hidden="true" />
+            {materials.join(" · ")}
+          </p>
+        )}
       </div>
       <span className="meeting-status">
         {meeting.youtube_id ? (

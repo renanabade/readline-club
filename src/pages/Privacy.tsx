@@ -24,15 +24,19 @@ export default function Privacy() {
       <h2>O que guardamos</h2>
       <ul className="prose">
         <li>
-          <strong>No cadastro:</strong> nome, e-mail, senha (somente em formato
-          protegido, nunca o texto original), nível de experiência, a motivação
-          que você escrever e o seu aceite das orientações do clube.
+          <strong>No cadastro:</strong> nome, e-mail, celular, senha (somente em
+          formato protegido, nunca o texto original), nível de experiência, a
+          motivação que você escrever e o seu aceite das orientações do clube.
         </li>
         <li>
           <strong>Durante o uso:</strong> o status da sua inscrição, a
           confirmação de que leu como a comunidade funciona, as sessões abertas
           na sua conta, suas respostas de presença nos encontros, sua escolha
           sobre receber avisos de encontros e o registro dos convites enviados.
+          Cada convite por e-mail traz botões pessoais para responder a presença
+          sem entrar na plataforma; o banco guarda apenas uma versão protegida
+          (hash) desse link, que serve só para responder àquele encontro e deixa
+          de valer quando ele começa.
         </li>
         <li>
           <strong>Para segurança:</strong> o endereço IP e o e-mail usados em
@@ -45,21 +49,34 @@ export default function Privacy() {
       <p className="prose">
         Para avaliar sua inscrição, liberar seu acesso, avisar por e-mail quando
         ele for aprovado, enviar o convite de cada encontro e manter a
-        plataforma segura. Você pode deixar de receber os convites de encontros
-        a qualquer momento em <Link to="/conta">Minha conta</Link>. Tratamos os
-        dados com base no consentimento que você dá no cadastro e no que é
-        necessário para oferecer a plataforma. Não vendemos dados, não exibimos
-        anúncios de terceiros e não usamos ferramentas de análise ou
-        rastreamento.
+        plataforma segura. O celular serve para a organização identificar você
+        no grupo do WhatsApp do clube, que é exclusivo para membros. Você pode
+        deixar de receber os convites de encontros a qualquer momento em{" "}
+        <Link to="/conta">Minha conta</Link>. Tratamos os dados com base no
+        consentimento que você dá no cadastro e no que é necessário para
+        oferecer a plataforma. Não vendemos dados, não exibimos anúncios de
+        terceiros e não usamos ferramentas de análise ou rastreamento.
       </p>
 
       <h2>Quem vê seus dados</h2>
       <p className="prose">
-        A organização do clube vê os cadastros (nome, e-mail, experiência e
-        motivação) para aprovar as inscrições. Das confirmações de presença, a
-        organização vê apenas o total de cada encontro, não quem respondeu.
-        Outros membros não veem seus dados pela plataforma. A página inicial
-        mostra apenas o número total de membros.
+        A organização do clube vê os cadastros (nome, e-mail, celular,
+        experiência e motivação) para aprovar as inscrições e cuidar dos grupos.
+        Das confirmações de presença, a organização vê apenas o total de cada
+        encontro, não quem respondeu. Outros membros não veem seus dados pela
+        plataforma. A página inicial mostra apenas o número total de membros.
+        Nos grupos do WhatsApp e do Discord, as outras pessoas veem o que esses
+        serviços mostram, como seu número no WhatsApp.
+      </p>
+
+      <h2>Gravações, transcrições e resumos</h2>
+      <p className="prose">
+        Os encontros são gravados e publicados no YouTube como vídeos não
+        listados, exibidos na plataforma só para membros. A organização pode
+        usar ferramentas de transcrição e de inteligência artificial sobre a
+        gravação para preparar o resumo escrito (PDF e EPUB) e os slides de cada
+        encontro, que ficam na página do livro para os membros. Você pode
+        participar com câmera e microfone desligados.
       </p>
 
       <h2>Serviços de terceiros</h2>
@@ -97,8 +114,11 @@ export default function Privacy() {
       <h2>Por quanto tempo</h2>
       <p className="prose">
         Enquanto sua conta existir. Quando você exclui a conta, os dados são
-        apagados do banco na hora. Cópias de segurança automáticas do banco
-        podem mantê-los por até 30 dias, até serem descartadas.
+        apagados do banco na hora. A única exceção: se você tinha acesso aos
+        grupos, seu nome e celular ficam separados da conta só até a organização
+        retirar você do WhatsApp e do Discord, e são apagados nesse momento ou,
+        no máximo, em 30 dias. Cópias de segurança automáticas do banco podem
+        mantê-los por até 30 dias, até serem descartadas.
       </p>
 
       <h2>Seus direitos</h2>
@@ -114,7 +134,7 @@ export default function Privacy() {
       <h2>Mudanças nesta política</h2>
       <p className="prose">
         Quando esta política mudar, a nova versão será publicada nesta página.
-        Última atualização: 10 de outubro de 2026.
+        Última atualização: 13 de outubro de 2026.
       </p>
     </div>
   );
