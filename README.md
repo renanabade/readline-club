@@ -39,7 +39,7 @@ Nenhum membro vê dados de outros membros.
 - **Transcrição e resumos:** a organização pode usar ferramentas de transcrição e de IA, fora da plataforma, sobre as gravações para preparar os resumos e slides de cada encontro.
 - **Google Agenda:** só é acessado se a pessoa clicar para adicionar um encontro ao calendário, na plataforma ou no convite por e-mail. A plataforma nunca envia e-mails de membros ao Google.
 
-**O que a plataforma não faz:** não tem pagamentos, anúncios de terceiros, ferramentas de análise ou rastreamento, nem login com redes sociais. O navegador guarda apenas o cookie de sessão e a preferência de tema claro/escuro. Os e-mails enviados são o aviso de aprovação, o convite de cada encontro (que o membro pode desligar em **Minha conta**) e um resumo para a organização com a quantidade de cadastros pendentes, sem nomes ou endereços.
+**O que a plataforma não faz:** não tem pagamentos, anúncios de terceiros, ferramentas de análise ou rastreamento, nem login com redes sociais. O navegador guarda apenas o cookie de sessão, a preferência de tema claro/escuro e, se a pessoa fechar o aviso de divulgação do topo, o nome do aviso fechado. Os e-mails enviados são o aviso de aprovação, o convite de cada encontro (que o membro pode desligar em **Minha conta**) e um resumo para a organização com a quantidade de cadastros pendentes, sem nomes ou endereços.
 
 ## Segurança
 
@@ -67,7 +67,7 @@ Interface em React, API em [Hono](https://hono.dev) sobre Cloudflare Pages Funct
 | `tests/`      | Testes automatizados.                 |
 | `docs/`       | Documentação interna.                 |
 
-A direção visual usa as fontes Literata e Instrument Sans, divisórias discretas e temas claro e escuro.
+A direção visual parte da marca do clube (a fita marcadora teal ao lado do "r", sobre grafite): fundo cor de papel no tema claro e grafite quente no escuro, um único teal como acento (escuro sobre o papel, vivo à noite), fontes Instrument Sans e Literata e divisórias discretas.
 
 ## Licença
 

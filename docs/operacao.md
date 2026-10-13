@@ -119,4 +119,4 @@ O Worker antigo contém apenas `worker/legacy-redirect.ts`, publicado com `npm r
 
 ## Ícones
 
-O favicon SVG, o ICO e os ícones para atalhos estão em `public/`, referenciados no HTML e no manifest. As versões raster podem ser regeneradas em Windows com `scripts/generate-icons.ps1`.
+A marca está em `public/favicon.svg` (a mesma de `src/components/BrandMark.tsx`). O ICO e os PNG de atalho (`icon-32`, `icon-192`, `icon-512` e `apple-touch-icon`, este sem cantos arredondados, porque o iOS arredonda) são exportados desse SVG; ao mudar a marca, exporte de novo os cinco arquivos.
