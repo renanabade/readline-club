@@ -1,0 +1,7 @@
+ALTER TABLE applications ADD COLUMN phone TEXT NOT NULL DEFAULT '';
+CREATE TABLE member_departures (
+ id TEXT PRIMARY KEY,
+ name TEXT NOT NULL,
+ phone TEXT NOT NULL DEFAULT '',
+ left_at TEXT NOT NULL
+);

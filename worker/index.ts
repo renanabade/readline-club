@@ -7,6 +7,7 @@ import { catalog, books } from "./routes/catalog";
 import { requireUser, requireMember, requireAdmin } from "./auth/guards";
 import { getIdentity } from "./auth/sessions";
 import { admin } from "./routes/admin";
+import { rsvp } from "./routes/rsvp";
 export function createApp() {
   const app = new Hono<AppEnv>();
   app.use("/api/*", async (c, next) => {
@@ -34,7 +35,7 @@ export function createApp() {
       "SELECT book_id FROM reading_cycles WHERE is_current=1",
     ).first<{ book_id: string }>();
     const settings = await c.env.DB.prepare(
-      "SELECT club_name,description FROM settings WHERE id=1",
+      "SELECT club_name,description,instagram_url,linkedin_url,youtube_url,tiktok_url FROM settings WHERE id=1",
     ).first();
     const memberCount = await c.env.DB.prepare(
       "SELECT COUNT(*) AS total FROM applications a JOIN users u ON u.email=a.email WHERE a.status='approved' AND u.role='member'",
@@ -55,6 +56,7 @@ export function createApp() {
     });
   });
   app.route("/api/auth", auth);
+  app.route("/api/rsvp", rsvp);
   app.use("/api/admin/*", requireUser, requireMember, requireAdmin);
   app.route("/api/admin", admin);
   app.use("/api/books/*", requireUser, requireMember);

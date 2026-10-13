@@ -33,7 +33,7 @@ export async function books(db: Env["DB"], all = false): Promise<Book[]> {
       .map(({ id, name }) => ({ id, name })),
   }));
 }
-export const meetingQuery = `SELECT m.*,b.title book_title,b.id book_id,r.youtube_id FROM meetings m JOIN reading_cycles cy ON cy.id=m.cycle_id JOIN books b ON b.id=cy.book_id LEFT JOIN recordings r ON r.meeting_id=m.id AND r.published=1`;
+export const meetingQuery = `SELECT m.*,b.title book_title,b.id book_id,r.youtube_id,(SELECT group_concat(DISTINCT kind) FROM resources WHERE meeting_id=m.id) material_kinds FROM meetings m JOIN reading_cycles cy ON cy.id=m.cycle_id JOIN books b ON b.id=cy.book_id LEFT JOIN recordings r ON r.meeting_id=m.id AND r.published=1`;
 const catalog = new Hono<AppEnv>();
 catalog.get("/books", async (c) => c.json(await books(c.env.DB)));
 catalog.get("/books/:id", async (c) => {
@@ -66,7 +66,7 @@ catalog.get("/meetings/:id", async (c) => {
     .first<Meeting>();
   if (!meeting) return missing();
   const resources = await c.env.DB.prepare(
-    "SELECT * FROM resources WHERE meeting_id=?",
+    "SELECT id,meeting_id,title,url,kind FROM resources WHERE meeting_id=? ORDER BY CASE kind WHEN 'summary_pdf' THEN 0 WHEN 'summary_epub' THEN 1 WHEN 'slides' THEN 2 WHEN 'transcript' THEN 3 ELSE 4 END,title",
   )
     .bind(meeting.id)
     .all<Resource>();

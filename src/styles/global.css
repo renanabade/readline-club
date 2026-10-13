@@ -2436,3 +2436,259 @@ legend {
   margin-top: 4px;
   accent-color: var(--ink);
 }
+
+/* Landing: value proposition, community, FAQ */
+.value-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px 42px;
+}
+.value-grid article {
+  border-top: 1px solid var(--line);
+  padding-top: 24px;
+}
+.value-grid svg {
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+.value-grid h3 {
+  font-size: 1.15rem;
+  margin-bottom: 10px;
+}
+.value-grid p {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.community-panel {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 70px;
+  padding-block: 48px;
+  margin-block: 24px 64px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.community-panel > div > p {
+  color: var(--muted);
+  margin-top: 18px;
+  max-width: 440px;
+}
+.channel-list {
+  display: grid;
+  gap: 24px;
+}
+.channel-list article {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.channel-list svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: var(--muted);
+}
+.channel-list h3 {
+  font-size: 1.05rem;
+  margin-bottom: 6px;
+}
+.channel-list p {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+.faq-list {
+  border-top: 1px solid var(--line);
+}
+.faq-list details {
+  border-bottom: 1px solid var(--line);
+}
+.faq-list summary {
+  cursor: pointer;
+  padding-block: 18px;
+  font-weight: 600;
+  list-style-position: inside;
+  min-height: 44px;
+}
+.faq-list p {
+  color: var(--muted);
+  max-width: 78ch;
+  padding-bottom: 20px;
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+.social-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 18px;
+  font-size: 0.85rem;
+}
+.social-links > span {
+  color: var(--muted);
+}
+.social-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+}
+.home-cta .social-links,
+.community-about .social-links {
+  justify-content: center;
+  margin-top: 28px;
+}
+.community-about .social-links {
+  justify-content: flex-start;
+  margin-top: 8px;
+}
+@media (max-width: 850px) {
+  .value-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .community-panel {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+}
+@media (max-width: 600px) {
+  .value-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+/* Meetings and materials */
+.member-next-meeting {
+  margin-top: 0;
+}
+.member-next-meeting > .text-link {
+  margin-top: 20px;
+}
+.member-next-call {
+  margin-top: 20px;
+}
+.member-next-subtitle {
+  margin-top: 36px;
+  font-size: 1rem;
+  color: var(--muted);
+}
+.meeting-materials {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.resource-kind {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.resource-admin .resource-kind {
+  display: inline;
+  margin-right: 8px;
+}
+
+/* Account and signup */
+.field-help {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-weight: 400;
+  margin-top: 6px;
+  line-height: 1.5;
+}
+.auth-benefits {
+  list-style: none;
+  padding: 0;
+  margin: 24px 0;
+  display: grid;
+  gap: 10px;
+  font-size: 0.92rem;
+}
+.auth-benefits li {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.delete-steps {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  padding-left: 1.2em;
+}
+.delete-steps li + li {
+  margin-top: 8px;
+}
+.button.danger {
+  border-color: var(--ink);
+  font-weight: 600;
+}
+
+/* Administration */
+.departures {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--soft);
+  padding: 20px 24px;
+  margin: 24px 0;
+}
+.departures > h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.departures .admin-row:last-child {
+  border-bottom: 0;
+}
+.admin-search {
+  margin: 24px 0 16px;
+  max-width: none;
+}
+.search-field {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding-left: 12px;
+  background: var(--surface);
+}
+.search-field svg {
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.search-field input {
+  border: 0;
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+}
+.load-more {
+  margin-top: 24px;
+}
+.settings-socials {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+@media (max-width: 600px) {
+  .admin-search {
+    flex-direction: column;
+  }
+  .admin-search select {
+    max-width: none;
+  }
+}
+.rsvp-link-page .next-meeting-details {
+  margin: 12px 0 24px;
+  line-height: 1.7;
+}
+.rsvp-link-page .whatsapp-actions {
+  margin: 20px 0 28px;
+}

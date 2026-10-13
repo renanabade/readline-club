@@ -6,36 +6,37 @@ Código da plataforma do [readline club](https://readline.club), um clube do liv
 
 ## Como a plataforma funciona
 
-- **Cadastro e aprovação.** A inscrição pede nome, e-mail e senha, além do nível de experiência e, opcionalmente, a motivação. Cada cadastro é revisado e aprovado manualmente pela organização. Quando o acesso é liberado, a pessoa recebe um e-mail de aviso.
+- **Cadastro e aprovação.** A inscrição pede nome, e-mail, celular e senha, além do nível de experiência e, opcionalmente, a motivação. Cada cadastro é revisado e aprovado manualmente pela organização. Quando o acesso é liberado, a pessoa recebe um e-mail de aviso.
 - **Biblioteca.** Cada livro tem seu acervo, organizado em ciclos de leitura e encontros (livro → ciclo → encontro). Cada encontro reúne data, capítulos, pauta, notas, materiais e, quando houver, a gravação.
-- **Encontros.** A agenda mostra os próximos encontros, que podem ser adicionados ao calendário. A página inicial anuncia o próximo encontro marcado.
-- **Gravações.** Os vídeos ficam no YouTube como não listados e são exibidos dentro da plataforma para membros aprovados. Não há upload de vídeos para o site.
-- **Comunidade.** Os convites do grupo no WhatsApp e do servidor no Discord são liberados para membros aprovados, depois de lerem como o clube funciona.
+- **Encontros.** Os encontros são on-line. A agenda e a página inicial mostram o próximo encontro com o link da chamada, a confirmação de presença e os atalhos para o calendário. O convite por e-mail traz botões pessoais para responder a presença com um clique, sem login.
+- **Gravações e acervo.** Os vídeos ficam no YouTube como não listados e são exibidos dentro da plataforma para membros aprovados. Cada encontro pode ter resumo escrito em PDF e EPUB, slides e transcrição, publicados como links na página do encontro. Não há upload de arquivos para o site.
+- **Comunidade.** O grupo no WhatsApp e o servidor no Discord são os canais oficiais. Os convites são liberados para membros aprovados, depois de lerem como o clube funciona. As redes sociais do clube aparecem no site.
 - **Administração.** A organização aprova, recusa ou suspende cadastros e gerencia livros, ciclos, encontros, gravações, materiais e convites pelo painel. A recuperação de senha é feita com um link de uso único, entregue em conversa privada depois de confirmar a identidade da pessoa.
 
 ## Dados e privacidade
 
 A [política de privacidade](https://readline.club/privacidade) completa fica no site. Em resumo:
 
-**O que é guardado:** nome, e-mail, senha (somente em formato protegido, nunca o texto original), nível de experiência, motivação informada no cadastro, status da aprovação, a confirmação de leitura das orientações da comunidade, as respostas de presença nos encontros e a escolha de receber ou não os convites de encontros por e-mail. Para limitar tentativas de login e cadastro, o endereço IP é registrado apenas em formato de hash.
+**O que é guardado:** nome, e-mail, celular, senha (somente em formato protegido, nunca o texto original), nível de experiência, motivação informada no cadastro, status da aprovação, a confirmação de leitura das orientações da comunidade, as respostas de presença nos encontros e a escolha de receber ou não os convites de encontros por e-mail. Dos links de presença enviados por e-mail, guarda-se só o hash. Para limitar tentativas de login e cadastro, o endereço IP é registrado apenas em formato de hash.
 
 **Quem vê o quê:**
 
-| Quem                       | Acesso                                                                                                                                           |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Qualquer visitante         | Nome e apresentação do clube, livros, número de membros e o anúncio do próximo encontro (título, livro, capítulos, data e duração).              |
-| Conta aguardando aprovação | O próprio cadastro e o status.                                                                                                                   |
-| Membro aprovado            | Encontros com links de chamada, gravações publicadas, materiais e convites dos grupos.                                                           |
-| Organização                | Os cadastros (nome, e-mail, experiência e motivação), o total de confirmações de cada encontro (não quem confirmou) e todo o conteúdo do painel. |
+| Quem                       | Acesso                                                                                                                                                      |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Qualquer visitante         | Nome e apresentação do clube, redes sociais do clube, livros, número de membros e o anúncio do próximo encontro (título, livro, capítulos, data e duração). |
+| Conta aguardando aprovação | O próprio cadastro e o status.                                                                                                                              |
+| Membro aprovado            | Encontros com links de chamada, gravações publicadas, materiais e convites dos grupos.                                                                      |
+| Organização                | Os cadastros (nome, e-mail, celular, experiência e motivação), o total de confirmações de cada encontro (não quem confirmou) e todo o conteúdo do painel.   |
 
 Nenhum membro vê dados de outros membros.
 
-**Excluir a conta:** em **Minha conta**, qualquer pessoa pode excluir o próprio cadastro confirmando a senha. A exclusão apaga nome, e-mail, senha, respostas do cadastro, sessões e registros ligados à conta, e não pode ser desfeita. Os grupos de WhatsApp e Discord são serviços separados; sair deles é feito por lá.
+**Excluir a conta:** em **Minha conta**, qualquer pessoa pode excluir o próprio cadastro confirmando a senha. A exclusão apaga nome, e-mail, celular, senha, respostas do cadastro, sessões e registros ligados à conta, e não pode ser desfeita. Como os grupos de WhatsApp e Discord são exclusivos para membros, quem tinha acesso deixa só nome e celular, separados da conta, até a organização fazer a retirada dos grupos; esse registro é apagado nesse momento ou em até 30 dias.
 
 **Serviços externos:**
 
 - **Cloudflare:** hospedagem, banco de dados, envio de e-mails e a verificação anti-robô (Turnstile) da tela de cadastro.
 - **YouTube:** as gravações são exibidas pelo player `youtube-nocookie.com`, apenas para membros aprovados.
+- **Transcrição e resumos:** a organização pode usar ferramentas de transcrição e de IA, fora da plataforma, sobre as gravações para preparar os resumos e slides de cada encontro.
 - **Google Agenda:** só é acessado se a pessoa clicar para adicionar um encontro ao calendário, na plataforma ou no convite por e-mail. A plataforma nunca envia e-mails de membros ao Google.
 
 **O que a plataforma não faz:** não tem pagamentos, anúncios de terceiros, ferramentas de análise ou rastreamento, nem login com redes sociais. O navegador guarda apenas o cookie de sessão e a preferência de tema claro/escuro. Os e-mails enviados são o aviso de aprovação, o convite de cada encontro (que o membro pode desligar em **Minha conta**) e um resumo para a organização com a quantidade de cadastros pendentes, sem nomes ou endereços.
@@ -48,7 +49,7 @@ Nenhum membro vê dados de outros membros.
 - Respostas da API não são guardadas em cache. Links de chamada, notas e gravações nunca aparecem nas respostas públicas, nem nos eventos exportados para calendário.
 - Não há login de demonstração nem acesso alternativo.
 
-Limitações conhecidas: vídeos não listados do YouTube podem ser repassados por quem tem o link, e tudo que o navegador recebe pode ser inspecionado pela própria pessoa autorizada.
+Limitações conhecidas: vídeos não listados do YouTube e materiais publicados por link podem ser repassados por quem tem o link, um e-mail de convite encaminhado permite que outra pessoa responda a presença daquele encontro (mas não entra na conta nem vê o link da chamada), e tudo que o navegador recebe pode ser inspecionado pela própria pessoa autorizada.
 
 Encontrou uma falha de segurança? Siga o [SECURITY.md](SECURITY.md) e não abra uma issue pública.
 

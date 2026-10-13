@@ -24,7 +24,10 @@ export function BookArchive({
         <div>
           <span className="eyebrow">Acervo deste livro</span>
           <h2 id="archive-title">Encontros e gravações.</h2>
-          <p>Cada ciclo reúne seus encontros, vídeos, notas e materiais.</p>
+          <p>
+            Cada ciclo reúne seus encontros, gravações, resumos em PDF e EPUB,
+            slides e materiais.
+          </p>
         </div>
       </div>
       <div className="tabs" aria-label="Filtrar conteúdo do livro">
@@ -45,8 +48,8 @@ export function BookArchive({
       </div>
       {filter === "recordings" && !recordings.length ? (
         <Empty title="Ainda não há gravações publicadas.">
-          Os vídeos deste livro aparecerão aqui depois que forem publicados pelo
-          organizador.
+          Os vídeos deste livro aparecem aqui depois de publicados pela
+          organização, junto com os resumos em PDF e EPUB e os slides.
         </Empty>
       ) : folders.length ? (
         folders.map((cycle) => {

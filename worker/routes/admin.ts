@@ -9,7 +9,9 @@ import {
   meetingSchema,
   settingsSchema,
   httpsUrl,
+  resourceKinds,
 } from "../../shared/validation";
+import { expireDepartures } from "./auth";
 import { books, meetingQuery } from "./catalog";
 import { parseYouTubeId } from "../lib/youtube";
 import { digest, randomToken } from "../auth/password";
@@ -17,6 +19,7 @@ import { notifyApproval } from "../lib/approval-email";
 import { requestInvitationBatch } from "../lib/invitation-request";
 const admin = new Hono<AppEnv>();
 admin.get("/overview", async (c) => {
+  await expireDepartures(c.env.DB).run();
   const [
     applications,
     list,
@@ -28,6 +31,7 @@ admin.get("/overview", async (c) => {
     settings,
     invitations,
     rsvps,
+    departures,
   ] = await Promise.all([
     c.env.DB.prepare(
       "SELECT a.*,u.id user_id,n.status approval_email_status,n.sent_at approval_email_sent_at,n.error_code approval_email_error FROM applications a LEFT JOIN users u ON u.email=a.email LEFT JOIN approval_notifications n ON n.application_id=a.id ORDER BY CASE a.status WHEN 'pending' THEN 0 WHEN 'approved' THEN 1 WHEN 'suspended' THEN 2 ELSE 3 END, CASE WHEN a.status='pending' THEN a.created_at END ASC, a.created_at DESC,a.id",
@@ -48,6 +52,9 @@ admin.get("/overview", async (c) => {
     c.env.DB.prepare(
       "SELECT meeting_id,response,COUNT(*) AS total FROM meeting_rsvps GROUP BY meeting_id,response",
     ).all(),
+    c.env.DB.prepare(
+      "SELECT id,name,phone,left_at FROM member_departures ORDER BY left_at",
+    ).all(),
   ]);
   return c.json({
     applications: applications.results,
@@ -60,7 +67,15 @@ admin.get("/overview", async (c) => {
     settings,
     invitations: invitations.results,
     rsvps: rsvps.results,
+    departures: departures.results,
   });
+});
+// The organization confirms the person left the groups: nothing is kept.
+admin.delete("/departures/:id", async (c) => {
+  await c.env.DB.prepare("DELETE FROM member_departures WHERE id=?")
+    .bind(c.req.param("id"))
+    .run();
+  return c.json({ ok: true });
 });
 admin.post("/applications/approve-all", async (c) => {
   const { ids } = await input(
@@ -210,8 +225,9 @@ const entities = {
       meeting_id: z.string().min(1).max(100),
       title: z.string().trim().min(1).max(200),
       url: httpsUrl.refine((v) => !!v),
+      kind: z.enum(resourceKinds).default("link"),
     }),
-    fields: ["meeting_id", "title", "url"],
+    fields: ["meeting_id", "title", "url", "kind"],
   },
 };
 for (const [route, config] of Object.entries(entities)) {
@@ -346,7 +362,7 @@ admin.post("/recordings", async (c) => {
 admin.patch("/settings", async (c) => {
   const d = await input(c, settingsSchema);
   await c.env.DB.prepare(
-    "UPDATE settings SET club_name=?,description=?,whatsapp_url=?,discord_url=?,community_guidelines=? WHERE id=1",
+    "UPDATE settings SET club_name=?,description=?,whatsapp_url=?,discord_url=?,community_guidelines=?,instagram_url=?,linkedin_url=?,youtube_url=?,tiktok_url=? WHERE id=1",
   )
     .bind(
       d.club_name,
@@ -354,6 +370,10 @@ admin.patch("/settings", async (c) => {
       d.whatsapp_url,
       d.discord_url,
       d.community_guidelines,
+      d.instagram_url,
+      d.linkedin_url,
+      d.youtube_url,
+      d.tiktok_url,
     )
     .run();
   return c.json({ ok: true });

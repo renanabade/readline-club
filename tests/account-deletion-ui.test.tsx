@@ -48,6 +48,9 @@ test("members confirm with their password and leave the account area", async () 
   const fetch = vi.fn(async () => Response.json({ ok: true }));
   vi.stubGlobal("fetch", fetch);
   renderAccount();
+  fireEvent.click(
+    screen.getByRole("button", { name: "Quero excluir minha conta" }),
+  );
   const form = screen
     .getByRole("heading", { name: "Excluir minha conta" })
     .closest("form")!;

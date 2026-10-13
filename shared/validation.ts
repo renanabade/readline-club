@@ -19,9 +19,43 @@ export const httpsUrl = z
       return false;
     }
   }, "Use um link HTTPS válido.");
+// Stored as +<country><number>. Numbers typed without a country code are
+// taken as Brazilian, the club's audience.
+export const phoneSchema = z
+  .string()
+  .trim()
+  .max(40)
+  .transform((value) => {
+    const digits = value.replace(/\D/g, "");
+    return !value.startsWith("+") && [10, 11].includes(digits.length)
+      ? "55" + digits
+      : digits;
+  })
+  .refine(
+    (digits) => digits.length >= 10 && digits.length <= 15,
+    "Informe um celular com DDD, como (11) 91234-5678.",
+  )
+  .transform((digits) => "+" + digits);
+// Social profiles are public: only links to the expected networks.
+const socialUrl = (hosts: string[], network: string) =>
+  httpsUrl
+    .refine(
+      (v) => {
+        if (!v) return true;
+        try {
+          const host = new URL(v).hostname;
+          return hosts.some((h) => host === h || host.endsWith("." + h));
+        } catch {
+          return false;
+        }
+      },
+      "Use um link do " + network + ".",
+    )
+    .default("");
 export const signupSchema = z.object({
   name: short,
   email: emailSchema,
+  phone: phoneSchema,
   password: passwordSchema,
   experience: z.enum(["beginner", "learning", "experienced"]),
   motivation: z.string().trim().max(2000).default(""),
@@ -81,8 +115,25 @@ export const settingsSchema = z.object({
     }, "Use um link do Discord.")
     .default(""),
   community_guidelines: text.default(""),
+  instagram_url: socialUrl(["instagram.com"], "Instagram"),
+  linkedin_url: socialUrl(["linkedin.com"], "LinkedIn"),
+  youtube_url: socialUrl(["youtube.com", "youtu.be"], "YouTube"),
+  tiktok_url: socialUrl(["tiktok.com"], "TikTok"),
 });
 export const rsvpSchema = z.object({
   response: z.enum(["yes", "no"], "Escolha se vai participar."),
 });
+const rsvpToken = z
+  .string()
+  .regex(/^[0-9a-f]{64}$/, "Este link de confirmação está incompleto.");
+export const rsvpLinkSchema = z.object({ token: rsvpToken });
+export const rsvpLinkAnswerSchema = rsvpSchema.extend({ token: rsvpToken });
 export const preferencesSchema = z.object({ meetingEmails: z.boolean() });
+export const profileSchema = z.object({ phone: phoneSchema });
+export const resourceKinds = [
+  "summary_pdf",
+  "summary_epub",
+  "slides",
+  "transcript",
+  "link",
+] as const;

@@ -8,6 +8,20 @@ interface InvitationEnv {
   APP_ORIGIN: string;
 }
 export const invitationBatchSize = 20;
+// The mailer runs without nodejs_compat, so tokens use Web Crypto. The API
+// checks them with the same SHA-256 hex digest used for sessions.
+async function rsvpToken() {
+  const bytes = crypto.getRandomValues(new Uint8Array(32));
+  const hex = (b: Uint8Array) =>
+    Array.from(b, (n) => n.toString(16).padStart(2, "0")).join("");
+  const token = hex(bytes);
+  const hash = hex(
+    new Uint8Array(
+      await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token)),
+    ),
+  );
+  return { token, hash };
+}
 const escapeHtml = (s: string) =>
   s.replace(
     /[&<>"']/g,
@@ -35,12 +49,19 @@ export function invitationMessage(
   meeting: Meeting & { book_title: string; starts_at: string },
   recipient: { email: string; name: string },
   env: Pick<InvitationEnv, "EMAIL_FROM" | "APP_ORIGIN">,
+  token: string,
 ): EmailMessageBuilder {
   const when = invitationWhen(meeting.starts_at);
   const title = meeting.title.replace(/\s+/g, " ");
   const firstName = recipient.name.trim().split(/\s+/)[0] || "";
   const confirmUrl =
     env.APP_ORIGIN + "/encontros/" + encodeURIComponent(meeting.id);
+  // The token travels in the fragment, which browsers never send to servers.
+  // Opening the page does not answer: link scanners open every link.
+  const answerUrl = (answer: "sim" | "nao") =>
+    env.APP_ORIGIN + "/presenca?resposta=" + answer + "#" + token;
+  const yesUrl = answerUrl("sim"),
+    noUrl = answerUrl("nao");
   const calendarUrl = googleCalendarUrl(meeting, env.APP_ORIGIN)!;
   const accountUrl = env.APP_ORIGIN + "/conta";
   const reading = [meeting.book_title, meeting.chapters]
@@ -53,8 +74,8 @@ export function invitationMessage(
     to: recipient.email,
     replyTo: env.EMAIL_FROM,
     subject: `${title} · ${when}`,
-    text: `Olá${firstName ? ", " + firstName : ""}!\n\n${title}\n${when} (horário de Brasília), ${meeting.duration_minutes} minutos.\n${reading}\n\nVocê vai participar? Confirme sua presença na página do encontro: ${confirmUrl}\n\nAdicionar ao Google Agenda: ${calendarUrl}\nPara Apple Calendar ou Outlook, abra o arquivo .ics anexado.\n\nO link da chamada fica na página do encontro, disponível para membros.\n\nVocê recebe este aviso por ser membro do readline club. Para não receber avisos de encontros, desative em Minha conta: ${accountUrl}`,
-    html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#202024;line-height:1.6"><p><strong>readline club</strong><br>clube do livro de computação</p><p>Olá${firstName ? ", " + escapeHtml(firstName) : ""}!</p><h1 style="font-size:26px">${escapeHtml(title)}</h1><p><strong>${escapeHtml(when)}</strong> (horário de Brasília), ${meeting.duration_minutes} minutos.<br>${escapeHtml(reading)}</p><p>Você vai participar? Confirme sua presença para a gente se organizar.</p><p>${button(confirmUrl, "Confirmar presença", true)}${button(calendarUrl, "Adicionar ao Google Agenda", false)}</p><p style="font-size:14px">Para Apple Calendar ou Outlook, abra o arquivo .ics anexado. O link da chamada fica na página do encontro, disponível para membros.</p><p style="font-size:13px">Se o botão não abrir: <a href="${escapeHtml(confirmUrl)}">${escapeHtml(confirmUrl)}</a></p><p style="font-size:12px;color:#6b6b73">Você recebe este aviso por ser membro do readline club. Para não receber avisos de encontros, desative em <a href="${escapeHtml(accountUrl)}">Minha conta</a>.</p></div>`,
+    text: `Olá${firstName ? ", " + firstName : ""}!\n\n${title}\n${when} (horário de Brasília), ${meeting.duration_minutes} minutos.\n${reading}\n\nVocê vai participar? Responda com um clique, sem precisar entrar na plataforma:\nVou participar: ${yesUrl}\nNão vou poder: ${noUrl}\n\nSe preferir, responda na página do encontro: ${confirmUrl}\n\nAdicionar ao Google Agenda: ${calendarUrl}\nPara Apple Calendar ou Outlook, abra o arquivo .ics anexado.\n\nO link da chamada fica na página do encontro, disponível para membros.\n\nVocê recebe este aviso por ser membro do readline club. Para não receber avisos de encontros, desative em Minha conta: ${accountUrl}`,
+    html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#202024;line-height:1.6"><p><strong>readline club</strong><br>clube do livro de computação</p><p>Olá${firstName ? ", " + escapeHtml(firstName) : ""}!</p><h1 style="font-size:26px">${escapeHtml(title)}</h1><p><strong>${escapeHtml(when)}</strong> (horário de Brasília), ${meeting.duration_minutes} minutos.<br>${escapeHtml(reading)}</p><p>Você vai participar? Responda com um clique, sem precisar entrar na plataforma.</p><p>${button(yesUrl, "Vou participar", true)}${button(noUrl, "Não vou poder", false)}</p><p>${button(calendarUrl, "Adicionar ao Google Agenda", false)}</p><p style="font-size:14px">Para Apple Calendar ou Outlook, abra o arquivo .ics anexado. O link da chamada fica na página do encontro, disponível para membros.</p><p style="font-size:13px">Se o botão não abrir, responda na página do encontro: <a href="${escapeHtml(confirmUrl)}">${escapeHtml(confirmUrl)}</a>. Os botões de resposta são pessoais: não encaminhe este e-mail.</p><p style="font-size:12px;color:#6b6b73">Você recebe este aviso por ser membro do readline club. Para não receber avisos de encontros, desative em <a href="${escapeHtml(accountUrl)}">Minha conta</a>.</p></div>`,
     attachments: [
       {
         disposition: "attachment",
@@ -116,9 +137,21 @@ export async function sendInvitationBatch(
     failed = 0;
   for (const recipient of recipients) {
     let messageId: string;
+    // Stored before sending, so a link that reaches the inbox always works.
+    const { token, hash } = await rsvpToken();
+    await env.DB.prepare(
+      "UPDATE meeting_invitations SET rsvp_token_hash=? WHERE meeting_id=? AND user_id=?",
+    )
+      .bind(hash, meetingId, recipient.id)
+      .run();
     try {
       const result = await env.EMAIL.send(
-        invitationMessage({ ...meeting, starts_at: startsAt }, recipient, env),
+        invitationMessage(
+          { ...meeting, starts_at: startsAt },
+          recipient,
+          env,
+          token,
+        ),
       );
       messageId = result.messageId;
       if (!messageId) throw new Error("missing_confirmation");

@@ -1,13 +1,8 @@
 import { CalendarDays } from "lucide-react";
 import { useSession } from "../lib/session";
 import { dateLabel } from "../lib/dates";
+import { durationLabel } from "../lib/meeting";
 import { CalendarActions } from "./CalendarActions";
-
-function durationLabel(minutes: number) {
-  if (minutes % 60) return minutes + " minutos";
-  const hours = minutes / 60;
-  return hours + (hours === 1 ? " hora" : " horas");
-}
 
 export function NextMeetingNotice({
   contained = false,
@@ -34,14 +29,15 @@ export function NextMeetingNotice({
         {durationLabel(meeting.duration_minutes)}
       </p>
       <p>
-        Vamos conversar sobre os capítulos combinados, tirar dúvidas e trazer
-        exemplos de situações reais. Quem está começando pode perguntar; quem
-        tem mais experiência pode complementar. Também vale só acompanhar.
+        Encontro ao vivo, on-line e gratuito, para conversar sobre os capítulos
+        combinados, tirar dúvidas e trazer exemplos do dia a dia. Quem está
+        começando pergunta; quem tem mais experiência complementa. Também vale
+        só ouvir.
       </p>
       <p>
-        O link da chamada fica disponível para os integrantes aprovados. Quando
-        houver gravação, ela fica na área do livro para quem não puder ir ou
-        entrar no clube mais tarde.
+        Membros aprovados encontram o link da chamada e confirmam presença na
+        plataforma. Não pôde ir? A gravação, o resumo escrito e os slides ficam
+        na página do livro.
       </p>
       <CalendarActions meeting={meeting} />
     </section>
