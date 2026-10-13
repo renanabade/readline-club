@@ -66,8 +66,9 @@ Interface em React, API em [Hono](https://hono.dev) sobre Cloudflare Pages Funct
 | `migrations/` | Estrutura do banco de dados.          |
 | `tests/`      | Testes automatizados.                 |
 | `docs/`       | Documentação interna.                 |
+| `brand/`      | Marca do clube em SVG e PNG.          |
 
-A direção visual parte da marca do clube (a fita marcadora teal ao lado do "r", sobre grafite): fundo cor de papel no tema claro e grafite quente no escuro, um único teal como acento (escuro sobre o papel, vivo à noite), fontes Instrument Sans e Literata e divisórias discretas.
+A direção visual usa as fontes Literata e Instrument Sans, divisórias discretas e temas claro e escuro.
 
 ## Licença
 

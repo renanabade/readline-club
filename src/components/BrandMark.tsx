@@ -1,5 +1,7 @@
-// The club mark: a bookmark ribbon beside a lowercase "r", on a graphite tile.
-export function BrandMark({ size = 34 }: { size?: number }) {
+// The club mark: a bookmark ribbon beside a lowercase "r". It takes the
+// theme's ink for the tile and the page color for the drawing, so it flips
+// between the light and dark themes.
+export function BrandMark({ size = 36 }: { size?: number }) {
   return (
     <svg
       className="brand-mark"
@@ -8,12 +10,14 @@ export function BrandMark({ size = 34 }: { size?: number }) {
       height={size}
       aria-hidden="true"
     >
-      <rect width="512" height="512" rx="112" fill="#1F1D1A" />
-      <path d="M288 135h75v240l-37.5-30-37.5 30Z" fill="#00B4A0" />
+      <rect className="brand-mark-tile" width="512" height="512" rx="112" />
       <path
+        className="brand-mark-ribbon"
+        d="M288 135h75v240l-37.5-30-37.5 30Z"
+      />
+      <path
+        className="brand-mark-letter"
         d="M170 367V260c0-40 30-46 76-46"
-        fill="none"
-        stroke="#F3EFE6"
         strokeWidth="42"
         strokeLinecap="round"
       />

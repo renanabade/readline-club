@@ -119,4 +119,11 @@ O Worker antigo contém apenas `worker/legacy-redirect.ts`, publicado com `npm r
 
 ## Ícones
 
-A marca está em `public/favicon.svg` (a mesma de `src/components/BrandMark.tsx`). O ICO e os PNG de atalho (`icon-32`, `icon-192`, `icon-512` e `apple-touch-icon`, este sem cantos arredondados, porque o iOS arredonda) são exportados desse SVG; ao mudar a marca, exporte de novo os cinco arquivos.
+A marca (a fita marcadora ao lado do "r") tem duas versões, com as cores exatas de cada tema: **grafite** (quadrado `#1F1D1A`, desenho `#F8F6F1`), usada no tema claro, e **papel** (quadrado `#F0EDE6`, desenho `#191814`), usada no tema escuro.
+
+- `src/components/BrandMark.tsx`: o símbolo do cabeçalho e do rodapé, que troca de versão junto com o tema do site.
+- `public/favicon.svg`: o ícone da aba, que troca de versão conforme o tema do sistema.
+- `public/favicon.ico`, `icon-32.png`, `icon-192.png`, `icon-512.png` e `apple-touch-icon.png`: versão grafite. O `apple-touch-icon` não tem cantos arredondados, porque o iOS arredonda.
+- `brand/`: os SVGs das duas versões e PNGs para redes sociais: `-512` com cantos arredondados e `-perfil-1080`/`-perfil-400` quadrados, para fotos de perfil (as redes recortam em círculo).
+
+Ao mudar a marca, exporte de novo os PNG e o ICO a partir dos SVGs.

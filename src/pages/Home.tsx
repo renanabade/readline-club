@@ -179,14 +179,9 @@ export default function Home() {
     <>
       <section className="container hero">
         <div className="hero-copy">
-          <div className="eyebrow prompt-line">
-            <span className="prompt" aria-hidden="true">
-              $
-            </span>
-            ler computação, capítulo por capítulo
-            <span className="cursor" aria-hidden="true">
-              _
-            </span>
+          <div className="eyebrow">
+            <span className="live-dot" />
+            Clube do livro de computação · gratuito
           </div>
           <h1>
             A bagagem teórica que a sua carreira precisa.{" "}
