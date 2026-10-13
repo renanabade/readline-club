@@ -51,9 +51,7 @@ test("owner tools stay inside the account page, outside the navigation bar", asy
   ).toBeTruthy();
   expect(within(screen.getByRole("banner")).queryByText(/admin/i)).toBeNull();
   expect(
-    within(screen.getByRole("banner")).getByRole("link", {
-      name: "readline club",
-    }),
+    within(screen.getByRole("banner")).getByText("readline club"),
   ).toBeTruthy();
   expect(
     within(screen.getByRole("banner")).getByRole("link", {

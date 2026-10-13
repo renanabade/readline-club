@@ -44,16 +44,6 @@ function Protected({
   if (admin && user.role !== "admin") return <Navigate to="/" replace />;
   return children;
 }
-// Same rhythm as the logo: the first word strong, the rest quieter.
-function Wordmark({ name }: { name: string }) {
-  const [first, ...rest] = name.split(" ");
-  return (
-    <span className="wordmark-name">
-      <strong>{first}</strong>
-      {rest.length > 0 && <span> {rest.join(" ")}</span>}
-    </span>
-  );
-}
 function Layout() {
   const { user, home, error, loading, refresh } = useSession();
   const [menu, setMenu] = useState(false);
@@ -146,8 +136,8 @@ function Layout() {
             aria-label={home?.settings.club_name || "readline club"}
           >
             <BrandMark />
-            <span className="wordmark">
-              <Wordmark name={home?.settings.club_name || "readline club"} />
+            <span>
+              {home?.settings.club_name || "readline club"}
               <small>clube do livro de computação</small>
             </span>
           </Link>

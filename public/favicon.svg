@@ -1,5 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#1F1D1A"/>
-  <path d="M288 135h75v240l-37.5-30-37.5 30Z" fill="#00B4A0"/>
-  <path d="M170 367V260c0-40 30-46 76-46" fill="none" stroke="#F3EFE6" stroke-width="42" stroke-linecap="round"/>
+  <style>
+    .tile { fill: #1F1D1A; }
+    .ribbon { fill: #F8F6F1; }
+    .letter { fill: none; stroke: #F8F6F1; }
+    @media (prefers-color-scheme: dark) {
+      .tile { fill: #F0EDE6; }
+      .ribbon { fill: #191814; }
+      .letter { stroke: #191814; }
+    }
+  </style>
+  <rect class="tile" width="512" height="512" rx="112"/>
+  <path class="ribbon" d="M288 135h75v240l-37.5-30-37.5 30Z"/>
+  <path class="letter" d="M170 367V260c0-40 30-46 76-46" stroke-width="42" stroke-linecap="round"/>
 </svg>

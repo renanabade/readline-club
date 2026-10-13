@@ -22,27 +22,20 @@
   color: #1f1d1a;
   background: #f8f6f1;
   font-synthesis: none;
-  /* Warm paper and ink; dark cyan from the club mark is the one accent. */
+  /* Warm paper tones: easier on the eyes for a reading club. */
   --bg: #f8f6f1;
   --soft: #f1eee7;
   --surface: #fdfcf9;
   --ink: #1f1d1a;
   --muted: #5c5851;
   --line: #e3ded4;
-  /* One teal per theme: dark cyan on paper, the bright mark teal at night. */
-  --accent: #00756a;
-  --accent-soft: #e2eee9;
-  --brand: #00756a;
-  --primary: #00756a;
-  --primary-hover: #00665c;
-  --on-primary: #fdfcf9;
+  --accent: #1f1d1a;
+  --accent-soft: #e9e5dc;
   --cover: #292929;
-  --mono: ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace;
   --shadow: 0 18px 40px -30px rgb(60 48 30 / 0.35);
   --serif: Literata, Georgia, serif;
   color-scheme: light;
 }
-/* Warm charcoal at night, the same cyan brighter. */
 :root[data-theme="dark"] {
   --bg: #191814;
   --surface: #211f1b;
@@ -50,12 +43,8 @@
   --ink: #f0ede6;
   --muted: #b7b1a6;
   --line: #3a3731;
-  --accent: #00b4a0;
-  --accent-soft: #1f2d29;
-  --brand: #00b4a0;
-  --primary: #00b4a0;
-  --primary-hover: #2cc4b0;
-  --on-primary: #191814;
+  --accent: #f0ede6;
+  --accent-soft: #312e28;
   --shadow: 0 18px 40px -30px rgb(0 0 0 / 0.6);
   background: var(--bg);
   color: var(--ink);
@@ -316,14 +305,14 @@ main {
   color: var(--ink);
 }
 .button.primary {
-  background: var(--primary);
-  color: var(--on-primary);
-  border-color: var(--primary);
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
 }
 .button.primary:hover {
-  background: var(--primary-hover);
-  border-color: var(--primary-hover);
-  color: var(--on-primary);
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
 }
 .small-button {
   padding: 8px 13px;
@@ -395,30 +384,26 @@ main {
 }
 .brand {
   display: flex;
-  gap: 11px;
+  gap: 12px;
   align-items: center;
   flex-shrink: 0;
-  font-size: 1.1rem;
+  font-family: var(--serif);
+  font-size: 1.12rem;
   line-height: 1.2;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.04em;
 }
 .brand-mark {
   flex-shrink: 0;
-  border-radius: 22%;
 }
-.wordmark-name strong {
-  font-weight: 700;
+.brand-mark-tile {
+  fill: var(--ink);
 }
-.wordmark-name span {
-  color: var(--muted);
+.brand-mark-ribbon {
+  fill: var(--bg);
 }
-.brand-icon {
-  width: 36px;
-  height: 36px;
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
+.brand-mark-letter {
+  fill: none;
+  stroke: var(--bg);
 }
 .brand small {
   display: block;
@@ -453,8 +438,8 @@ main {
   bottom: 2px;
   left: 0;
   right: 0;
-  height: 2px;
-  background: var(--brand);
+  height: 1px;
+  background: var(--ink);
 }
 .header-actions {
   display: flex;
@@ -492,7 +477,7 @@ main {
   display: inline-block;
   width: 6px;
   height: 6px;
-  background: var(--brand);
+  background: var(--ink);
   border-radius: 100%;
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
@@ -741,7 +726,7 @@ main {
 .manifesto span + span::before {
   content: "·";
   margin-right: 20px;
-  color: var(--brand);
+  color: var(--muted);
 }
 .manifesto svg {
   margin-left: auto;
@@ -839,7 +824,7 @@ main {
   border-top: 1px solid var(--line);
 }
 .format-list li > span {
-  font-family: var(--mono);
+  font-family: ui-monospace, Consolas, monospace;
   font-size: 0.8rem;
   color: var(--muted);
   padding-top: 5px;
@@ -2046,7 +2031,7 @@ legend {
     gap: 10px;
     min-height: 58px;
   }
-  .brand-icon {
+  .brand-mark {
     width: 32px;
     height: 32px;
   }
@@ -2781,34 +2766,4 @@ legend {
 }
 .rsvp-link-page .whatsapp-actions {
   margin: 20px 0 28px;
-}
-
-/* Club mark motifs: the terminal prompt of "readline" and the bookmark ribbon. */
-.prompt-line {
-  font-family: var(--mono);
-  font-size: 0.8rem;
-  letter-spacing: 0;
-}
-.prompt-line .prompt,
-.prompt-line .cursor {
-  color: var(--accent);
-  font-weight: 600;
-}
-.hero-book::before,
-.next-meeting::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 28px;
-  width: 18px;
-  height: 40px;
-  background: var(--brand);
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
-}
-.next-meeting,
-.hero-book {
-  position: relative;
-}
-.hero-book::before {
-  z-index: 1;
 }
