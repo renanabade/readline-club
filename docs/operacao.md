@@ -125,5 +125,6 @@ A marca (a fita marcadora ao lado do "r") tem duas versões, com as cores exatas
 - `public/favicon.svg`: o ícone da aba, que troca de versão conforme o tema do sistema.
 - `public/favicon.ico`, `icon-32.png`, `icon-192.png`, `icon-512.png` e `apple-touch-icon.png`: versão grafite. O `apple-touch-icon` não tem cantos arredondados, porque o iOS arredonda.
 - `brand/`: os SVGs das duas versões e PNGs para redes sociais: `-512` com cantos arredondados e `-perfil-1080`/`-perfil-400` quadrados, para fotos de perfil (as redes recortam em círculo).
+- `brand/banners/`: capas nas duas versões (`-papel` e `-grafite`): `x-header` (1500×500), `linkedin-perfil` (1584×396), `linkedin-pagina` (1128×191), `youtube` (2560×1440, com o conteúdo na área segura central), `discord` (960×540) e `compartilhamento` (1200×630, para prévia de links).
 
 Ao mudar a marca, exporte de novo os PNG e o ICO a partir dos SVGs e aumente o `?v=` dos ícones em `index.html` e em `public/site.webmanifest`: navegadores guardam favicon em cache pelo endereço e não buscam o arquivo novo sem essa mudança.
