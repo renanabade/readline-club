@@ -126,4 +126,4 @@ A marca (a fita marcadora ao lado do "r") tem duas versões, com as cores exatas
 - `public/favicon.ico`, `icon-32.png`, `icon-192.png`, `icon-512.png` e `apple-touch-icon.png`: versão grafite. O `apple-touch-icon` não tem cantos arredondados, porque o iOS arredonda.
 - `brand/`: os SVGs das duas versões e PNGs para redes sociais: `-512` com cantos arredondados e `-perfil-1080`/`-perfil-400` quadrados, para fotos de perfil (as redes recortam em círculo).
 
-Ao mudar a marca, exporte de novo os PNG e o ICO a partir dos SVGs.
+Ao mudar a marca, exporte de novo os PNG e o ICO a partir dos SVGs e aumente o `?v=` dos ícones em `index.html` e em `public/site.webmanifest`: navegadores guardam favicon em cache pelo endereço e não buscam o arquivo novo sem essa mudança.
