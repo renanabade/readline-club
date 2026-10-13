@@ -184,8 +184,7 @@ export default function Home() {
             Clube do livro de computação · gratuito
           </div>
           <h1>
-            A bagagem teórica que a sua carreira precisa.
-            <br />
+            A bagagem teórica que a sua carreira precisa.{" "}
             <span className="hero-subtitle">
               Sem livros parados na estante.
             </span>
