@@ -1,4 +1,4 @@
-// The club mark: a bookmark ribbon beside a lowercase "r", on the night tile.
+// The club mark: a bookmark ribbon beside a lowercase "r", on a graphite tile.
 export function BrandMark({ size = 34 }: { size?: number }) {
   return (
     <svg
@@ -8,7 +8,7 @@ export function BrandMark({ size = 34 }: { size?: number }) {
       height={size}
       aria-hidden="true"
     >
-      <rect width="512" height="512" rx="112" fill="#0A1118" />
+      <rect width="512" height="512" rx="112" fill="#1F1D1A" />
       <path d="M288 135h75v240l-37.5-30-37.5 30Z" fill="#00B4A0" />
       <path
         d="M170 367V260c0-40 30-46 76-46"

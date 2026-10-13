@@ -61,6 +61,25 @@ function Layout() {
     () => localStorage.getItem("club-theme") === "dark",
   );
   const location = useLocation();
+  // Remembered per promotion, so a new one shows up again.
+  const [promoClosed, setPromoClosed] = useState(() => {
+    try {
+      return (
+        !!instance.promo &&
+        localStorage.getItem("club-promo-closed") === instance.promo.name
+      );
+    } catch {
+      return false;
+    }
+  });
+  function closePromo() {
+    setPromoClosed(true);
+    try {
+      localStorage.setItem("club-promo-closed", instance.promo?.name ?? "");
+    } catch {
+      // Closing still works for this visit without storage.
+    }
+  }
   useEffect(() => {
     document.title = home?.settings.club_name || "readline club";
   }, [home?.settings.club_name]);
@@ -82,6 +101,7 @@ function Layout() {
         Pular para o conteúdo
       </a>
       {instance.promo &&
+        !promoClosed &&
         ["/", "/comunidade"].includes(
           location.pathname.replace(/\/$/, "") || "/",
         ) && (
@@ -109,6 +129,13 @@ function Layout() {
                 <ArrowUpRight size={14} aria-hidden="true" />
               </span>
             </a>
+            <button
+              className="promo-close"
+              onClick={closePromo}
+              aria-label="Fechar aviso"
+            >
+              <X size={15} aria-hidden="true" />
+            </button>
           </aside>
         )}
       <header className="header">

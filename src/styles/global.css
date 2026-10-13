@@ -19,38 +19,44 @@
 }
 :root {
   font-family: Instrument, system-ui, sans-serif;
-  color: #121c26;
+  color: #1f1d1a;
   background: #f8f6f1;
   font-synthesis: none;
-  /* Paper for reading; ink and accents from the club mark. */
+  /* Warm paper and ink; dark cyan from the club mark is the one accent. */
   --bg: #f8f6f1;
   --soft: #f1eee7;
   --surface: #fdfcf9;
-  --ink: #121c26;
-  --muted: #535c66;
-  --line: #e1ddd3;
-  /* Text-safe teal on paper; the bright brand teal is only for marks. */
+  --ink: #1f1d1a;
+  --muted: #5c5851;
+  --line: #e3ded4;
+  /* One teal per theme: dark cyan on paper, the bright mark teal at night. */
   --accent: #00756a;
   --accent-soft: #e2eee9;
-  --brand: #00b4a0;
-  --night: #0a1118;
+  --brand: #00756a;
+  --primary: #00756a;
+  --primary-hover: #00665c;
+  --on-primary: #fdfcf9;
   --cover: #292929;
   --mono: ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace;
-  --shadow: 0 18px 40px -30px rgb(18 28 38 / 0.35);
+  --shadow: 0 18px 40px -30px rgb(60 48 30 / 0.35);
   --serif: Literata, Georgia, serif;
   color-scheme: light;
 }
-/* Night reading: the mark's own colors. */
+/* Warm charcoal at night, the same cyan brighter. */
 :root[data-theme="dark"] {
-  --bg: #0a1118;
-  --surface: #0f1922;
-  --soft: #14202b;
-  --ink: #f3efe6;
-  --muted: #8e9cae;
-  --line: #1f2c39;
+  --bg: #191814;
+  --surface: #211f1b;
+  --soft: #282621;
+  --ink: #f0ede6;
+  --muted: #b7b1a6;
+  --line: #3a3731;
   --accent: #00b4a0;
-  --accent-soft: #0f2a2b;
-  --shadow: 0 18px 40px -30px rgb(0 0 0 / 0.8);
+  --accent-soft: #1f2d29;
+  --brand: #00b4a0;
+  --primary: #00b4a0;
+  --primary-hover: #2cc4b0;
+  --on-primary: #191814;
+  --shadow: 0 18px 40px -30px rgb(0 0 0 / 0.6);
   background: var(--bg);
   color: var(--ink);
   color-scheme: dark;
@@ -166,6 +172,9 @@ main {
   font-size: 0.78rem;
   line-height: 1.4;
 }
+.promo-topbar {
+  position: relative;
+}
 .promo-topbar > a {
   display: flex;
   justify-content: center;
@@ -173,11 +182,29 @@ main {
   flex-wrap: wrap;
   gap: 4px 12px;
   min-height: 32px;
-  padding: 6px 20px;
+  padding: 6px 48px;
   text-align: center;
 }
 .promo-topbar > a:hover {
   background: var(--accent-soft);
+}
+.promo-close {
+  position: absolute;
+  top: 50%;
+  right: max(12px, calc((100% - 1180px) / 2 - 8px));
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+}
+.promo-close:hover {
+  background: var(--accent-soft);
+  color: var(--ink);
 }
 .promo-topbar > a:focus-visible {
   outline-offset: -3px;
@@ -201,7 +228,7 @@ main {
   }
   .promo-topbar > a {
     gap: 2px 8px;
-    padding-inline: 16px;
+    padding-inline: 40px;
   }
   .promo-copy-desktop {
     display: none;
@@ -289,14 +316,14 @@ main {
   color: var(--ink);
 }
 .button.primary {
-  background: var(--ink);
-  color: var(--bg);
-  border-color: var(--ink);
+  background: var(--primary);
+  color: var(--on-primary);
+  border-color: var(--primary);
 }
 .button.primary:hover {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--bg);
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+  color: var(--on-primary);
 }
 .small-button {
   padding: 8px 13px;
@@ -754,7 +781,7 @@ main {
   color: var(--muted);
 }
 .steps svg {
-  color: var(--accent);
+  color: var(--muted);
   margin-bottom: 22px;
 }
 .steps h3 {
@@ -814,7 +841,7 @@ main {
 .format-list li > span {
   font-family: var(--mono);
   font-size: 0.8rem;
-  color: var(--accent);
+  color: var(--muted);
   padding-top: 5px;
 }
 .format-list h3 {
@@ -2486,7 +2513,7 @@ legend {
   padding-top: 24px;
 }
 .value-grid svg {
-  color: var(--accent);
+  color: var(--muted);
   margin-bottom: 16px;
 }
 .value-grid h3 {
@@ -2525,7 +2552,7 @@ legend {
 .channel-list svg {
   flex-shrink: 0;
   margin-top: 3px;
-  color: var(--accent);
+  color: var(--muted);
 }
 .channel-list h3 {
   font-size: 1.05rem;
@@ -2562,7 +2589,7 @@ legend {
   font-size: 1.4rem;
   font-weight: 400;
   line-height: 1;
-  color: var(--accent);
+  color: var(--muted);
   transition: transform 0.2s;
 }
 .faq-list details[open] summary::after {
@@ -2767,19 +2794,6 @@ legend {
   color: var(--accent);
   font-weight: 600;
 }
-.prompt-line .cursor {
-  animation: cursor-blink 1.2s steps(1) infinite;
-}
-@keyframes cursor-blink {
-  50% {
-    opacity: 0;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .prompt-line .cursor {
-    animation: none;
-  }
-}
 .hero-book::before,
 .next-meeting::before {
   content: "";
@@ -2797,8 +2811,4 @@ legend {
 }
 .hero-book::before {
   z-index: 1;
-}
-.book-stage {
-  background-image: radial-gradient(var(--line) 1px, transparent 1.2px);
-  background-size: 22px 22px;
 }

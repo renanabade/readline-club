@@ -108,7 +108,10 @@ export default function Privacy() {
       <p className="prose">
         Usamos um único cookie, necessário para manter você conectado, que
         expira em sete dias. O navegador também guarda sua preferência de tema
-        claro ou escuro. Não usamos cookies de publicidade ou de análise.
+        claro ou escuro e, se você fechar o aviso de divulgação no topo do site,
+        qual aviso foi fechado, para não mostrá-lo de novo. Essas informações
+        ficam só no seu navegador. Não usamos cookies de publicidade ou de
+        análise.
       </p>
 
       <h2>Por quanto tempo</h2>
