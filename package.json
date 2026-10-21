@@ -24,7 +24,7 @@
     "node": ">=22"
   },
   "dependencies": {
-    "hono": "^4.13.9",
+    "hono": "^4.13.11",
     "lucide-react": "^1.48.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
