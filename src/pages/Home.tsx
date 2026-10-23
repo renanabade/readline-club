@@ -19,18 +19,14 @@ import {
 import { useSession } from "../lib/session";
 import { BookArt, Empty, MeetingRow } from "../components/ui";
 import { useData } from "../lib/useData";
-import type { Meeting } from "../../shared/contracts";
-import { isUpcoming } from "../lib/dates";
+import type { Meeting, PublicMeeting } from "../../shared/contracts";
 import { WhatsAppAccess } from "../components/WhatsAppAccess";
 import { NextMeetingNotice } from "../components/NextMeetingNotice";
 import { MemberNextMeeting } from "../components/MemberNextMeeting";
 import { HomeStatus } from "../components/HomeStatus";
 import { SocialLinks } from "../components/SocialLinks";
-function MemberNext() {
+function MemberNext({ next }: { next: PublicMeeting | null }) {
   const { data } = useData<Meeting[]>("/meetings");
-  const next = data?.find(
-    (m) => m.status === "scheduled" && !!m.starts_at && isUpcoming(m),
-  );
   const recording = data?.filter((m) => m.youtube_id).at(-1);
   return (
     <section className="container section member-next">
@@ -279,7 +275,7 @@ export default function Home() {
       </div>
       {member ? (
         <>
-          <MemberNext />
+          <MemberNext next={home.nextMeeting} />
           <div className="container home-whatsapp">
             <WhatsAppAccess />
           </div>

@@ -3,7 +3,7 @@ import { HTTPException } from "hono/http-exception";
 import { bodyLimit } from "hono/body-limit";
 import type { AppEnv } from "./env";
 import { auth } from "./routes/auth";
-import { catalog, books } from "./routes/catalog";
+import { catalog, books, nextMeetingWhere } from "./routes/catalog";
 import { requireUser, requireMember, requireAdmin } from "./auth/guards";
 import { getIdentity } from "./auth/sessions";
 import { admin } from "./routes/admin";
@@ -42,7 +42,9 @@ export function createApp() {
     ).first<number>("total");
     // Public announcement only: never select links, agenda or notes here.
     const nextMeeting = await c.env.DB.prepare(
-      "SELECT m.id,m.title,m.chapters,m.starts_at,m.duration_minutes,m.status,b.title book_title FROM meetings m JOIN reading_cycles cy ON cy.id=m.cycle_id JOIN books b ON b.id=cy.book_id WHERE m.status='scheduled' AND m.starts_at>=? AND b.status!='archived' ORDER BY m.starts_at LIMIT 1",
+      "SELECT m.id,m.title,m.chapters,m.starts_at,m.duration_minutes,m.status,b.title book_title FROM meetings m JOIN reading_cycles cy ON cy.id=m.cycle_id JOIN books b ON b.id=cy.book_id WHERE " +
+        nextMeetingWhere +
+        " ORDER BY m.starts_at LIMIT 1",
     )
       .bind(new Date().toISOString())
       .first();

@@ -1,6 +1,8 @@
 import { beforeAll, afterAll, test, expect } from "vitest";
 import { createApp } from "../worker/index";
 import { fixture, session } from "./helpers";
+import { isUpcoming } from "../src/lib/dates";
+import type { Meeting } from "../shared/contracts";
 let f: Awaited<ReturnType<typeof fixture>>;
 const app = createApp();
 beforeAll(async () => {
@@ -113,6 +115,40 @@ test("public next meeting is an announcement without links, agenda or notes", as
     expect(raw).not.toContain(hidden);
   await f.DB.prepare(
     "DELETE FROM meetings WHERE id IN ('past','cancelled','next','later')",
+  ).run();
+});
+test("home, community and agenda agree on the next meeting", async () => {
+  const s = await session(f.DB);
+  const get = async <T>(path: string) =>
+    (await (
+      await app.request(path, { headers: { cookie: s.cookie } }, f.env)
+    ).json()) as T;
+  type Next = { nextMeeting: { title: string } | null };
+  const minutes = (n: number) => new Date(Date.now() + n * 60000).toISOString();
+  await f.DB.batch([
+    f.DB.prepare(
+      "INSERT INTO meetings(id,cycle_id,title,starts_at,duration_minutes) VALUES('over','primeira-leitura','Encerrado',?,60)",
+    ).bind(minutes(-90)),
+    f.DB.prepare(
+      "INSERT INTO meetings(id,cycle_id,title,starts_at,duration_minutes) VALUES('live','primeira-leitura','Em andamento',?,60)",
+    ).bind(minutes(-10)),
+    f.DB.prepare(
+      "INSERT INTO meetings(id,cycle_id,title,starts_at) VALUES('soon','primeira-leitura','Em breve',?)",
+    ).bind(minutes(60 * 24)),
+  ]);
+  // The agenda shows the first scheduled meeting that is not over yet.
+  const agenda = (await get<Meeting[]>("/api/meetings")).find(
+    (m) => m.status === "scheduled" && !!m.starts_at && isUpcoming(m),
+  );
+  expect(agenda?.title).toBe("Em andamento");
+  expect((await get<Next>("/api/public/home")).nextMeeting?.title).toBe(
+    agenda?.title,
+  );
+  expect((await get<Next>("/api/community")).nextMeeting?.title).toBe(
+    agenda?.title,
+  );
+  await f.DB.prepare(
+    "DELETE FROM meetings WHERE id IN ('over','live','soon')",
   ).run();
 });
 test("public member count includes only approved readers and follows status changes", async () => {
