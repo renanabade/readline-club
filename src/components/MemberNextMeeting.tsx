@@ -3,17 +3,27 @@ import { ArrowUpRight, CalendarDays, Clock, ExternalLink } from "lucide-react";
 import { useData } from "../lib/useData";
 import { dateLabel } from "../lib/dates";
 import { callLabel, durationLabel } from "../lib/meeting";
-import type { Meeting, MeetingDetail } from "../../shared/contracts";
+import type {
+  Meeting,
+  MeetingDetail,
+  PublicMeeting,
+} from "../../shared/contracts";
 import { MeetingRsvp } from "./MeetingRsvp";
 import { CalendarActions } from "./CalendarActions";
 
 // Everything a member needs before a meeting, in one place: join the call,
-// answer the RSVP and save the date.
-export function MemberNextMeeting({ meeting }: { meeting: Meeting }) {
+// answer the RSVP and save the date. The announcement shows right away; the
+// call link and the RSVP arrive with the meeting details.
+export function MemberNextMeeting({
+  meeting,
+}: {
+  meeting: Meeting | PublicMeeting;
+}) {
   const { data } = useData<MeetingDetail>(
     "/meetings/" + encodeURIComponent(meeting.id),
   );
   const m = data?.meeting ?? meeting;
+  const callUrl = data?.meeting.meeting_url;
   return (
     <section
       className="next-meeting member-next-meeting"
@@ -31,22 +41,24 @@ export function MemberNextMeeting({ meeting }: { meeting: Meeting }) {
         <Clock size={14} aria-hidden="true" /> horário de Brasília ·{" "}
         {durationLabel(m.duration_minutes)}
       </p>
-      {m.meeting_url && m.status === "scheduled" && (
+      {callUrl && m.status === "scheduled" && (
         <div className="whatsapp-actions member-next-call">
           <a
             className="button primary"
-            href={m.meeting_url}
+            href={callUrl}
             target="_blank"
             rel="noreferrer"
           >
-            {callLabel(m.meeting_url)} <ExternalLink size={16} />
+            {callLabel(callUrl)} <ExternalLink size={16} />
           </a>
           <span className="muted small">
             Guarde este atalho: o mesmo botão fica na página do encontro.
           </span>
         </div>
       )}
-      {data && <MeetingRsvp key={m.id} meeting={m} initial={data.rsvp} />}
+      {data && (
+        <MeetingRsvp key={m.id} meeting={data.meeting} initial={data.rsvp} />
+      )}
       <CalendarActions meeting={m} />
       <Link className="text-link" to={"/encontros/" + m.id}>
         Ver pauta e materiais <ArrowUpRight size={16} />
