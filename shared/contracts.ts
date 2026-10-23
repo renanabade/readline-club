@@ -85,10 +85,12 @@ export interface CommunityAccess extends Settings {
   onboardingRequired: boolean;
   onboardingVersion: string;
   currentBookTitle: string | null;
-  nextMeeting: Pick<
-    Meeting,
-    "title" | "chapters" | "starts_at" | "duration_minutes"
-  > | null;
+  nextMeeting:
+    | (Pick<
+        Meeting,
+        "id" | "title" | "chapters" | "starts_at" | "duration_minutes"
+      > & { has_call_link: boolean })
+    | null;
 }
 export interface Application {
   approval_email_status?: "sending" | "sent" | "failed" | null;

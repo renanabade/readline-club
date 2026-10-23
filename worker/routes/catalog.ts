@@ -8,11 +8,13 @@ import type {
   Cycle,
   Settings,
   MeetingRsvp,
+  CommunityAccess,
 } from "../../shared/contracts";
 import { HTTPException } from "hono/http-exception";
 import { input, missing } from "../errors";
 import { rsvpSchema } from "../../shared/validation";
 import { meetingToIcs } from "../lib/calendar";
+type CommunityMeeting = NonNullable<CommunityAccess["nextMeeting"]>;
 export async function books(db: Env["DB"], all = false): Promise<Book[]> {
   const rows = await db
     .prepare(
@@ -118,7 +120,7 @@ catalog.get("/meetings/:id/calendar.ics", async (c) => {
   if (!m?.starts_at) return missing();
   c.header("Content-Type", "text/calendar; charset=utf-8");
   c.header("Content-Disposition", 'attachment; filename="encontro.ics"');
-  return c.body(meetingToIcs(m));
+  return c.body(meetingToIcs(m, c.env.APP_ORIGIN));
 });
 const onboardingVersion = "community-v1";
 catalog.get("/community", async (c) => {
@@ -134,13 +136,22 @@ catalog.get("/community", async (c) => {
   const book = await c.env.DB.prepare(
     "SELECT b.title FROM books b JOIN reading_cycles cy ON cy.book_id=b.id WHERE cy.is_current=1",
   ).first<string>("title");
-  const nextMeeting = await c.env.DB.prepare(
-    "SELECT m.title,m.chapters,m.starts_at,m.duration_minutes FROM meetings m JOIN reading_cycles cy ON cy.id=m.cycle_id JOIN books b ON b.id=cy.book_id WHERE " +
+  const next = await c.env.DB.prepare(
+    "SELECT m.id,m.title,m.chapters,m.starts_at,m.duration_minutes,m.meeting_url FROM meetings m JOIN reading_cycles cy ON cy.id=m.cycle_id JOIN books b ON b.id=cy.book_id WHERE " +
       nextMeetingWhere +
       " ORDER BY m.starts_at LIMIT 1",
   )
     .bind(new Date().toISOString())
-    .first();
+    .first<CommunityMeeting & { meeting_url: string }>();
+  // Only whether there is a call link: the link itself stays on the meeting page.
+  const nextMeeting: CommunityMeeting | null = next && {
+    id: next.id,
+    title: next.title,
+    chapters: next.chapters,
+    starts_at: next.starts_at,
+    duration_minutes: next.duration_minutes,
+    has_call_link: !!next.meeting_url,
+  };
   return c.json({
     ...settings,
     whatsapp_url: onboardingRequired ? "" : settings?.whatsapp_url,

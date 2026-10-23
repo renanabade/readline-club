@@ -9,7 +9,7 @@ export function CalendarActions({
   meeting: Pick<
     Meeting,
     "id" | "title" | "chapters" | "starts_at" | "duration_minutes" | "status"
-  >;
+  > & { meeting_url?: string };
 }) {
   const { user } = useSession();
   if (

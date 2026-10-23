@@ -109,3 +109,36 @@ test("approved readers confirm the introduction before receiving invitations", a
   ).toBeTruthy();
   expect(fetch.mock.calls[1][0]).toBe("/api/community/acknowledge");
 });
+test("the introduction points to the meeting page when the call link is set", async () => {
+  state.user = {
+    role: "member",
+    status: "approved",
+    mustChangePassword: false,
+  };
+  const onboarding = (has_call_link: boolean) =>
+    Response.json({
+      onboardingRequired: true,
+      onboardingVersion: "community-v1",
+      currentBookTitle: null,
+      nextMeeting: {
+        id: "next",
+        title: "Encontro",
+        chapters: "Capítulo 1",
+        starts_at: new Date(Date.now() + 86400000).toISOString(),
+        duration_minutes: 60,
+        has_call_link,
+      },
+      whatsapp_url: "",
+      discord_url: "",
+    });
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValueOnce(onboarding(true)));
+  renderAccess();
+  const page = await screen.findByRole("link", { name: "página do encontro" });
+  expect(page.getAttribute("href")).toBe("/encontros/next");
+  expect(screen.queryByText(/será informado pelo clube/)).toBeNull();
+  cleanup();
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValueOnce(onboarding(false)));
+  renderAccess();
+  expect(await screen.findByText(/será informado pelo clube/)).toBeTruthy();
+  expect(screen.queryByRole("link", { name: "página do encontro" })).toBeNull();
+});
