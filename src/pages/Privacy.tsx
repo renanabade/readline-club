@@ -32,11 +32,11 @@ export default function Privacy() {
           <strong>Durante o uso:</strong> o status da sua inscrição, a
           confirmação de que leu como a comunidade funciona, as sessões abertas
           na sua conta, suas respostas de presença nos encontros, sua escolha
-          sobre receber avisos de encontros e o registro dos convites enviados.
-          Cada convite por e-mail traz botões pessoais para responder a presença
-          sem entrar na plataforma; o banco guarda apenas uma versão protegida
-          (hash) desse link, que serve só para responder àquele encontro e deixa
-          de valer quando ele começa.
+          sobre receber avisos de encontros e o registro dos convites e
+          lembretes enviados. Cada convite e lembrete por e-mail traz botões
+          pessoais para responder a presença sem entrar na plataforma; o banco
+          guarda apenas uma versão protegida (hash) desse link, que serve só
+          para responder àquele encontro e deixa de valer quando ele começa.
         </li>
         <li>
           <strong>Para segurança:</strong> o endereço IP e o e-mail usados em
@@ -48,14 +48,15 @@ export default function Privacy() {
       <h2>Para que usamos</h2>
       <p className="prose">
         Para avaliar sua inscrição, liberar seu acesso, avisar por e-mail quando
-        ele for aprovado, enviar o convite de cada encontro e manter a
-        plataforma segura. O celular serve para a organização identificar você
-        no grupo do WhatsApp do clube, que é exclusivo para membros. Você pode
-        deixar de receber os convites de encontros a qualquer momento em{" "}
-        <Link to="/conta">Minha conta</Link>. Tratamos os dados com base no
-        consentimento que você dá no cadastro e no que é necessário para
-        oferecer a plataforma. Não vendemos dados, não exibimos anúncios de
-        terceiros e não usamos ferramentas de análise ou rastreamento.
+        ele for aprovado, enviar o convite e os lembretes de cada encontro e
+        manter a plataforma segura. O celular serve para a organização
+        identificar você no grupo do WhatsApp do clube, que é exclusivo para
+        membros. Você pode deixar de receber os convites e lembretes de
+        encontros a qualquer momento em <Link to="/conta">Minha conta</Link>.
+        Tratamos os dados com base no consentimento que você dá no cadastro e no
+        que é necessário para oferecer a plataforma. Não vendemos dados, não
+        exibimos anúncios de terceiros e não usamos ferramentas de análise ou
+        rastreamento.
       </p>
 
       <h2>Quem vê seus dados</h2>

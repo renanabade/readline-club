@@ -10,7 +10,7 @@ import { input } from "../errors";
 import { rsvpLinkSchema, rsvpLinkAnswerSchema } from "../../shared/validation";
 import { digest } from "../auth/password";
 import { rateLimit } from "../auth/limits";
-// Answers a meeting invitation from the personal link in the email, without
+// Answers a meeting invitation or reminder from the personal link in the email, without
 // a session. The token only works for that person, that meeting, while the
 // person is still an approved member and the meeting has not started.
 const rsvp = new Hono<AppEnv>();
@@ -18,14 +18,16 @@ async function invitation(c: Context<AppEnv>, token: string) {
   await rateLimit(c, "rsvp-link", 60);
   const row = await c.env.DB.prepare(
     `SELECT i.user_id,m.id,m.title,m.chapters,m.starts_at,m.duration_minutes,m.status,b.title book_title,r.response
-    FROM meeting_invitations i
+    FROM (
+      SELECT meeting_id,user_id FROM meeting_invitations WHERE rsvp_token_hash=?1
+      UNION ALL SELECT meeting_id,user_id FROM meeting_reminders WHERE rsvp_token_hash=?1
+    ) i
     JOIN users u ON u.id=i.user_id AND u.role='member'
     JOIN applications a ON a.email=u.email AND a.status='approved'
     JOIN meetings m ON m.id=i.meeting_id
     JOIN reading_cycles cy ON cy.id=m.cycle_id
     JOIN books b ON b.id=cy.book_id AND b.status!='archived'
-    LEFT JOIN meeting_rsvps r ON r.meeting_id=m.id AND r.user_id=i.user_id
-    WHERE i.rsvp_token_hash=?`,
+    LEFT JOIN meeting_rsvps r ON r.meeting_id=m.id AND r.user_id=i.user_id`,
   )
     .bind(digest(token))
     .first<PublicMeeting & { user_id: string; response: MeetingRsvp | null }>();
