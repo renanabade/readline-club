@@ -17,7 +17,6 @@ import { books, meetingQuery } from "./catalog";
 import { parseYouTubeId } from "../lib/youtube";
 import { digest, randomToken } from "../auth/password";
 import { notifyApproval } from "../lib/approval-email";
-import { requestInvitationBatch } from "../lib/invitation-request";
 const admin = new Hono<AppEnv>();
 admin.get("/overview", async (c) => {
   await expireDepartures(c.env.DB).run();
@@ -47,8 +46,10 @@ admin.get("/overview", async (c) => {
     c.env.DB.prepare("SELECT * FROM recordings").all(),
     c.env.DB.prepare("SELECT * FROM settings WHERE id=1").first(),
     // Totals only: the panel shows how many confirmed, never who.
+    // An unknown outcome stays 'sending' with an error code; it is not in
+    // progress, so it is reported apart.
     c.env.DB.prepare(
-      "SELECT meeting_id,status,COUNT(*) AS total FROM meeting_invitations GROUP BY meeting_id,status",
+      "SELECT meeting_id,CASE WHEN status='sending' AND error_code IS NOT NULL THEN 'unknown' ELSE status END AS status,COUNT(*) AS total FROM meeting_invitations GROUP BY 1,2",
     ).all(),
     c.env.DB.prepare(
       "SELECT meeting_id,response,COUNT(*) AS total FROM meeting_rsvps GROUP BY meeting_id,response",
@@ -154,8 +155,8 @@ async function invitableMeeting(c: Context<AppEnv>) {
 }
 admin.post("/meetings/:id/invitations", async (c) => {
   const id = await invitableMeeting(c);
-  // Approved members who accept meeting emails and were not invited yet.
-  // Known failures and skipped invitations get another chance; sent and
+  // Approved members who accept meeting emails and were not invited yet. The
+  // mailer's cron sends the queue in the background. Known failures and skipped invitations get another chance; sent and
   // unknown outcomes are never queued again.
   const [inserted] = await c.env.DB.batch([
     c.env.DB.prepare(
@@ -174,10 +175,6 @@ admin.post("/meetings/:id/invitations", async (c) => {
     .bind(id)
     .first<number>("total");
   return c.json({ added: inserted?.meta.changes ?? 0, queued: queued ?? 0 });
-});
-admin.post("/meetings/:id/invitations/send", async (c) => {
-  const id = await invitableMeeting(c);
-  return c.json(await requestInvitationBatch(c.env, id));
 });
 admin.post("/members/:id/reset", async (c) => {
   const user = await c.env.DB.prepare(

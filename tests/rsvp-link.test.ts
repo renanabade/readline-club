@@ -1,7 +1,7 @@
 import { beforeAll, afterAll, test, expect, vi } from "vitest";
 import { fixture, session } from "./helpers";
 import { createApp } from "../worker/index";
-import mailer from "../worker/approval-mailer";
+import mailer, { meetingEmailsCron } from "../worker/approval-mailer";
 import { digest } from "../worker/auth/password";
 
 const app = createApp();
@@ -18,21 +18,19 @@ afterAll(async () => {
 type Send = (
   message: EmailMessage | EmailMessageBuilder,
 ) => Promise<EmailSendResult>;
-function env(send: Send) {
-  const mailerEnv = {
-    DB: f.DB,
-    EMAIL: { send },
-    EMAIL_FROM: "club@example.test",
-    APP_ORIGIN: f.env.APP_ORIGIN,
-  };
-  return {
-    ...f.env,
-    APPROVAL_EMAIL: {
-      fetch: (url: string, init: RequestInit) =>
-        mailer.fetch(new Request(url, init), mailerEnv),
-    } as unknown as Fetcher,
-  };
-}
+const drain = (send: Send) =>
+  mailer.scheduled(
+    {
+      cron: meetingEmailsCron,
+      scheduledTime: Date.now(),
+    } as ScheduledController,
+    {
+      DB: f.DB,
+      EMAIL: { send },
+      EMAIL_FROM: "club@example.test",
+      APP_ORIGIN: f.env.APP_ORIGIN,
+    },
+  );
 const call = (
   path: string,
   body: unknown,
@@ -65,23 +63,21 @@ async function meeting(startsAt = Date.now() + 7 * 86400000) {
 // personal token, read from the link in the email.
 async function invite(meetingId: string) {
   const send = vi.fn<Send>(async () => ({ messageId: crypto.randomUUID() }));
-  const testEnv = env(send);
-  const post = (path: string) =>
-    app.request(
-      "/api/admin/meetings/" + meetingId + path,
-      {
-        method: "POST",
-        headers: {
-          cookie: admin.cookie,
-          origin: f.env.APP_ORIGIN,
-          "content-type": "application/json",
-        },
-        body: "{}",
+  const queued = await app.request(
+    "/api/admin/meetings/" + meetingId + "/invitations",
+    {
+      method: "POST",
+      headers: {
+        cookie: admin.cookie,
+        origin: f.env.APP_ORIGIN,
+        "content-type": "application/json",
       },
-      testEnv,
-    );
-  expect((await post("/invitations")).status).toBe(200);
-  expect((await post("/invitations/send")).status).toBe(200);
+      body: "{}",
+    },
+    f.env,
+  );
+  expect(queued.status).toBe(200);
+  await drain(send);
   const tokens = new Map<string, string>();
   for (const [message] of send.mock.calls) {
     const msg = message as EmailMessageBuilder;

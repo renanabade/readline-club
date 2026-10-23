@@ -12,7 +12,8 @@ Cloudflare Pages Functions (functions/) ──► app Hono (worker/index.ts)
                                                 └─ service binding ──► mailer (worker/approval-mailer.ts)
                                                                         ├─ D1 (mesmo banco)
                                                                         ├─ Cloudflare Email Service
-                                                                        └─ cron do resumo de pendências
+                                                                        ├─ cron do resumo de pendências
+                                                                        └─ cron da fila de convites
 ```
 
 | Pasta             | Conteúdo                                                                          |
