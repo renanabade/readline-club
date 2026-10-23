@@ -86,9 +86,10 @@ admin.post("/applications/approve-all", async (c) => {
   );
   // Only the pending snapshot confirmed in the browser is eligible. A changed
   // status or a signup that arrived later cannot be swept into this operation.
+  // Unconfirmed emails are approved one by one, after checking them.
   const changed = await c.env.DB.prepare(
     `UPDATE applications SET status='approved',updated_at=?
-    WHERE status='pending' AND id IN (SELECT value FROM json_each(?))
+    WHERE status='pending' AND email_verified_at IS NOT NULL AND id IN (SELECT value FROM json_each(?))
     AND EXISTS (SELECT 1 FROM users u WHERE u.email=applications.email AND u.role='member') RETURNING id`,
   )
     .bind(new Date().toISOString(), JSON.stringify([...new Set(ids)]))

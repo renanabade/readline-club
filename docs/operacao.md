@@ -31,7 +31,7 @@ No painel é possível:
 - Buscar integrantes por nome, e-mail ou celular e filtrar por situação. A lista mostra 30 por vez.
 - Aprovar, recusar ou suspender integrantes.
 - Ver quem excluiu a conta e precisa sair dos grupos (**Saíram da plataforma**). Depois de retirar a pessoa do WhatsApp e do Discord, **Já retirei dos grupos** apaga nome e celular; registros não tratados são apagados em 30 dias.
-- Aceitar todos os pendentes exibidos na lista e liberar novamente o acesso de uma pessoa suspensa. A suspensão exige confirmação.
+- Aceitar de uma vez os pendentes com e-mail confirmado e liberar novamente o acesso de uma pessoa suspensa. A suspensão exige confirmação.
 - Cadastrar e editar livros e categorias.
 - Criar ciclos e escolher a leitura atual.
 - Cadastrar datas, capítulos, duração, pauta, notas e links de reunião.
@@ -40,7 +40,9 @@ No painel é possível:
 - Configurar os convites do WhatsApp e do Discord e as redes sociais do clube (Instagram, X, LinkedIn e YouTube), exibidas publicamente no site.
 - Gerar um link de recuperação de senha, de uso único, válido por 30 minutos.
 
-**Recuperação nesta versão:** a pessoa solicita ajuda ao organizador; após confirmar sua identidade pelo canal conhecido, o organizador envia o link em conversa privada. Não há envio automático de recuperação de senha. E-mails do cadastro não são verificados automaticamente, portanto confirme os novos participantes antes de aprová-los. É possível alterar a senha dentro da própria conta.
+**Recuperação nesta versão:** a pessoa solicita ajuda ao organizador; após confirmar sua identidade pelo canal conhecido, o organizador envia o link em conversa privada. Não há envio automático de recuperação de senha. É possível alterar a senha dentro da própria conta.
+
+**Confirmação de e-mail:** cada pendente mostra no painel se o e-mail do cadastro foi confirmado. A confirmação não aprova ninguém: a aprovação continua manual. **Aceitar confirmados** só inclui pendentes com e-mail confirmado; os outros (inclusive os cadastrados antes da confirmação existir) são aceitos um a um, depois de conferir o endereço.
 
 ### Primeiro acesso
 
@@ -55,6 +57,12 @@ A recuperação pela interface atende aos membros: o administrador emite o link,
 A aprovação chama o Worker privado `readlineclub-mailer` por service binding. Ele verifica o status no D1, envia por Cloudflare Email Service com o remetente definido em `EMAIL_FROM` (também usado como endereço de resposta) e registra o resultado em `approval_notifications`. O Worker não tem URL pública nem preview. O Pages de preview não possui o binding de envio.
 
 O painel diferencia acesso aprovado de aviso enviado. Para contas já aprovadas antes da integração, use **Enviar aviso de aprovação**. Erros confirmados permitem nova tentativa após um minuto; avisos aceitos pelo provedor não são repetidos. Um resultado desconhecido fica bloqueado para evitar duplicação: consulte os logs do provedor antes de qualquer intervenção. Aceitação pelo provedor não comprova chegada à caixa de entrada.
+
+### Confirmação de e-mail
+
+Logo depois do cadastro, a API pede ao mailer (pelo mesmo service binding, na rota `/email-verification`) o e-mail com o link de confirmação. O link leva a `/confirmar-email`, com o token no fragmento da URL (`#...`), e vale por 7 dias. A página só confirma com um clique, porque filtros de e-mail abrem os links das mensagens; a confirmação não abre sessão. A tabela `email_verifications` guarda só o hash do token, um link por conta: pedir outro gera um token novo e invalida o anterior. O uso apaga a linha e grava `applications.email_verified_at`.
+
+Se o e-mail não chegar, a pessoa pede outro na tela de status da inscrição (no máximo um por minuto, e cinco a cada 15 minutos). Falhas confirmadas podem ser repetidas; um resultado desconhecido fica bloqueado por 15 minutos, porque um link repetido não causa dano e só o mais recente vale. Sem o binding de e-mail (ambiente local ou preview), o cadastro funciona e o link não é enviado.
 
 ### Convite para encontro
 
@@ -76,7 +84,7 @@ A tabela `meeting_reminders` tem `UNIQUE(meeting_id,user_id,kind)` (`kind` é `d
 
 O mesmo Worker envia um resumo para o endereço do secret `ADMIN_NOTIFY_EMAIL` às **9h e às 18h de Brasília** (`0 12,21 * * *`, em UTC). Não há e-mail por cadastro e nenhum resumo é enviado quando não há pendências. O e-mail contém apenas a quantidade e o link da administração; nomes e endereços dos inscritos ficam no painel. A tabela `admin_digest_notifications` registra cada horário e impede disparos duplicados. Falhas conhecidas podem ser tentadas novamente até três vezes no mesmo horário; resultados desconhecidos ficam bloqueados para inspeção. Não há repetição automática fora dos dois horários.
 
-Pendentes aparecem primeiro (mais antigos antes), seguidos de integrantes aprovados, suspensos e recusados, com separação visual. **Aceitar todos** confirma uma fotografia dos IDs pendentes e envia lotes de até 20; o servidor só altera os que ainda estiverem pendentes e forem membros. Novos cadastros que chegarem depois ficam para a próxima revisão. Suspensos e recusados nunca são incluídos no lote. A liberação de uma pessoa suspensa reutiliza a conta e a senha existentes.
+Pendentes aparecem primeiro (mais antigos antes), seguidos de integrantes aprovados, suspensos e recusados, com separação visual. **Aceitar confirmados** confirma uma fotografia dos IDs pendentes com e-mail confirmado e envia lotes de até 20; o servidor só altera os que ainda estiverem pendentes, com e-mail confirmado, e forem membros. Novos cadastros que chegarem depois ficam para a próxima revisão. Suspensos e recusados nunca são incluídos no lote. A liberação de uma pessoa suspensa reutiliza a conta e a senha existentes.
 
 O domínio precisa estar habilitado e autenticado em Cloudflare Email Sending, com plano elegível. `wrangler.mailer.jsonc` restringe o remetente e preserva o link de entrada no domínio oficial. Os avisos de aprovação orientam a encontrar o botão do WhatsApp na página inicial, em O clube ou em Minha conta. Não são enviados senhas ou dados de outros membros. Respostas vão para o endereço de `EMAIL_FROM`. Os testes usam envio simulado e nunca mandam e-mails reais.
 

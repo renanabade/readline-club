@@ -219,6 +219,7 @@ export default function Admin() {
       </div>
     );
   const pending = data.applications.filter((a) => a.status === "pending");
+  const confirmed = pending.filter((a) => a.email_verified_at);
   const departures = data.departures ?? [];
   const term = searchable(query.trim());
   const digits = query.replace(/\D/g, "");
@@ -289,18 +290,23 @@ export default function Admin() {
             <h2>Inscrições e integrantes.</h2>
             <button
               className="button primary"
-              disabled={busy || !pending.length}
+              disabled={busy || !confirmed.length}
               onClick={() =>
-                setConfirmation({ kind: "bulk", ids: pending.map((a) => a.id) })
+                setConfirmation({
+                  kind: "bulk",
+                  ids: confirmed.map((a) => a.id),
+                })
               }
             >
-              Aceitar todos{pending.length ? ` (${pending.length})` : ""}
+              Aceitar confirmados
+              {confirmed.length ? ` (${confirmed.length})` : ""}
             </button>
           </div>
           <p className="small muted">
             Pendentes primeiro, começando pelos cadastros mais antigos. Os
             resumos por e-mail chegam às 9h e às 18h (Brasília), quando houver
-            pendências.
+            pendências. Aceitar confirmados inclui só quem confirmou o e-mail;
+            os outros pendentes são aceitos um a um.
           </p>
           {!!departures.length && (
             <section className="departures" aria-labelledby="departures-title">
@@ -439,6 +445,13 @@ export default function Admin() {
                     }{" "}
                     · {dateLabel(a.created_at, false)}
                   </p>
+                  {a.status === "pending" && (
+                    <p className="small muted">
+                      {a.email_verified_at
+                        ? "E-mail confirmado."
+                        : "E-mail ainda não confirmado: confira o endereço antes de aceitar."}
+                    </p>
+                  )}
                   {a.motivation && <p className="preserve">{a.motivation}</p>}
                   {a.status === "approved" && (
                     <p className="small muted">
@@ -791,12 +804,12 @@ export default function Admin() {
             </button>
             <h2 id="member-confirm-title">
               {confirmation.kind === "bulk"
-                ? `Aceitar ${confirmation.ids.length} ${confirmation.ids.length === 1 ? "cadastro pendente" : "cadastros pendentes"}?`
+                ? `Aceitar ${confirmation.ids.length} ${confirmation.ids.length === 1 ? "cadastro pendente confirmado" : "cadastros pendentes confirmados"}?`
                 : `Suspender o acesso de ${confirmation.application.name}?`}
             </h2>
             <p>
               {confirmation.kind === "bulk"
-                ? "Os cadastros pendentes desta lista terão acesso ao clube e receberão o aviso por e-mail. Pessoas suspensas ou recusadas continuam com o mesmo status."
+                ? "Os cadastros pendentes desta lista com e-mail confirmado terão acesso ao clube e receberão o aviso por e-mail. Pendentes sem confirmação, pessoas suspensas ou recusadas continuam com o mesmo status."
                 : "A pessoa perde o acesso à biblioteca, aos encontros e à comunidade. Você pode liberar o acesso novamente depois."}
             </p>
             <div className="row-actions">
@@ -815,7 +828,7 @@ export default function Admin() {
                 {busy
                   ? "Aceitando cadastros…"
                   : confirmation.kind === "bulk"
-                    ? "Confirmar e aceitar todos"
+                    ? "Confirmar e aceitar confirmados"
                     : "Confirmar suspensão"}
               </button>
             </div>

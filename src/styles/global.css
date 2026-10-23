@@ -1657,6 +1657,14 @@ textarea {
   max-width: 580px;
   margin: 22px auto 30px;
 }
+.email-confirmation {
+  border-block: 1px solid var(--line);
+  padding-block: 20px;
+  margin-bottom: 30px;
+}
+.email-confirmation p {
+  margin: 0 auto 15px;
+}
 .status-page > .text-link {
   display: flex;
   justify-content: center;

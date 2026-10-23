@@ -94,6 +94,7 @@ export interface Application {
   approval_email_status?: "sending" | "sent" | "failed" | null;
   approval_email_sent_at?: string | null;
   approval_email_error?: string | null;
+  email_verified_at?: string | null;
   id: string;
   email: string;
   name: string;
