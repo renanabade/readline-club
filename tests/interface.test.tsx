@@ -169,14 +169,24 @@ test("moving from login to signup clears the previous form state", async () => {
     </MemoryRouter>,
   );
   fireEvent.click(
-    await screen.findByRole("button", { name: "Esqueci minha senha" }),
+    await screen.findByRole("link", { name: "Esqueci minha senha" }),
   );
-  expect(screen.getByText(/Peça à organização/)).toBeTruthy();
-  fireEvent.click(screen.getByRole("link", { name: "Venha para o clube" }));
+  expect(
+    await screen.findByRole("heading", { name: "Recupere sua senha." }),
+  ).toBeTruthy();
+  // Without the Turnstile key, the form fails closed.
+  expect(screen.getByRole("button", { name: /Enviar link/ })).toHaveProperty(
+    "disabled",
+    true,
+  );
+  expect(screen.queryByLabelText("Senha")).toBeNull();
+  fireEvent.click(screen.getByRole("link", { name: "Entre aqui" }));
+  fireEvent.click(
+    await screen.findByRole("link", { name: "Venha para o clube" }),
+  );
   expect(
     await screen.findByRole("heading", { name: "Faça parte do clube." }),
   ).toBeTruthy();
-  expect(screen.queryByText(/Peça à organização/)).toBeNull();
 });
 
 test("public presentation uses the club description saved by the administrator", async () => {

@@ -14,7 +14,11 @@ export function returnPath(voltar: string | null) {
     ? voltar
     : "/";
 }
-export default function Auth({ mode }: { mode: "login" | "signup" | "reset" }) {
+export default function Auth({
+  mode,
+}: {
+  mode: "login" | "signup" | "reset" | "forgot";
+}) {
   const { home, refresh } = useSession();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -23,9 +27,10 @@ export default function Auth({ mode }: { mode: "login" | "signup" | "reset" }) {
     [done, setDone] = useState(false),
     [token, setToken] = useState(""),
     [attempt, setAttempt] = useState(0),
-    [forgot, setForgot] = useState(false);
+    [sent, setSent] = useState("");
   const signup = mode === "signup",
-    reset = mode === "reset";
+    reset = mode === "reset",
+    forgot = mode === "forgot";
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
@@ -38,6 +43,13 @@ export default function Auth({ mode }: { mode: "login" | "signup" | "reset" }) {
           consent: d.consent === "on",
           turnstileToken: token,
         });
+        setDone(true);
+      } else if (forgot) {
+        const result = await save<{ message: string }>("/auth/forgot", {
+          email: d.email,
+          turnstileToken: token,
+        });
+        setSent(result.message);
         setDone(true);
       } else if (reset) {
         await save("/auth/reset", {
@@ -95,7 +107,7 @@ export default function Auth({ mode }: { mode: "login" | "signup" | "reset" }) {
         <span className="eyebrow">
           {signup
             ? "Inscrição no clube"
-            : reset
+            : reset || forgot
               ? "Recuperação de acesso"
               : "Área de integrantes"}
         </span>
@@ -104,23 +116,35 @@ export default function Auth({ mode }: { mode: "login" | "signup" | "reset" }) {
             ? "Faça parte do clube."
             : reset
               ? "Escolha uma nova senha."
-              : "Entre para continuar."}
+              : forgot
+                ? "Recupere sua senha."
+                : "Entre para continuar."}
         </h2>
         <p>
           {signup
             ? "Leva um minuto. A organização revisa cada inscrição e avisa por e-mail quando seu acesso for liberado."
             : reset
               ? "O link é individual e só pode ser usado uma vez."
-              : "Acesse a biblioteca, os encontros e as gravações do clube."}
+              : forgot
+                ? "Informe o e-mail do cadastro. Enviamos um link para você escolher uma nova senha."
+                : "Acesse a biblioteca, os encontros e as gravações do clube."}
         </p>
         {done ? (
           <div className="success-panel" role="status">
             <Check size={28} />
-            <h3>{signup ? "Cadastro recebido." : "Senha atualizada."}</h3>
+            <h3>
+              {signup
+                ? "Cadastro recebido."
+                : forgot
+                  ? "Confira seu e-mail."
+                  : "Senha atualizada."}
+            </h3>
             <p>
               {signup
                 ? "Se o cadastro é novo, enviamos um link para confirmar seu e-mail. Você recebe outro e-mail quando o acesso for liberado; enquanto isso, entre para acompanhar o status. Se já tinha cadastro, use sua senha anterior."
-                : "Agora você pode entrar com sua nova senha."}
+                : forgot
+                  ? sent + " Não chegou? Confira a caixa de spam."
+                  : "Agora você pode entrar com sua nova senha."}
             </p>
             <Link
               to="/entrar"
@@ -176,22 +200,38 @@ export default function Auth({ mode }: { mode: "login" | "signup" | "reset" }) {
                 </span>
               </label>
             )}
-            <label>
-              {reset ? "Nova senha" : "Senha"}
-              <input
-                type="password"
-                name="password"
-                autoComplete={
-                  signup || reset ? "new-password" : "current-password"
-                }
-                required
-                minLength={signup || reset ? 10 : 1}
-                maxLength={128}
-                placeholder={
-                  signup || reset ? "Pelo menos 10 caracteres" : "Sua senha"
-                }
-              />
-            </label>
+            {!forgot && (
+              <label>
+                {reset ? "Nova senha" : "Senha"}
+                <input
+                  type="password"
+                  name="password"
+                  autoComplete={
+                    signup || reset ? "new-password" : "current-password"
+                  }
+                  required
+                  minLength={signup || reset ? 10 : 1}
+                  maxLength={128}
+                  placeholder={
+                    signup || reset ? "Pelo menos 10 caracteres" : "Sua senha"
+                  }
+                />
+              </label>
+            )}
+            {forgot &&
+              (home?.turnstileSiteKey ? (
+                <Turnstile
+                  siteKey={home.turnstileSiteKey}
+                  onToken={setToken}
+                  attempt={attempt}
+                  action="reset"
+                />
+              ) : (
+                <Notice>
+                  A recuperação por e-mail está indisponível no momento. Tente
+                  novamente mais tarde.
+                </Notice>
+              ))}
             {signup && (
               <>
                 <label>
@@ -255,7 +295,7 @@ export default function Auth({ mode }: { mode: "login" | "signup" | "reset" }) {
             {error && <Notice>{error}</Notice>}
             <button
               className="button primary full"
-              disabled={busy || (signup && !token)}
+              disabled={busy || ((signup || forgot) && !token)}
             >
               {busy
                 ? "Só um instante…"
@@ -263,35 +303,30 @@ export default function Auth({ mode }: { mode: "login" | "signup" | "reset" }) {
                   ? "Enviar meu cadastro"
                   : reset
                     ? "Salvar nova senha"
-                    : "Entrar"}
+                    : forgot
+                      ? "Enviar link"
+                      : "Entrar"}
               <ArrowRight size={18} />
             </button>
-            {!signup && !reset && (
-              <button
-                className="forgot"
-                type="button"
-                onClick={() => setForgot(!forgot)}
-              >
+            {mode === "login" && (
+              <Link className="forgot" to="/recuperar-senha">
                 Esqueci minha senha
-              </button>
-            )}
-            {forgot && (
-              <div className="help-box">
-                Peça à organização um link individual de recuperação, pelo grupo
-                do WhatsApp ou pelo canal em que você entrou no clube. Por
-                segurança, confirme sua identidade antes de receber o link.
-              </div>
+              </Link>
             )}
             <p className="form-bottom">
-              {signup ? "Já faz parte?" : "Ainda não tem cadastro?"}{" "}
+              {signup
+                ? "Já faz parte?"
+                : forgot
+                  ? "Lembrou a senha?"
+                  : "Ainda não tem cadastro?"}{" "}
               <Link
-                to={signup ? "/entrar" : "/inscricao"}
+                to={signup || forgot ? "/entrar" : "/inscricao"}
                 onClick={() => {
                   setError("");
                   setDone(false);
                 }}
               >
-                {signup ? "Entre aqui" : "Venha para o clube"}
+                {signup || forgot ? "Entre aqui" : "Venha para o clube"}
               </Link>
             </p>
           </form>

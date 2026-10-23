@@ -1608,13 +1608,6 @@ textarea {
   color: var(--muted);
   padding: 8px;
 }
-.help-box {
-  padding: 16px;
-  background: var(--soft);
-  font-size: 0.83rem;
-  line-height: 1.7;
-  color: var(--muted);
-}
 .success-panel {
   background: var(--accent-soft);
   border-radius: 6px;
