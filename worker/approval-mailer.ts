@@ -1,4 +1,5 @@
 import { drainInvitations } from "./lib/meeting-invitation";
+import { sendReminders } from "./lib/meeting-reminder";
 import { sendPendingDigest } from "./lib/admin-digest";
 // Must match the every-15-minutes trigger in wrangler.mailer.jsonc.
 export const meetingEmailsCron = "*/15 * * * *";
@@ -13,6 +14,16 @@ interface MailerEnv {
 export default {
   async scheduled(controller: ScheduledController, env: MailerEnv) {
     if (controller.cron === meetingEmailsCron) {
+      // Reminders first: they only count inside their time window.
+      const reminders = await sendReminders(env, controller.scheduledTime);
+      if (reminders.batches)
+        console.log(
+          JSON.stringify({
+            event: "meeting_reminders",
+            sent: reminders.sent,
+            failed: reminders.failed,
+          }),
+        );
       const { batches, sent, failed } = await drainInvitations(env);
       if (batches)
         console.log(

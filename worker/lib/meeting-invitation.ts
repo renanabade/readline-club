@@ -1,7 +1,7 @@
 import type { Meeting } from "../../shared/contracts";
 import { googleCalendarUrl } from "../../shared/calendar";
 import { meetingToIcs } from "./calendar";
-interface InvitationEnv {
+export interface InvitationEnv {
   DB: D1Database;
   EMAIL: SendEmail;
   EMAIL_FROM: string;
@@ -14,7 +14,7 @@ export const invitationBatchesPerRun = 5;
 const sendConcurrency = 10;
 // The mailer runs without nodejs_compat, so tokens use Web Crypto. The API
 // checks them with the same SHA-256 hex digest used for sessions.
-async function rsvpToken() {
+export async function rsvpToken() {
   const bytes = crypto.getRandomValues(new Uint8Array(32));
   const hex = (b: Uint8Array) =>
     Array.from(b, (n) => n.toString(16).padStart(2, "0")).join("");
@@ -26,7 +26,7 @@ async function rsvpToken() {
   );
   return { token, hash };
 }
-const escapeHtml = (s: string) =>
+export const escapeHtml = (s: string) =>
   s.replace(
     /[&<>"']/g,
     (ch) =>
