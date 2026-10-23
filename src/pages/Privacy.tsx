@@ -43,6 +43,13 @@ export default function Privacy() {
           para responder àquele encontro e deixa de valer quando ele começa.
         </li>
         <li>
+          <strong>Acesso aos grupos:</strong> a data do primeiro clique em
+          &quot;Entrar no grupo do WhatsApp&quot; e em &quot;Entrar no
+          Discord&quot;, para a organização acompanhar quantas pessoas chegam
+          aos grupos. O painel mostra só o total de cliques, nunca quem clicou.
+          Entrar de fato no grupo acontece no próprio WhatsApp ou Discord.
+        </li>
+        <li>
           <strong>Para segurança:</strong> o endereço IP e o e-mail usados em
           tentativas de login, cadastro e recuperação de senha, guardados apenas
           em formato de hash, para limitar tentativas repetidas. Se você pedir

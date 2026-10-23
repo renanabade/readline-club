@@ -84,6 +84,7 @@ export interface Settings extends SocialLinks {
 export interface CommunityAccess extends Settings {
   onboardingRequired: boolean;
   onboardingVersion: string;
+  discordAvailable: boolean;
   currentBookTitle: string | null;
   nextMeeting:
     | (Pick<
@@ -146,6 +147,8 @@ export interface AdminData {
   }[];
   rsvps: { meeting_id: string; response: MeetingRsvp; total: number }[];
   departures: MemberDeparture[];
+  // Totals only: how many confirmed the introduction and clicked each group.
+  communityFunnel: { acknowledged: number; whatsapp: number; discord: number };
 }
 export interface InvitationQueue {
   added: number;

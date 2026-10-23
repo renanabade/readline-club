@@ -17,16 +17,16 @@ Código da plataforma do [readline club](https://readline.club), um clube do liv
 
 A [política de privacidade](https://readline.club/privacidade) completa fica no site. Em resumo:
 
-**O que é guardado:** nome, e-mail, celular, senha (somente em formato protegido, nunca o texto original), nível de experiência, motivação informada no cadastro, status da aprovação, a confirmação de leitura das orientações da comunidade, as respostas de presença nos encontros e a escolha de receber ou não os convites de encontros por e-mail. Também a data em que o e-mail do cadastro foi confirmado. Dos links de presença e de confirmação de e-mail, guarda-se só o hash. Para limitar tentativas de login, cadastro e recuperação de senha, o endereço IP e o e-mail são registrados apenas em formato de hash. Dos links de recuperação de senha, também se guarda só o hash.
+**O que é guardado:** nome, e-mail, celular, senha (somente em formato protegido, nunca o texto original), nível de experiência, motivação informada no cadastro, status da aprovação, a confirmação de leitura das orientações da comunidade, as respostas de presença nos encontros, a escolha de receber ou não os convites de encontros por e-mail e a data do primeiro clique para entrar no grupo do WhatsApp e no Discord. Também a data em que o e-mail do cadastro foi confirmado. Dos links de presença e de confirmação de e-mail, guarda-se só o hash. Para limitar tentativas de login, cadastro e recuperação de senha, o endereço IP e o e-mail são registrados apenas em formato de hash. Dos links de recuperação de senha, também se guarda só o hash.
 
 **Quem vê o quê:**
 
-| Quem                       | Acesso                                                                                                                                                      |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Qualquer visitante         | Nome e apresentação do clube, redes sociais do clube, livros, número de membros e o anúncio do próximo encontro (título, livro, capítulos, data e duração). |
-| Conta aguardando aprovação | O próprio cadastro e o status.                                                                                                                              |
-| Membro aprovado            | Encontros com links de chamada, gravações publicadas, materiais e convites dos grupos.                                                                      |
-| Organização                | Os cadastros (nome, e-mail, celular, experiência e motivação), o total de confirmações de cada encontro (não quem confirmou) e todo o conteúdo do painel.   |
+| Quem                       | Acesso                                                                                                                                                                              |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Qualquer visitante         | Nome e apresentação do clube, redes sociais do clube, livros, número de membros e o anúncio do próximo encontro (título, livro, capítulos, data e duração).                         |
+| Conta aguardando aprovação | O próprio cadastro e o status.                                                                                                                                                      |
+| Membro aprovado            | Encontros com links de chamada, gravações publicadas, materiais e convites dos grupos.                                                                                              |
+| Organização                | Os cadastros (nome, e-mail, celular, experiência e motivação), o total de confirmações de cada encontro e de cliques para entrar nos grupos (não quem) e todo o conteúdo do painel. |
 
 Nenhum membro vê dados de outros membros.
 

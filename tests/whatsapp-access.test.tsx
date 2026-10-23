@@ -16,10 +16,10 @@ afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
 });
-const renderAccess = () =>
+const renderAccess = (guidelines = false) =>
   render(
     <MemoryRouter>
-      <WhatsAppAccess />
+      <WhatsAppAccess guidelines={guidelines} />
     </MemoryRouter>,
   );
 test("visitors and unapproved accounts see approval instructions without requesting the private invitation", () => {
@@ -115,7 +115,7 @@ test("approved readers confirm the introduction before receiving invitations", a
       }),
     );
   vi.stubGlobal("fetch", fetch);
-  renderAccess();
+  renderAccess(true);
   const button = await screen.findByRole("button", {
     name: "Confirmar e liberar os convites",
   });
@@ -151,13 +151,76 @@ test("the introduction points to the meeting page when the call link is set", as
       discord_url: "",
     });
   vi.stubGlobal("fetch", vi.fn().mockResolvedValueOnce(onboarding(true)));
-  renderAccess();
+  renderAccess(true);
   const page = await screen.findByRole("link", { name: "página do encontro" });
   expect(page.getAttribute("href")).toBe("/encontros/next");
   expect(screen.queryByText(/será informado pelo clube/)).toBeNull();
   cleanup();
   vi.stubGlobal("fetch", vi.fn().mockResolvedValueOnce(onboarding(false)));
-  renderAccess();
+  renderAccess(true);
   expect(await screen.findByText(/será informado pelo clube/)).toBeTruthy();
   expect(screen.queryByRole("link", { name: "página do encontro" })).toBeNull();
+});
+const approved = {
+  role: "member",
+  status: "approved",
+  mustChangePassword: false,
+};
+const pendingIntroduction = (discordAvailable: boolean) =>
+  Response.json({
+    onboardingRequired: true,
+    onboardingVersion: "community-v1",
+    discordAvailable,
+    currentBookTitle: null,
+    nextMeeting: null,
+    whatsapp_url: "",
+    discord_url: "",
+  });
+test("home and account page point to the club page until the introduction is confirmed", async () => {
+  state.user = approved;
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue(pendingIntroduction(true)));
+  renderAccess();
+  const join = await screen.findByRole("link", {
+    name: /Entrar no grupo do WhatsApp/,
+  });
+  expect(join.getAttribute("href")).toBe("/comunidade");
+  expect(screen.queryByRole("checkbox")).toBeNull();
+});
+test("the club page keeps the confirmation next to the group button, without Discord when it is not set", async () => {
+  state.user = approved;
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue(pendingIntroduction(false)));
+  renderAccess(true);
+  expect(
+    await screen.findByRole("heading", { name: "Grupo do WhatsApp do clube." }),
+  ).toBeTruthy();
+  expect(screen.getByRole("checkbox")).toBeTruthy();
+  expect(screen.queryByText(/Discord/)).toBeNull();
+});
+test("clicking to join a group is recorded without blocking the link", async () => {
+  state.user = approved;
+  const fetch = vi
+    .fn()
+    .mockResolvedValueOnce(
+      Response.json({
+        onboardingRequired: false,
+        discordAvailable: false,
+        whatsapp_url: "https://chat.whatsapp.com/invite",
+        discord_url: "",
+      }),
+    )
+    .mockResolvedValue(Response.json({ error: "Falhou." }, { status: 500 }));
+  vi.stubGlobal("fetch", fetch);
+  renderAccess(true);
+  const link = await screen.findByRole("link", {
+    name: /Entrar no grupo do WhatsApp/,
+  });
+  expect(screen.queryByRole("link", { name: /Discord/ })).toBeNull();
+  link.addEventListener("click", (e) => e.preventDefault());
+  fireEvent.click(link);
+  await vi.waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
+  expect(fetch.mock.calls[1][0]).toBe("/api/community/join");
+  expect(JSON.parse(fetch.mock.calls[1][1].body)).toEqual({
+    channel: "whatsapp",
+  });
+  expect(link.getAttribute("href")).toBe("https://chat.whatsapp.com/invite");
 });
