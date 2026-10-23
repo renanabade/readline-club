@@ -28,3 +28,31 @@ test("calendar preserves UTC instant, cancellation and escaping without meeting 
   expect(ics).not.toContain("private.test");
   expect(ics).toContain("Introdução\\, parte 1");
 });
+test("calendar description points to the meeting page, never to the call", () => {
+  const meeting = {
+    id: "page-test",
+    cycle_id: "cycle",
+    title: "Encontro",
+    chapters: "Capítulo 2",
+    starts_at: "2026-10-10T19:00:00-03:00",
+    duration_minutes: 60,
+    status: "scheduled" as const,
+    agenda: "",
+    summary: "",
+    meeting_url: "https://private.test/call",
+    updated_at: "2026-09-27T00:00:00Z",
+  };
+  const unfold = (s: string) => s.replace(/\r\n /g, "");
+  const withLink = unfold(meetingToIcs(meeting, "https://club.example.test"));
+  expect(withLink).toContain(
+    "O link da chamada está na página do encontro\\, para membros:\\nhttps://club.example.test/encontros/page-test",
+  );
+  expect(withLink).toContain(
+    "URL:https://club.example.test/encontros/page-test",
+  );
+  expect(withLink).not.toContain("private.test");
+  const withoutLink = unfold(
+    meetingToIcs({ ...meeting, meeting_url: "" }, "https://club.example.test"),
+  );
+  expect(withoutLink).toContain("O link da chamada será informado no clube.");
+});

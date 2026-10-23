@@ -71,8 +71,20 @@ function ApprovedAccess({ guidelines }: { guidelines: boolean }) {
               <br />
               {data.nextMeeting.chapters} · previsão de{" "}
               {data.nextMeeting.duration_minutes} minutos. Confira o evento na{" "}
-              <Link to="/agenda">agenda</Link>; o link da chamada será informado
-              pelo clube.
+              <Link to="/agenda">agenda</Link>;{" "}
+              {data.nextMeeting.has_call_link ? (
+                <>
+                  o link da chamada está na{" "}
+                  <Link
+                    to={"/encontros/" + encodeURIComponent(data.nextMeeting.id)}
+                  >
+                    página do encontro
+                  </Link>
+                  .
+                </>
+              ) : (
+                "o link da chamada será informado pelo clube."
+              )}
             </p>
           ) : (
             <p>
