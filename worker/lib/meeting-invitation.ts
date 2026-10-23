@@ -85,7 +85,7 @@ export function invitationMessage(
         disposition: "attachment",
         filename: "readline-encontro.ics",
         type: "text/calendar; charset=utf-8; method=PUBLISH",
-        content: meetingToIcs(meeting),
+        content: meetingToIcs(meeting, env.APP_ORIGIN),
       },
     ],
   };

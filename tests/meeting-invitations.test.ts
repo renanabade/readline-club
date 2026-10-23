@@ -196,6 +196,10 @@ test("the invitation has date, confirmation, calendar links and an .ics, but no 
   const attachment = message.attachments![0]!;
   expect(attachment.filename).toBe("readline-encontro.ics");
   expect(String(attachment.content)).toContain("BEGIN:VCALENDAR");
+  // The attached event points to the meeting page, like the Google link.
+  const ics = String(attachment.content).replace(/\r\n /g, "");
+  expect(ics).toContain("URL:" + confirm);
+  expect(ics).toContain("O link da chamada está na página do encontro");
   for (const part of [message.text, message.html, String(attachment.content)])
     expect(part).not.toContain("private-call-sentinel");
 });
