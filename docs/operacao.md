@@ -64,6 +64,14 @@ Os botões de resposta levam a `/presenca`, com um token individual no fragmento
 
 A tabela `meeting_invitations` registra cada convite e impede duplicação: execuções sobrepostas do cron separam convites diferentes, e enviar de novo só alcança quem ainda não recebeu (por exemplo, membros aprovados depois), além de repetir falhas confirmadas. Resultados desconhecidos ficam bloqueados para inspeção, como nos outros e-mails. Antes de cada envio, o mailer confere de novo se a pessoa continua aprovada e aceitando avisos; se o encontro for cancelado ou já tiver passado, o que estiver na fila é descartado. As respostas ficam em `meeting_rsvps`, e o painel mostra só os totais de cada encontro.
 
+### Lembretes do encontro
+
+O mesmo cron de 15 minutos envia dois lembretes de cada encontro agendado: o da **véspera**, quando faltam entre 24 h e 23 h, e o de **1 hora antes**, quando faltam entre 75 e 45 minutos. As janelas têm a largura que o cron precisa para alcançar todo encontro pelo menos uma vez. Recebem os membros aprovados que não desligaram os avisos de encontros e que responderam que vão ou ainda não responderam; quem disse que não vai fica de fora. Cada execução envia até 5 lotes de 20 lembretes, 10 de cada vez, pelo remetente `EMAIL_FROM`, antes de esvaziar a fila de convites. Encontros cancelados não recebem lembrete.
+
+Os dois lembretes trazem data, horário, leitura, o botão para a página do encontro (onde fica o link da chamada, para membros) e os botões **Vou participar** e **Não vou poder**, com um token individual que funciona como o do convite. O link da chamada não vai no e-mail.
+
+A tabela `meeting_reminders` tem `UNIQUE(meeting_id,user_id,kind)` (`kind` é `d1` ou `h1`): a linha é criada antes do envio e impede duplicação, inclusive entre execuções sobrepostas. Falhas confirmadas são tentadas de novo na execução seguinte, enquanto a janela durar; resultados desconhecidos ficam bloqueados para inspeção, como nos outros e-mails. Do token do lembrete, guarda-se só o hash, em `meeting_reminders.rsvp_token_hash`.
+
 ### Resumo de pendências
 
 O mesmo Worker envia um resumo para o endereço do secret `ADMIN_NOTIFY_EMAIL` às **9h e às 18h de Brasília** (`0 12,21 * * *`, em UTC). Não há e-mail por cadastro e nenhum resumo é enviado quando não há pendências. O e-mail contém apenas a quantidade e o link da administração; nomes e endereços dos inscritos ficam no painel. A tabela `admin_digest_notifications` registra cada horário e impede disparos duplicados. Falhas conhecidas podem ser tentadas novamente até três vezes no mesmo horário; resultados desconhecidos ficam bloqueados para inspeção. Não há repetição automática fora dos dois horários.

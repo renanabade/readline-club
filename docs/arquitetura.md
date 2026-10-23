@@ -13,7 +13,7 @@ Cloudflare Pages Functions (functions/) ──► app Hono (worker/index.ts)
                                                                         ├─ D1 (mesmo banco)
                                                                         ├─ Cloudflare Email Service
                                                                         ├─ cron do resumo de pendências
-                                                                        └─ cron da fila de convites
+                                                                        └─ cron da fila de convites e dos lembretes
 ```
 
 | Pasta             | Conteúdo                                                                          |
