@@ -7,9 +7,11 @@ import {
   fireEvent,
   waitFor,
   within,
+  act,
 } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import Admin from "../src/pages/Admin";
+import { MemberNextMeeting } from "../src/components/MemberNextMeeting";
 import App from "../src/app";
 
 afterEach(() => {
@@ -248,6 +250,35 @@ test("a scheduled meeting whose time has passed appears in previous meetings", a
   expect(screen.queryByText("Encontro antigo")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Encontros anteriores" }));
   expect(await screen.findByText("Encontro antigo")).toBeTruthy();
+});
+
+test("the next meeting card keeps the announcement when details arrive incomplete", async () => {
+  let delivered = false;
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => {
+      delivered = true;
+      return Response.json({ resources: [] });
+    }),
+  );
+  render(
+    <MemoryRouter>
+      <MemberNextMeeting
+        meeting={{
+          id: "future",
+          title: "Encontro futuro",
+          chapters: "",
+          starts_at: "2099-01-01T20:00:00Z",
+          duration_minutes: 60,
+          status: "scheduled",
+          book_title: "Livro de teste",
+        }}
+      />
+    </MemoryRouter>,
+  );
+  await waitFor(() => expect(delivered).toBe(true));
+  await act(async () => {});
+  expect(screen.getByText("Encontro futuro")).toBeTruthy();
 });
 
 test("the member home shows the same future scheduled meeting as the public home", async () => {

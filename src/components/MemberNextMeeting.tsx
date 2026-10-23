@@ -22,8 +22,10 @@ export function MemberNextMeeting({
   const { data } = useData<MeetingDetail>(
     "/meetings/" + encodeURIComponent(meeting.id),
   );
-  const m = data?.meeting ?? meeting;
-  const callUrl = data?.meeting.meeting_url;
+  // Details may be missing or partial: fall back to the announcement.
+  const detail = data?.meeting;
+  const m = detail ?? meeting;
+  const callUrl = detail?.meeting_url;
   return (
     <section
       className="next-meeting member-next-meeting"
@@ -56,8 +58,8 @@ export function MemberNextMeeting({
           </span>
         </div>
       )}
-      {data && (
-        <MeetingRsvp key={m.id} meeting={data.meeting} initial={data.rsvp} />
+      {detail && (
+        <MeetingRsvp key={m.id} meeting={detail} initial={data.rsvp ?? null} />
       )}
       <CalendarActions meeting={m} />
       <Link className="text-link" to={"/encontros/" + m.id}>
