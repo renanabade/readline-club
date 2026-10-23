@@ -5,7 +5,7 @@ import { useSession } from "../lib/session";
 import { useData } from "../lib/useData";
 import { save } from "../lib/api";
 import { dateLabel } from "../lib/dates";
-import type { CommunityAccess } from "../../shared/contracts";
+import type { CommunityAccess, Identity } from "../../shared/contracts";
 
 function ApprovedAccess({ guidelines }: { guidelines: boolean }) {
   const { data, error, loading, reload } =
@@ -155,12 +155,51 @@ function ApprovedAccess({ guidelines }: { guidelines: boolean }) {
   );
 }
 
+// Logged in but not a member yet: where the account stands, never the
+// sign-up and login calls meant for visitors.
+function AccountStatus({ user }: { user: Identity }) {
+  const [title, text] = user.mustChangePassword
+    ? [
+        "Defina sua senha para continuar.",
+        "Troque a senha inicial em Minha conta para liberar seu acesso.",
+      ]
+    : user.status === "suspended"
+      ? [
+          "Seu acesso está suspenso.",
+          "Fale com a organização para entender o motivo e os próximos passos.",
+        ]
+      : user.status === "rejected"
+        ? [
+            "Sua inscrição não foi aprovada neste momento.",
+            "Você pode conversar com a organização sobre a sua inscrição.",
+          ]
+        : [
+            "Seu cadastro está em análise.",
+            "A organização revisa cada inscrição e avisa por e-mail quando o acesso for liberado. Com a aprovação, os convites do grupo do WhatsApp e do Discord aparecem aqui, depois de você ler como o clube funciona.",
+          ];
+  return (
+    <>
+      <span className="eyebrow">Status da inscrição</span>
+      <h2>{title}</h2>
+      <p>{text}</p>
+      <div className="whatsapp-actions">
+        <Link className="button primary" to="/conta">
+          {user.mustChangePassword ? "Definir minha senha" : "Ver meu cadastro"}
+          <ArrowUpRight size={18} />
+        </Link>
+      </div>
+    </>
+  );
+}
+
 export function WhatsAppAccess({
   guidelines = false,
 }: {
   guidelines?: boolean;
 }) {
-  const { user } = useSession();
+  const { user, loading } = useSession();
+  // Until the session is known, show nothing rather than the visitor's calls.
+  if (loading) return null;
   const member =
     user &&
     !user.mustChangePassword &&
@@ -171,6 +210,8 @@ export function WhatsAppAccess({
       <div>
         {member ? (
           <ApprovedAccess guidelines={guidelines} />
+        ) : user ? (
+          <AccountStatus user={user} />
         ) : (
           <>
             <span className="eyebrow">Canais oficiais</span>
@@ -190,18 +231,13 @@ export function WhatsAppAccess({
               <strong>O clube</strong> e em <strong>Minha conta</strong>.
             </p>
             <div className="whatsapp-actions">
-              <Link
-                className="button primary"
-                to={user ? "/conta" : "/inscricao"}
-              >
-                {user ? "Ver meu cadastro" : "Participe gratuitamente"}
+              <Link className="button primary" to="/inscricao">
+                Participe gratuitamente
                 <ArrowUpRight size={18} />
               </Link>
-              {!user && (
-                <Link className="text-link" to="/entrar">
-                  Já tenho conta · Entrar <ArrowUpRight size={16} />
-                </Link>
-              )}
+              <Link className="text-link" to="/entrar">
+                Já tenho conta · Entrar <ArrowUpRight size={16} />
+              </Link>
             </div>
           </>
         )}
