@@ -138,15 +138,13 @@ export interface AdminData {
   settings: Settings;
   invitations: {
     meeting_id: string;
-    status: "queued" | "sending" | "sent" | "failed" | "skipped";
+    status: "queued" | "sending" | "sent" | "failed" | "unknown" | "skipped";
     total: number;
   }[];
   rsvps: { meeting_id: string; response: MeetingRsvp; total: number }[];
   departures: MemberDeparture[];
 }
-export interface InvitationBatch {
-  sent: number;
-  failed: number;
-  skipped: number;
-  remaining: number;
+export interface InvitationQueue {
+  added: number;
+  queued: number;
 }
