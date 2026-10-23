@@ -7,6 +7,7 @@ import {
   bookSchema,
   cycleSchema,
   meetingSchema,
+  patchSchema,
   settingsSchema,
   httpsUrl,
   resourceKinds,
@@ -232,13 +233,18 @@ const entities = {
 };
 for (const [route, config] of Object.entries(entities)) {
   const table = route === "cycles" ? "reading_cycles" : route;
+  const schemas = { post: config.schema, patch: patchSchema(config.schema) };
   for (const method of ["post", "patch"] as const)
     admin[method](
       "/" + route + (method === "patch" ? "/:id" : ""),
       async (c) => {
         const data = await input(
           c,
-          config.schema as z.ZodType<Record<string, unknown>>,
+          schemas[method] as z.ZodType<Record<string, unknown>>,
+        );
+        // A PATCH only touches the columns present in the body.
+        const fields = config.fields.filter(
+          (k) => method === "post" || k in data,
         );
         const id =
           method === "patch" ? c.req.param("id")! : crypto.randomUUID();
@@ -285,28 +291,28 @@ for (const [route, config] of Object.entries(entities)) {
               "INSERT INTO " +
                 table +
                 "(id," +
-                config.fields.join(",") +
+                fields.join(",") +
                 ") VALUES(" +
-                ["?", ...config.fields.map(() => "?")].join(",") +
+                ["?", ...fields.map(() => "?")].join(",") +
                 ")",
-            ).bind(id, ...config.fields.map((k) => data[k])),
+            ).bind(id, ...fields.map((k) => data[k])),
           );
-        else
+        else if (fields.length)
           batch.push(
             c.env.DB.prepare(
               "UPDATE " +
                 table +
                 " SET " +
-                config.fields.map((k) => k + "=?").join(",") +
+                fields.map((k) => k + "=?").join(",") +
                 (route === "meetings" ? ",updated_at=?" : "") +
                 " WHERE id=?",
             ).bind(
-              ...config.fields.map((k) => data[k]),
+              ...fields.map((k) => data[k]),
               ...(route === "meetings" ? [new Date().toISOString()] : []),
               id,
             ),
           );
-        if (route === "books") {
+        if (route === "books" && "category_ids" in data) {
           batch.push(
             c.env.DB.prepare(
               "DELETE FROM book_categories WHERE book_id=?",
