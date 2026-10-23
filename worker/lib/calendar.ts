@@ -1,4 +1,5 @@
 import type { Meeting } from "../../shared/contracts";
+import { calendarDetails, meetingPageUrl } from "../../shared/calendar";
 const escape = (s: string) =>
   s
     .replace(/\\/g, "\\\\")
@@ -26,7 +27,8 @@ function fold(s: string) {
   }
   return out + line;
 }
-export function meetingToIcs(m: Meeting): string {
+// Without the origin, the description keeps only the chapters.
+export function meetingToIcs(m: Meeting, origin?: string): string {
   if (!m.starts_at) throw new Error("Encontro sem data.");
   return (
     [
@@ -41,7 +43,8 @@ export function meetingToIcs(m: Meeting): string {
       "DTSTART:" + stamp(m.starts_at),
       "DTEND:" + stamp(Date.parse(m.starts_at) + m.duration_minutes * 60000),
       "SUMMARY:" + escape(m.title),
-      "DESCRIPTION:" + escape(m.chapters),
+      "DESCRIPTION:" + escape(origin ? calendarDetails(m, origin) : m.chapters),
+      ...(origin ? ["URL:" + meetingPageUrl(m.id, origin)] : []),
       "STATUS:" + (m.status === "cancelled" ? "CANCELLED" : "CONFIRMED"),
       "END:VEVENT",
       "END:VCALENDAR",

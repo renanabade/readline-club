@@ -9,6 +9,7 @@ const state = vi.hoisted(() => ({
     status: string;
     mustChangePassword: boolean;
   },
+  loading: false,
 }));
 vi.mock("../src/lib/session", () => ({ useSession: () => state }));
 afterEach(() => {
@@ -24,23 +25,41 @@ const renderAccess = () =>
 test("visitors and unapproved accounts see approval instructions without requesting the private invitation", () => {
   const fetch = vi.fn();
   vi.stubGlobal("fetch", fetch);
-  for (const user of [
-    null,
-    { role: "member", status: "pending", mustChangePassword: false },
-    { role: "member", status: "suspended", mustChangePassword: false },
-    { role: "admin", status: "approved", mustChangePassword: true },
-  ]) {
+  for (const [user, heading] of [
+    [null, "A conversa continua no WhatsApp e no Discord."],
+    [
+      { role: "member", status: "pending", mustChangePassword: false },
+      "Seu cadastro está em análise.",
+    ],
+    [
+      { role: "member", status: "suspended", mustChangePassword: false },
+      "Seu acesso está suspenso.",
+    ],
+    [
+      { role: "admin", status: "approved", mustChangePassword: true },
+      "Defina sua senha para continuar.",
+    ],
+  ] as const) {
     state.user = user;
     renderAccess();
+    expect(screen.getByRole("heading", { name: heading })).toBeTruthy();
     expect(
-      screen.getByText(/O acesso aos grupos é liberado com a conta aprovada/),
-    ).toBeTruthy();
+      !!screen.queryByRole("link", { name: /Participe gratuitamente/ }),
+    ).toBe(!user);
     expect(
       screen.queryByRole("link", { name: /Entrar no grupo do WhatsApp/ }),
     ).toBeNull();
     cleanup();
   }
   expect(fetch).not.toHaveBeenCalled();
+});
+test("nothing shows while the session is loading", () => {
+  vi.stubGlobal("fetch", vi.fn());
+  state.user = null;
+  state.loading = true;
+  renderAccess();
+  expect(screen.queryByRole("link")).toBeNull();
+  state.loading = false;
 });
 test("approved members see the real link; failures allow retry", async () => {
   state.user = {
@@ -108,4 +127,37 @@ test("approved readers confirm the introduction before receiving invitations", a
     await screen.findByRole("link", { name: "Entrar no Discord" }),
   ).toBeTruthy();
   expect(fetch.mock.calls[1][0]).toBe("/api/community/acknowledge");
+});
+test("the introduction points to the meeting page when the call link is set", async () => {
+  state.user = {
+    role: "member",
+    status: "approved",
+    mustChangePassword: false,
+  };
+  const onboarding = (has_call_link: boolean) =>
+    Response.json({
+      onboardingRequired: true,
+      onboardingVersion: "community-v1",
+      currentBookTitle: null,
+      nextMeeting: {
+        id: "next",
+        title: "Encontro",
+        chapters: "Capítulo 1",
+        starts_at: new Date(Date.now() + 86400000).toISOString(),
+        duration_minutes: 60,
+        has_call_link,
+      },
+      whatsapp_url: "",
+      discord_url: "",
+    });
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValueOnce(onboarding(true)));
+  renderAccess();
+  const page = await screen.findByRole("link", { name: "página do encontro" });
+  expect(page.getAttribute("href")).toBe("/encontros/next");
+  expect(screen.queryByText(/será informado pelo clube/)).toBeNull();
+  cleanup();
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValueOnce(onboarding(false)));
+  renderAccess();
+  expect(await screen.findByText(/será informado pelo clube/)).toBeTruthy();
+  expect(screen.queryByRole("link", { name: "página do encontro" })).toBeNull();
 });

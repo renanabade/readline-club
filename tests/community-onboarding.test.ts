@@ -95,3 +95,35 @@ test("invites require an approved account and a persisted, explicit acknowledgme
     await f.mf.dispose();
   }
 });
+
+test("the next meeting tells whether there is a call link without exposing it", async () => {
+  const f = await fixture();
+  const app = createApp();
+  try {
+    const startsAt = new Date(Date.now() + 7 * 86400000).toISOString();
+    await f.DB.prepare(
+      "INSERT INTO meetings(id,cycle_id,title,starts_at,meeting_url) VALUES('future','primeira-leitura','Próximo',?,'https://meet.google.com/private-call-sentinel')",
+    )
+      .bind(startsAt)
+      .run();
+    const member = await session(f.DB);
+    const read = async () => {
+      const response = await app.request(
+        "/api/community",
+        { headers: { cookie: member.cookie } },
+        f.env,
+      );
+      const raw = await response.text();
+      expect(raw).not.toContain("private-call-sentinel");
+      expect(raw).not.toContain("meeting_url");
+      return (JSON.parse(raw) as CommunityAccess).nextMeeting;
+    };
+    expect(await read()).toMatchObject({ id: "future", has_call_link: true });
+    await f.DB.prepare(
+      "UPDATE meetings SET meeting_url='' WHERE id='future'",
+    ).run();
+    expect(await read()).toMatchObject({ id: "future", has_call_link: false });
+  } finally {
+    await f.mf.dispose();
+  }
+});

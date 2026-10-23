@@ -353,6 +353,12 @@ export function Agenda() {
   );
 }
 export function Community() {
+  const { user, loading, home } = useSession();
+  const member =
+    user &&
+    !user.mustChangePassword &&
+    (user.role === "admin" || user.status === "approved");
+  const next = home?.nextMeeting;
   return (
     <div className="container page">
       <div className="page-heading narrow">
@@ -364,7 +370,11 @@ export function Community() {
           diferentes áreas e níveis.
         </p>
       </div>
-      <NextMeetingNotice contained />
+      {loading ? null : member ? (
+        next?.starts_at && <MemberNextMeeting meeting={next} />
+      ) : (
+        <NextMeetingNotice contained />
+      )}
       <WhatsAppAccess guidelines />
       <div className="community-grid community-about">
         <div>

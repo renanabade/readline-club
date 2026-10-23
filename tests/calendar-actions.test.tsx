@@ -44,6 +44,29 @@ test("members get correctly timed Google event and authenticated ICS download", 
       .getAttribute("href"),
   ).toBe("/api/meetings/first/calendar.ics");
 });
+test("the Google event points to the meeting page instead of the call link", () => {
+  state.user = {
+    role: "member",
+    status: "approved",
+    mustChangePassword: false,
+  };
+  const details = (meeting_url: string) => {
+    render(<CalendarActions meeting={{ ...meeting, meeting_url }} />);
+    const url = new URL(
+      screen.getByRole("link", { name: "Google Agenda" }).getAttribute("href")!,
+    );
+    cleanup();
+    return url.searchParams.get("details")!;
+  };
+  const page = window.location.origin + "/encontros/first";
+  const withLink = details("https://meet.google.com/private-call");
+  expect(withLink).toContain("O link da chamada está na página do encontro");
+  expect(withLink).toContain(page);
+  expect(withLink).not.toContain("private-call");
+  const withoutLink = details("");
+  expect(withoutLink).toContain("O link da chamada será informado no clube.");
+  expect(withoutLink).toContain(page);
+});
 test("pending users can save public announcement without accessing protected ICS", () => {
   state.user = { role: "member", status: "pending", mustChangePassword: false };
   render(<CalendarActions meeting={meeting} />);
