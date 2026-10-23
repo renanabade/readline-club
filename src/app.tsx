@@ -29,7 +29,14 @@ import type { ReactNode } from "react";
 import { instance } from "./instance";
 import { SocialLinks } from "./components/SocialLinks";
 import { BrandMark } from "./components/BrandMark";
-function Protected({
+// Login page that returns here afterwards, e.g. a meeting opened from the
+// invitation email.
+export function loginPath(location: { pathname: string; search: string }) {
+  return (
+    "/entrar?voltar=" + encodeURIComponent(location.pathname + location.search)
+  );
+}
+export function Protected({
   children,
   admin = false,
 }: {
@@ -37,8 +44,9 @@ function Protected({
   admin?: boolean;
 }) {
   const { user, loading } = useSession();
+  const location = useLocation();
   if (loading) return <Loading />;
-  if (!user) return <Navigate to="/entrar" replace />;
+  if (!user) return <Navigate to={loginPath(location)} replace />;
   if (user.mustChangePassword) return <Account required />;
   if (user.role !== "admin" && user.status !== "approved") return <Status />;
   if (admin && user.role !== "admin") return <Navigate to="/" replace />;
@@ -200,7 +208,13 @@ function Layout() {
           </div>
         )}
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route
+            path="/"
+            element={
+              // Login lands here, so a required password change shows first.
+              user?.mustChangePassword ? <Account required /> : <Home />
+            }
+          />
           <Route
             path="/inscricao"
             element={<Auth key="signup" mode="signup" />}
@@ -246,7 +260,7 @@ function Layout() {
               ) : user ? (
                 <Account required={user.mustChangePassword} />
               ) : (
-                <Navigate to="/entrar" />
+                <Navigate to={loginPath(location)} />
               )
             }
           />

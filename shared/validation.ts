@@ -89,6 +89,22 @@ export const meetingSchema = z.object({
   summary: text.default(""),
   meeting_url: httpsUrl.default(""),
 });
+// Partial updates: every field optional and without its default, so a field
+// left out of the body is left out of the result instead of reset.
+export function patchSchema(schema: z.ZodObject) {
+  const shape = Object.fromEntries(
+    Object.entries(schema.shape).map(([key, field]) => [
+      key,
+      (field instanceof z.ZodDefault
+        ? field.removeDefault()
+        : field
+      ).optional(),
+    ]),
+  );
+  return z
+    .object(shape)
+    .refine((data) => Object.keys(data).length > 0, "Envie ao menos um campo.");
+}
 export const settingsSchema = z.object({
   club_name: short,
   description: z.string().trim().min(1).max(1000),

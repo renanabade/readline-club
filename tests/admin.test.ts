@@ -75,6 +75,73 @@ test("administrator approval persists without allowing a role change", async () 
       .first("status"),
   ).toBe("approved");
 });
+test("a partial meeting PATCH only changes the fields it sends", async () => {
+  const created = await write("/api/admin/meetings", {
+    cycle_id: "primeira-leitura",
+    title: "Encontro parcial",
+    chapters: "Capítulo 2",
+    agenda: "Pauta combinada",
+    summary: "Resumo do encontro",
+    meeting_url: "https://meet.example.test/sala",
+  });
+  const { id } = (await created.json()) as { id: string };
+  const r = await write(
+    "/api/admin/meetings/" + id,
+    { status: "completed" },
+    "PATCH",
+  );
+  expect(r.status).toBe(200);
+  expect(
+    await f.DB.prepare(
+      "SELECT title,chapters,status,agenda,summary,meeting_url,duration_minutes FROM meetings WHERE id=?",
+    )
+      .bind(id)
+      .first(),
+  ).toEqual({
+    title: "Encontro parcial",
+    chapters: "Capítulo 2",
+    status: "completed",
+    agenda: "Pauta combinada",
+    summary: "Resumo do encontro",
+    meeting_url: "https://meet.example.test/sala",
+    duration_minutes: 60,
+  });
+  expect((await write("/api/admin/meetings/" + id, {}, "PATCH")).status).toBe(
+    400,
+  );
+  expect(
+    (await write("/api/admin/meetings/" + id, { title: "" }, "PATCH")).status,
+  ).toBe(400);
+});
+test("a partial book PATCH keeps its categories and description", async () => {
+  const category = await write("/api/admin/categories", {
+    name: "Categoria parcial",
+  });
+  const { id: categoryId } = (await category.json()) as { id: string };
+  const created = await write("/api/admin/books", {
+    title: "Livro parcial",
+    author: "Autoria",
+    description: "Descrição original",
+    category_ids: [categoryId],
+  });
+  const { id } = (await created.json()) as { id: string };
+  expect(
+    (await write("/api/admin/books/" + id, { status: "reading" }, "PATCH"))
+      .status,
+  ).toBe(200);
+  expect(
+    await f.DB.prepare("SELECT description,status FROM books WHERE id=?")
+      .bind(id)
+      .first(),
+  ).toEqual({ description: "Descrição original", status: "reading" });
+  expect(
+    await f.DB.prepare(
+      "SELECT category_id FROM book_categories WHERE book_id=?",
+    )
+      .bind(id)
+      .first("category_id"),
+  ).toBe(categoryId);
+});
 test("bad foreign keys and unsafe URLs produce validation errors", async () => {
   expect(
     (await write("/api/admin/meetings", { cycle_id: "missing", title: "Bad" }))

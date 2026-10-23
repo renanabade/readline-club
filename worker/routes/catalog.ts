@@ -33,6 +33,10 @@ export async function books(db: Env["DB"], all = false): Promise<Book[]> {
       .map(({ id, name }) => ({ id, name })),
   }));
 }
+// Scheduled and not over yet: the same rule the agenda applies with
+// isUpcoming (src/lib/dates.ts), so every "next meeting" agrees with it.
+export const nextMeetingWhere =
+  "m.status='scheduled' AND m.starts_at IS NOT NULL AND b.status!='archived' AND strftime('%Y-%m-%dT%H:%M:%fZ',m.starts_at,'+'||m.duration_minutes||' minutes')>?";
 export const meetingQuery = `SELECT m.*,b.title book_title,b.id book_id,r.youtube_id,(SELECT group_concat(DISTINCT kind) FROM resources WHERE meeting_id=m.id) material_kinds FROM meetings m JOIN reading_cycles cy ON cy.id=m.cycle_id JOIN books b ON b.id=cy.book_id LEFT JOIN recordings r ON r.meeting_id=m.id AND r.published=1`;
 const catalog = new Hono<AppEnv>();
 catalog.get("/books", async (c) => c.json(await books(c.env.DB)));
@@ -131,7 +135,9 @@ catalog.get("/community", async (c) => {
     "SELECT b.title FROM books b JOIN reading_cycles cy ON cy.book_id=b.id WHERE cy.is_current=1",
   ).first<string>("title");
   const nextMeeting = await c.env.DB.prepare(
-    "SELECT title,chapters,starts_at,duration_minutes FROM meetings WHERE status='scheduled' AND starts_at>=? ORDER BY starts_at LIMIT 1",
+    "SELECT m.title,m.chapters,m.starts_at,m.duration_minutes FROM meetings m JOIN reading_cycles cy ON cy.id=m.cycle_id JOIN books b ON b.id=cy.book_id WHERE " +
+      nextMeetingWhere +
+      " ORDER BY m.starts_at LIMIT 1",
   )
     .bind(new Date().toISOString())
     .first();

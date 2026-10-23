@@ -1,13 +1,23 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowRight, BookOpen, Check } from "lucide-react";
 import { useSession } from "../lib/session";
 import { save } from "../lib/api";
 import { Notice } from "../components/ui";
 import { Turnstile } from "../components/Turnstile";
+// Only same-site paths: "//host" and "/\host" would leave the site.
+export function returnPath(voltar: string | null) {
+  return voltar &&
+    voltar.startsWith("/") &&
+    !voltar.startsWith("//") &&
+    !voltar.startsWith("/\\")
+    ? voltar
+    : "/";
+}
 export default function Auth({ mode }: { mode: "login" | "signup" | "reset" }) {
   const { home, refresh } = useSession();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
   const [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [done, setDone] = useState(false),
@@ -39,7 +49,7 @@ export default function Auth({ mode }: { mode: "login" | "signup" | "reset" }) {
       } else {
         await save("/auth/login", d);
         await refresh();
-        navigate("/conta");
+        navigate(returnPath(params.get("voltar")), { replace: true });
       }
     } catch (e) {
       setError((e as Error).message);
