@@ -1,6 +1,7 @@
 import { drainInvitations } from "./lib/meeting-invitation";
 import { sendReminders } from "./lib/meeting-reminder";
 import { sendPendingDigest } from "./lib/admin-digest";
+import { sendEmailVerification } from "./lib/email-verification";
 // Must match the every-15-minutes trigger in wrangler.mailer.jsonc.
 export const meetingEmailsCron = "*/15 * * * *";
 interface MailerEnv {
@@ -9,6 +10,16 @@ interface MailerEnv {
   EMAIL_FROM: string;
   APP_ORIGIN: string;
   ADMIN_NOTIFY_EMAIL?: string;
+}
+async function emailVerification(request: Request, env: MailerEnv) {
+  const body = (await request.json().catch(() => null)) as {
+    userId?: unknown;
+  } | null;
+  if (typeof body?.userId !== "string" || body.userId.length > 100)
+    return new Response(null, { status: 400 });
+  return Response.json({
+    status: await sendEmailVerification(env, body.userId),
+  });
 }
 
 export default {
@@ -36,6 +47,8 @@ export default {
   },
   async fetch(request: Request, env: MailerEnv): Promise<Response> {
     if (request.method !== "POST") return new Response(null, { status: 405 });
+    if (new URL(request.url).pathname === "/email-verification")
+      return emailVerification(request, env);
     const body = (await request.json().catch(() => null)) as {
       applicationId?: unknown;
     } | null;

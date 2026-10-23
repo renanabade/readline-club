@@ -119,7 +119,7 @@ export default function Auth({ mode }: { mode: "login" | "signup" | "reset" }) {
             <h3>{signup ? "Cadastro recebido." : "Senha atualizada."}</h3>
             <p>
               {signup
-                ? "Você recebe um e-mail quando o acesso for liberado. Enquanto isso, entre para acompanhar o status. Se já tinha cadastro, use sua senha anterior."
+                ? "Se o cadastro é novo, enviamos um link para confirmar seu e-mail. Você recebe outro e-mail quando o acesso for liberado; enquanto isso, entre para acompanhar o status. Se já tinha cadastro, use sua senha anterior."
                 : "Agora você pode entrar com sua nova senha."}
             </p>
             <Link

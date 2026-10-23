@@ -19,6 +19,7 @@ import {
 import { startSession, endSession, getIdentity } from "../auth/sessions";
 import { requireUser } from "../auth/guards";
 import { rateLimit } from "../auth/limits";
+import { requestAccountEmail } from "../lib/account-email";
 const auth = new Hono<AppEnv>();
 export const expireDepartures = (db: D1Database, now = new Date()) =>
   db
@@ -105,14 +106,76 @@ auth.post("/register", async (c) => {
       .bind(data.email)
       .first();
     if (!duplicate) throw err;
+    // A concurrent signup created the account: the link is its to send.
+    return c.json(
+      {
+        ok: true,
+        message: "Cadastro recebido. Entre para acompanhar sua aprovação.",
+      },
+      201,
+    );
   }
+  // The signup stands even if the link cannot go out now: it can be sent
+  // again from the status page.
+  await requestAccountEmail(c.env, "/email-verification", { userId: id });
   return c.json(
     {
       ok: true,
-      message: "Cadastro recebido. Entre para acompanhar sua aprovação.",
+      message:
+        "Cadastro recebido. Enviamos um link para confirmar seu e-mail. Entre para acompanhar sua aprovação.",
     },
     201,
   );
+});
+auth.get("/email-verification", requireUser, async (c) => {
+  const verifiedAt = await c.env.DB.prepare(
+    "SELECT email_verified_at FROM applications WHERE email=?",
+  )
+    .bind(c.get("identity").email)
+    .first<string | null>("email_verified_at");
+  return c.json({ verified: !!verifiedAt });
+});
+auth.post("/email-verification", requireUser, async (c) => {
+  await rateLimit(c, "verify-resend", 5, c.get("identity").userId);
+  const status = await requestAccountEmail(c.env, "/email-verification", {
+    userId: c.get("identity").userId,
+  });
+  if (status === "sent")
+    return c.json({ message: "Enviamos um novo link para o seu e-mail." });
+  if (status === "ineligible")
+    return c.json({ message: "Seu e-mail já está confirmado." });
+  if (status === "throttled")
+    throw new HTTPException(429, {
+      message:
+        "Um link foi enviado há pouco. Aguarde um minuto antes de pedir outro.",
+    });
+  throw new HTTPException(503, {
+    message:
+      "Não foi possível enviar o link agora. Tente novamente mais tarde.",
+  });
+});
+auth.post("/verify-email", async (c) => {
+  const { token } = await input(
+    c,
+    z.object({ token: z.string().min(32).max(128) }),
+  );
+  await rateLimit(c, "verify-email", 20);
+  const verification = await c.env.DB.prepare(
+    "DELETE FROM email_verifications WHERE token_hash=? AND expires_at>? RETURNING user_id",
+  )
+    .bind(digest(token), Date.now())
+    .first<{ user_id: string }>();
+  if (!verification)
+    throw new HTTPException(400, {
+      message:
+        "Este link expirou ou já foi usado. Entre na plataforma para pedir outro.",
+    });
+  await c.env.DB.prepare(
+    "UPDATE applications SET email_verified_at=COALESCE(email_verified_at,?) WHERE email=(SELECT email FROM users WHERE id=?)",
+  )
+    .bind(new Date().toISOString(), verification.user_id)
+    .run();
+  return c.json({ ok: true });
 });
 auth.post("/login", async (c) => {
   const data = await input(

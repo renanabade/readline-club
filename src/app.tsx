@@ -25,6 +25,7 @@ import {
 import Admin from "./pages/Admin";
 import Privacy from "./pages/Privacy";
 import RsvpLink from "./pages/RsvpLink";
+import EmailConfirm from "./pages/EmailConfirm";
 import type { ReactNode } from "react";
 import { instance } from "./instance";
 import { SocialLinks } from "./components/SocialLinks";
@@ -227,6 +228,7 @@ function Layout() {
           <Route path="/biblioteca" element={<Library />} />
           <Route path="/privacidade" element={<Privacy />} />
           <Route path="/presenca" element={<RsvpLink />} />
+          <Route path="/confirmar-email" element={<EmailConfirm />} />
           <Route
             path="/livros/:id"
             element={

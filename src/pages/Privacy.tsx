@@ -27,6 +27,10 @@ export default function Privacy() {
           <strong>No cadastro:</strong> nome, e-mail, celular, senha (somente em
           formato protegido, nunca o texto original), nível de experiência, a
           motivação que você escrever e o seu aceite das orientações do clube.
+          Depois do cadastro, enviamos um link para confirmar o seu e-mail e
+          guardamos a data da confirmação, que a organização vê no painel. O
+          banco guarda só uma versão protegida (hash) desse link, que vale por 7
+          dias e deixa de valer depois de usado.
         </li>
         <li>
           <strong>Durante o uso:</strong> o status da sua inscrição, a
@@ -138,7 +142,7 @@ export default function Privacy() {
       <h2>Mudanças nesta política</h2>
       <p className="prose">
         Quando esta política mudar, a nova versão será publicada nesta página.
-        Última atualização: 13 de outubro de 2026.
+        Última atualização: 23 de outubro de 2026.
       </p>
     </div>
   );

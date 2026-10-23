@@ -17,6 +17,7 @@ import {
 import { BookArchive } from "../components/BookArchive";
 import { WhatsAppAccess } from "../components/WhatsAppAccess";
 import { HomeStatus } from "../components/HomeStatus";
+import { EmailConfirmation } from "../components/EmailConfirmation";
 import { SocialLinks } from "../components/SocialLinks";
 import { MemberNextMeeting } from "../components/MemberNextMeeting";
 import { callLabel, materialLabels } from "../lib/meeting";
@@ -504,6 +505,7 @@ export function Status() {
             ? "Sua inscrição não foi aprovada neste momento. Você pode conversar com a organização."
             : "A organização revisa cada inscrição e avisa por e-mail quando o acesso for liberado. Com a aprovação, você confirma presença nos encontros, assiste às gravações, lê os resumos e recebe os convites dos canais oficiais no WhatsApp e no Discord, depois de ler como o clube funciona."}
       </p>
+      {status === "pending" && <EmailConfirmation />}
       <button className="button" onClick={() => void refresh()}>
         Atualizar meu acesso
       </button>

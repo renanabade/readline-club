@@ -51,12 +51,20 @@ test("pending applications precede approved users even if they are older", async
   };
   expect(body.applications[0].id).toBe(pending.id);
 });
+// Accept all only takes signups whose email was confirmed.
+async function confirmed(status: string) {
+  const member = await session(f.DB, "member", status);
+  await f.DB.prepare("UPDATE applications SET email_verified_at=? WHERE id=?")
+    .bind(new Date().toISOString(), member.id)
+    .run();
+  return member;
+}
 test("bulk approval only approves submitted pending members and notifies once", async () => {
-  const first = await session(f.DB, "member", "pending");
-  const second = await session(f.DB, "member", "pending");
-  const later = await session(f.DB, "member", "pending");
-  const suspended = await session(f.DB, "member", "suspended");
-  const rejected = await session(f.DB, "member", "rejected");
+  const first = await confirmed("pending");
+  const second = await confirmed("pending");
+  const later = await confirmed("pending");
+  const suspended = await confirmed("suspended");
+  const rejected = await confirmed("rejected");
   const fetch = vi.fn(async () => Response.json({ emailStatus: "sent" }));
   const ids = [
     first.id,
@@ -102,7 +110,7 @@ test("bulk approval only approves submitted pending members and notifies once", 
   expect(fetch).toHaveBeenCalledTimes(2);
 });
 test("bulk approval reports unavailable notices while preserving approved access", async () => {
-  const member = await session(f.DB, "member", "pending");
+  const member = await confirmed("pending");
   const response = await request("/api/admin/applications/approve-all", {
     ids: [member.id],
   });

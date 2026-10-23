@@ -28,8 +28,19 @@ beforeEach(() => {
   mocks.reload.mockClear();
   mocks.data = {
     applications: [
-      { id: "first", name: "Primeira pessoa", status: "pending" },
-      { id: "second", name: "Segunda pessoa", status: "pending" },
+      {
+        id: "first",
+        name: "Primeira pessoa",
+        status: "pending",
+        email_verified_at: "2026-09-28T12:05:00Z",
+      },
+      {
+        id: "second",
+        name: "Segunda pessoa",
+        status: "pending",
+        email_verified_at: "2026-09-28T12:05:00Z",
+      },
+      { id: "unconfirmed", name: "Terceira pessoa", status: "pending" },
       { id: "active", name: "Pessoa ativa", status: "approved" },
       { id: "suspended", name: "Pessoa suspensa", status: "suspended" },
     ].map((a) => ({
@@ -49,21 +60,34 @@ beforeEach(() => {
   };
 });
 afterEach(cleanup);
-test("accept all confirms the count and submits only the pending snapshot", async () => {
+test("pending signups show whether the email was confirmed", () => {
+  render(<Admin />);
+  expect(screen.getAllByText("E-mail confirmado.")).toHaveLength(2);
+  expect(
+    screen.getByText(
+      "E-mail ainda não confirmado: confira o endereço antes de aceitar.",
+    ),
+  ).toBeTruthy();
+});
+test("accept confirmed asks for the count and submits only the confirmed pending snapshot", async () => {
   mocks.save.mockResolvedValue({
     approved: 2,
     notified: 2,
     notificationFailures: 0,
   });
   render(<Admin />);
-  fireEvent.click(screen.getByRole("button", { name: "Aceitar todos (2)" }));
+  fireEvent.click(
+    screen.getByRole("button", { name: "Aceitar confirmados (2)" }),
+  );
   const dialog = screen.getByRole("dialog");
   expect(within(dialog).getByRole("heading").textContent).toContain(
-    "Aceitar 2 cadastros pendentes",
+    "Aceitar 2 cadastros pendentes confirmados",
   );
   expect(mocks.save).not.toHaveBeenCalled();
   fireEvent.click(
-    within(dialog).getByRole("button", { name: "Confirmar e aceitar todos" }),
+    within(dialog).getByRole("button", {
+      name: "Confirmar e aceitar confirmados",
+    }),
   );
   await waitFor(() =>
     expect(mocks.save).toHaveBeenCalledWith("/admin/applications/approve-all", {
