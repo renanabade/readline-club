@@ -12,7 +12,7 @@ import type {
 } from "../../shared/contracts";
 import { HTTPException } from "hono/http-exception";
 import { input, missing } from "../errors";
-import { rsvpSchema } from "../../shared/validation";
+import { rsvpSchema, groupClickSchema } from "../../shared/validation";
 import { meetingToIcs } from "../lib/calendar";
 import { nextMeetingWhere } from "../lib/next-meeting";
 type CommunityMeeting = NonNullable<CommunityAccess["nextMeeting"]>;
@@ -120,7 +120,7 @@ catalog.get("/meetings/:id/calendar.ics", async (c) => {
   c.header("Content-Disposition", 'attachment; filename="encontro.ics"');
   return c.body(meetingToIcs(m, c.env.APP_ORIGIN));
 });
-const onboardingVersion = "community-v1";
+export const onboardingVersion = "community-v1";
 catalog.get("/community", async (c) => {
   const settings = await c.env.DB.prepare(
     "SELECT * FROM settings WHERE id=1",
@@ -154,6 +154,9 @@ catalog.get("/community", async (c) => {
     ...settings,
     whatsapp_url: onboardingRequired ? "" : settings?.whatsapp_url,
     discord_url: onboardingRequired ? "" : settings?.discord_url,
+    // Lets the page leave the optional Discord out before the invitation is
+    // released, without revealing the invitation itself.
+    discordAvailable: !!settings?.discord_url?.trim(),
     onboardingRequired,
     onboardingVersion,
     currentBookTitle: book,
@@ -171,6 +174,25 @@ catalog.post("/community/acknowledge", async (c) => {
     "INSERT INTO community_onboarding(user_id,version,accepted_at) VALUES(?,?,?) ON CONFLICT(user_id) DO UPDATE SET version=excluded.version,accepted_at=excluded.accepted_at",
   )
     .bind(c.get("identity").userId, onboardingVersion, new Date().toISOString())
+    .run();
+  return c.json({ ok: true });
+});
+// Funnel only: the first click per person and group, shown as totals.
+catalog.post("/community/join", async (c) => {
+  const { channel } = await input(c, groupClickSchema);
+  const accepted = await c.env.DB.prepare(
+    "SELECT version FROM community_onboarding WHERE user_id=?",
+  )
+    .bind(c.get("identity").userId)
+    .first<string>("version");
+  if (accepted !== onboardingVersion)
+    throw new HTTPException(409, {
+      message: "Confirme como o clube funciona para liberar os convites.",
+    });
+  await c.env.DB.prepare(
+    "INSERT INTO community_group_clicks(user_id,channel,clicked_at) VALUES(?,?,?) ON CONFLICT(user_id,channel) DO NOTHING",
+  )
+    .bind(c.get("identity").userId, channel, new Date().toISOString())
     .run();
   return c.json({ ok: true });
 });

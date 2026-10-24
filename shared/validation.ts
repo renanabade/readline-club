@@ -149,6 +149,9 @@ const rsvpToken = z
 export const rsvpLinkSchema = z.object({ token: rsvpToken });
 export const rsvpLinkAnswerSchema = rsvpSchema.extend({ token: rsvpToken });
 export const preferencesSchema = z.object({ meetingEmails: z.boolean() });
+export const groupClickSchema = z.object({
+  channel: z.enum(["whatsapp", "discord"], "Escolha o grupo."),
+});
 export const profileSchema = z.object({ phone: phoneSchema });
 export const resourceKinds = [
   "summary_pdf",

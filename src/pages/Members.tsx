@@ -370,12 +370,15 @@ export function Community() {
           diferentes áreas e níveis.
         </p>
       </div>
+      {/* Members get the group access first: confirming and joining must be
+          visible without scrolling. */}
+      {member && <WhatsAppAccess guidelines />}
       {loading ? null : member ? (
         next?.starts_at && <MemberNextMeeting meeting={next} />
       ) : (
         <NextMeetingNotice contained />
       )}
-      <WhatsAppAccess guidelines />
+      {!member && <WhatsAppAccess guidelines />}
       <div className="community-grid community-about">
         <div>
           <h2>Leitura combinada, no seu ritmo.</h2>

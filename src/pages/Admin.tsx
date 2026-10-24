@@ -250,6 +250,15 @@ export default function Admin() {
           <span>integrantes aprovados</span>
         </div>
         <div>
+          <strong>{data.communityFunnel?.whatsapp ?? 0}</strong>
+          <span>
+            clicaram para entrar no WhatsApp, de{" "}
+            {data.communityFunnel?.acknowledged ?? 0} que liberaram os convites
+            {data.settings.discord_url &&
+              " · " + (data.communityFunnel?.discord ?? 0) + " no Discord"}
+          </span>
+        </div>
+        <div>
           <strong>{departures.length}</strong>
           <span>saídas para retirar dos grupos</span>
         </div>

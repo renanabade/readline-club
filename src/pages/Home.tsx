@@ -275,10 +275,11 @@ export default function Home() {
       </div>
       {member ? (
         <>
-          <MemberNext next={home.nextMeeting} />
+          {/* First, so a member who has not joined the group yet sees it. */}
           <div className="container home-whatsapp">
             <WhatsAppAccess />
           </div>
+          <MemberNext next={home.nextMeeting} />
         </>
       ) : (
         <section className="container section" aria-labelledby="values-title">

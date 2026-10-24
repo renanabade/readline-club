@@ -29,15 +29,43 @@ function ApprovedAccess({ guidelines }: { guidelines: boolean }) {
       setSaving(false);
     }
   }
+  // Best effort: a lost record must never get in the way of joining.
+  function joined(channel: "whatsapp" | "discord") {
+    save("/community/join", { channel }).catch(() => {});
+  }
+  const discord = !!(data?.discordAvailable || data?.discord_url);
+  // Home and account page: until the introduction is confirmed, send the
+  // person to the club page, where confirming and joining sit together.
+  if (!guidelines && data?.onboardingRequired)
+    return (
+      <>
+        <span className="eyebrow">Falta um passo</span>
+        <h2>Entre no grupo do WhatsApp.</h2>
+        <p>
+          O grupo é o canal oficial de avisos e conversa do clube. Para receber
+          o convite, leia como o clube funciona e confirme que está por dentro.
+          Leva um minuto.
+        </p>
+        <div className="whatsapp-actions">
+          <Link className="button primary" to="/comunidade">
+            Entrar no grupo do WhatsApp <ArrowUpRight size={18} />
+          </Link>
+        </div>
+      </>
+    );
   return (
     <>
       <span className="eyebrow">Canais oficiais do clube</span>
-      <h2>WhatsApp e Discord do clube.</h2>
+      <h2>
+        {discord
+          ? "WhatsApp e Discord do clube."
+          : "Grupo do WhatsApp do clube."}
+      </h2>
       <p>
         O grupo do WhatsApp é o canal oficial de avisos, combinados e conversa
-        do dia a dia. O Discord é opcional: dá para estudar em call, ler junto,
-        conversar e trabalhar em projetos. Use cada espaço como fizer sentido
-        para você.
+        do dia a dia.
+        {discord &&
+          " O Discord é opcional: dá para estudar em call, ler junto, conversar e trabalhar em projetos."}
       </p>
       {loading ? (
         <p role="status">Carregando os convites…</p>
@@ -51,68 +79,62 @@ function ApprovedAccess({ guidelines }: { guidelines: boolean }) {
       ) : data?.onboardingRequired ? (
         <div className="whatsapp-guidelines">
           <h3>Antes de entrar, fique por dentro.</h3>
-          <p>
-            Somos um clube do livro de computação, com pessoas de diferentes
-            áreas e níveis. Combinamos capítulos, lemos no nosso tempo e nos
-            encontramos para discutir o conteúdo, tirar dúvidas e compartilhar
-            experiências. Você pode falar ou só acompanhar.
-          </p>
-          {data.currentBookTitle && (
-            <p>
-              <strong>Leitura atual: {data.currentBookTitle}.</strong>
-            </p>
-          )}
-          {data.nextMeeting ? (
-            <p>
-              <strong>
-                Próximo encontro: {dateLabel(data.nextMeeting.starts_at)} ·
-                Brasília.
-              </strong>
-              <br />
-              {data.nextMeeting.chapters} · previsão de{" "}
-              {data.nextMeeting.duration_minutes} minutos. Confira o evento na{" "}
-              <Link to="/agenda">agenda</Link>;{" "}
-              {data.nextMeeting.has_call_link ? (
-                <>
-                  o link da chamada está na{" "}
-                  <Link
-                    to={"/encontros/" + encodeURIComponent(data.nextMeeting.id)}
-                  >
-                    página do encontro
-                  </Link>
-                  .
-                </>
-              ) : (
-                "o link da chamada será informado pelo clube."
-              )}
-            </p>
-          ) : (
-            <p>
-              Confira a agenda e o grupo para acompanhar os próximos encontros.
-            </p>
-          )}
-          <p>
-            Os encontros são gravados. A gravação, o resumo escrito em PDF e
-            EPUB (preparado a partir da transcrição, com apoio de IA) e os
-            slides ficam na página do livro para os membros. Você pode manter
-            câmera e microfone desligados.
-          </p>
-          <p>
-            O WhatsApp está aberto a perguntas, referências e conversa geral, e
-            é por lá que a organização avisa sobre os encontros. Pode chamar a
-            organização sempre que precisar. O Discord não é obrigatório e as
-            calls de estudo, leituras em conjunto e projetos podem ser
-            combinados entre vocês.
-          </p>
-          <p>
-            Os convites são pessoais: não repasse os links. Quem quiser entrar
-            faz o cadastro na plataforma.
-          </p>
-          <p>
-            Respeite as pessoas e os diferentes ritmos. Peça autorização antes
-            de compartilhar falas ou imagens. Não compartilhamos cópias dos
-            livros.
-          </p>
+          <ul className="onboarding-points">
+            {data.currentBookTitle && (
+              <li>
+                <strong>Leitura atual: {data.currentBookTitle}.</strong> Lemos
+                os capítulos combinados no nosso tempo e conversamos sobre eles
+                nos encontros.
+              </li>
+            )}
+            {data.nextMeeting ? (
+              <li>
+                <strong>
+                  Próximo encontro: {dateLabel(data.nextMeeting.starts_at)} ·
+                  Brasília.
+                </strong>{" "}
+                {data.nextMeeting.chapters} · previsão de{" "}
+                {data.nextMeeting.duration_minutes} minutos. Confira o evento na{" "}
+                <Link to="/agenda">agenda</Link>;{" "}
+                {data.nextMeeting.has_call_link ? (
+                  <>
+                    o link da chamada está na{" "}
+                    <Link
+                      to={
+                        "/encontros/" + encodeURIComponent(data.nextMeeting.id)
+                      }
+                    >
+                      página do encontro
+                    </Link>
+                    .
+                  </>
+                ) : (
+                  "o link da chamada será informado pelo clube."
+                )}
+              </li>
+            ) : (
+              <li>
+                Confira a agenda e o grupo para acompanhar os próximos
+                encontros.
+              </li>
+            )}
+            <li>
+              Os encontros são gravados; a gravação, o resumo em PDF e EPUB
+              (feito a partir da transcrição, com apoio de IA) e os slides ficam
+              na página do livro. Câmera e microfone podem ficar desligados.
+            </li>
+            <li>
+              No WhatsApp a organização avisa sobre os encontros, e vale
+              perguntar e conversar.
+              {discord &&
+                " O Discord não é obrigatório: calls de estudo e projetos são combinados entre vocês."}
+            </li>
+            <li>
+              Os convites são pessoais: não repasse os links. Respeite os
+              diferentes ritmos, peça autorização antes de compartilhar falas ou
+              imagens e não compartilhe cópias dos livros.
+            </li>
+          </ul>
           <label className="onboarding-confirm">
             <input
               type="checkbox"
@@ -139,6 +161,7 @@ function ApprovedAccess({ guidelines }: { guidelines: boolean }) {
               href={data.whatsapp_url}
               target="_blank"
               rel="noreferrer"
+              onClick={() => joined("whatsapp")}
             >
               Entrar no grupo do WhatsApp <ArrowUpRight size={18} />
             </a>
@@ -149,6 +172,7 @@ function ApprovedAccess({ guidelines }: { guidelines: boolean }) {
               href={data.discord_url}
               target="_blank"
               rel="noreferrer"
+              onClick={() => joined("discord")}
             >
               Entrar no Discord <ArrowUpRight size={18} />
             </a>

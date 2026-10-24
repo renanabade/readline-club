@@ -13,7 +13,7 @@ import {
   resourceKinds,
 } from "../../shared/validation";
 import { expireDepartures } from "./auth";
-import { books, meetingQuery } from "./catalog";
+import { books, meetingQuery, onboardingVersion } from "./catalog";
 import { parseYouTubeId } from "../lib/youtube";
 import { digest, randomToken } from "../auth/password";
 import { notifyApproval } from "../lib/approval-email";
@@ -32,6 +32,7 @@ admin.get("/overview", async (c) => {
     invitations,
     rsvps,
     departures,
+    communityFunnel,
   ] = await Promise.all([
     c.env.DB.prepare(
       "SELECT a.*,u.id user_id,n.status approval_email_status,n.sent_at approval_email_sent_at,n.error_code approval_email_error FROM applications a LEFT JOIN users u ON u.email=a.email LEFT JOIN approval_notifications n ON n.application_id=a.id ORDER BY CASE a.status WHEN 'pending' THEN 0 WHEN 'approved' THEN 1 WHEN 'suspended' THEN 2 ELSE 3 END, CASE WHEN a.status='pending' THEN a.created_at END ASC, a.created_at DESC,a.id",
@@ -57,6 +58,12 @@ admin.get("/overview", async (c) => {
     c.env.DB.prepare(
       "SELECT id,name,phone,left_at FROM member_departures ORDER BY left_at",
     ).all(),
+    // Totals among approved members, like the public member count.
+    c.env.DB.prepare(
+      "WITH members AS (SELECT u.id FROM users u JOIN applications a ON a.email=u.email WHERE a.status='approved' AND u.role='member') SELECT (SELECT COUNT(*) FROM community_onboarding WHERE version=? AND user_id IN members) AS acknowledged,(SELECT COUNT(*) FROM community_group_clicks WHERE channel='whatsapp' AND user_id IN members) AS whatsapp,(SELECT COUNT(*) FROM community_group_clicks WHERE channel='discord' AND user_id IN members) AS discord",
+    )
+      .bind(onboardingVersion)
+      .first(),
   ]);
   return c.json({
     applications: applications.results,
@@ -70,6 +77,7 @@ admin.get("/overview", async (c) => {
     invitations: invitations.results,
     rsvps: rsvps.results,
     departures: departures.results,
+    communityFunnel,
   });
 });
 // The organization confirms the person left the groups: nothing is kept.
