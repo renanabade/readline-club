@@ -145,7 +145,13 @@ export interface AdminData {
     status: "queued" | "sending" | "sent" | "failed" | "unknown" | "skipped";
     total: number;
   }[];
-  rsvps: { meeting_id: string; response: MeetingRsvp; total: number }[];
+  // Totals among approved members; 'none' (no answer yet) only for
+  // scheduled meetings.
+  rsvps: {
+    meeting_id: string;
+    response: MeetingRsvp | "none";
+    total: number;
+  }[];
   departures: MemberDeparture[];
   // Totals only: how many confirmed the introduction and clicked each group.
   communityFunnel: { acknowledged: number; whatsapp: number; discord: number };
