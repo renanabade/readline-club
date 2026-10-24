@@ -160,3 +160,7 @@ export const resourceKinds = [
   "transcript",
   "link",
 ] as const;
+// The full list of who was present: what is left out is unmarked.
+export const attendanceSchema = z.object({
+  userIds: z.array(z.string().min(1).max(100)).max(1000),
+});

@@ -39,6 +39,7 @@ import type {
   Cycle,
   Resource,
   MeetingDetail,
+  AttendedMeeting,
 } from "../../shared/contracts";
 export function Library() {
   const { home, user } = useSession();
@@ -562,6 +563,44 @@ function MeetingEmails() {
     </section>
   );
 }
+export function AttendanceHistory() {
+  const { data, error, loading } = useData<AttendedMeeting[]>("/attendance");
+  return (
+    <section className="password-form">
+      <h2>Encontros em que você esteve</h2>
+      <p>
+        A organização registra a presença depois de cada encontro. Só você e a
+        organização veem este histórico.
+      </p>
+      {loading ? (
+        <p className="muted">Carregando…</p>
+      ) : error ? (
+        <Notice>{error}</Notice>
+      ) : data?.length ? (
+        <ul className="resource-list">
+          {data.map((m) => (
+            <li key={m.id}>
+              <Link to={"/encontros/" + m.id}>
+                <span>
+                  <span className="resource-kind">
+                    {dateLabel(m.starts_at, false)}
+                  </span>
+                  {m.title} · {m.book_title}
+                </span>
+                <ArrowRight size={16} />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="muted">
+          Ainda não há presença registrada. Depois do seu primeiro encontro, ele
+          aparece aqui.
+        </p>
+      )}
+    </section>
+  );
+}
 export function MemberPhone() {
   const { data, error, loading } = useData<{ phone: string }>("/auth/profile");
   const [phone, setPhone] = useState<string | null>(null),
@@ -653,9 +692,9 @@ function DeleteAccount() {
     <form className="password-form delete-account" onSubmit={remove}>
       <h2>Excluir minha conta</h2>
       <p>
-        Apaga seu cadastro, suas respostas de presença e suas sessões abertas.
-        Não dá para desfazer: para voltar ao clube, será preciso se inscrever e
-        aguardar uma nova aprovação.
+        Apaga seu cadastro, suas respostas de presença, seu histórico de
+        participação e suas sessões abertas. Não dá para desfazer: para voltar
+        ao clube, será preciso se inscrever e aguardar uma nova aprovação.
       </p>
       {open ? (
         <>
@@ -795,6 +834,9 @@ export function Account({ required = false }: { required?: boolean }) {
         {!required && user?.role !== "admin" && <MemberPhone />}
         {!required && user?.role !== "admin" && user?.status === "approved" && (
           <MeetingEmails />
+        )}
+        {!required && user?.role !== "admin" && user?.status === "approved" && (
+          <AttendanceHistory />
         )}
         {!required && user?.role !== "admin" && <DeleteAccount />}
       </div>

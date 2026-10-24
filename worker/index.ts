@@ -8,6 +8,7 @@ import { requireUser, requireMember, requireAdmin } from "./auth/guards";
 import { getIdentity } from "./auth/sessions";
 import { admin } from "./routes/admin";
 import { rsvp } from "./routes/rsvp";
+import { attendance, attendanceAdmin } from "./routes/attendance";
 export function createApp() {
   const app = new Hono<AppEnv>();
   app.use("/api/*", async (c, next) => {
@@ -61,6 +62,9 @@ export function createApp() {
   app.route("/api/rsvp", rsvp);
   app.use("/api/admin/*", requireUser, requireMember, requireAdmin);
   app.route("/api/admin", admin);
+  app.route("/api/admin", attendanceAdmin);
+  app.use("/api/attendance", requireUser, requireMember);
+  app.route("/api/attendance", attendance);
   app.use("/api/books/*", requireUser, requireMember);
   app.use("/api/books", requireUser, requireMember);
   app.use("/api/meetings/*", requireUser, requireMember);
