@@ -1,12 +1,15 @@
 import { useState } from "react";
-import { FolderOpen, ChevronDown, Play } from "lucide-react";
+import { Link } from "react-router-dom";
+import { FolderOpen, ChevronDown, Play, ArrowUpRight } from "lucide-react";
 import type { Cycle, Meeting } from "../../shared/contracts";
 import { Empty, MeetingRow } from "./ui";
 
 export function BookArchive({
+  bookId,
   cycles,
   meetings,
 }: {
+  bookId: string;
   cycles: Cycle[];
   meetings: Meeting[];
 }) {
@@ -29,6 +32,9 @@ export function BookArchive({
             slides e materiais.
           </p>
         </div>
+        <Link className="text-link" to={"/livros/" + bookId + "/materiais"}>
+          Todos os materiais por capítulo <ArrowUpRight size={18} />
+        </Link>
       </div>
       <div className="tabs" aria-label="Filtrar conteúdo do livro">
         <button

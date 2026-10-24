@@ -52,6 +52,15 @@ export interface MeetingDetail {
   resources: Resource[];
   rsvp: MeetingRsvp | null;
 }
+// Every meeting of a book with something published: the recording, the
+// summaries, slides and other materials.
+export interface BookMaterials {
+  book: Pick<Book, "id" | "title" | "author">;
+  meetings: (Pick<
+    Meeting,
+    "id" | "title" | "chapters" | "starts_at" | "youtube_id"
+  > & { resources: Resource[] })[];
+}
 export type ResourceKind =
   "summary_pdf" | "summary_epub" | "slides" | "transcript" | "link";
 // What a personal email link may reveal: the meeting announcement and the

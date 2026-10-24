@@ -6,9 +6,11 @@ export interface ApprovalContext {
     title: string;
     chapters: string;
     starts_at: string;
+    book_id: string;
     book_title: string;
   } | null;
   currentBookTitle: string | null;
+  currentBookId: string | null;
 }
 export async function approvalContext(
   db: D1Database,
@@ -16,18 +18,22 @@ export async function approvalContext(
 ): Promise<ApprovalContext> {
   const nextMeeting = await db
     .prepare(
-      "SELECT m.id,m.title,m.chapters,m.starts_at,b.title book_title FROM meetings m JOIN reading_cycles cy ON cy.id=m.cycle_id JOIN books b ON b.id=cy.book_id WHERE " +
+      "SELECT m.id,m.title,m.chapters,m.starts_at,b.id book_id,b.title book_title FROM meetings m JOIN reading_cycles cy ON cy.id=m.cycle_id JOIN books b ON b.id=cy.book_id WHERE " +
         nextMeetingWhere +
         " ORDER BY m.starts_at LIMIT 1",
     )
     .bind(now.toISOString())
     .first<NonNullable<ApprovalContext["nextMeeting"]>>();
-  const currentBookTitle = await db
+  const currentBook = await db
     .prepare(
-      "SELECT b.title FROM books b JOIN reading_cycles cy ON cy.book_id=b.id WHERE cy.is_current=1 AND b.status!='archived'",
+      "SELECT b.id,b.title FROM books b JOIN reading_cycles cy ON cy.book_id=b.id WHERE cy.is_current=1 AND b.status!='archived'",
     )
-    .first<string>("title");
-  return { nextMeeting, currentBookTitle };
+    .first<{ id: string; title: string }>();
+  return {
+    nextMeeting,
+    currentBookTitle: currentBook?.title ?? null,
+    currentBookId: currentBook?.id ?? null,
+  };
 }
 const oneLine = (s: string) => s.replace(/\s+/g, " ").trim();
 // The text part says the same as the HTML, link by link, for mail clients
@@ -50,6 +56,22 @@ export function approvalMessage(
       ? [oneLine(context.currentBookTitle)]
       : [];
   const when = meeting ? invitationWhen(meeting.starts_at) : "";
+  // For whoever arrives in the middle of the book.
+  const materialsBook = meeting?.book_id ?? context.currentBookId;
+  const materialsUrl = materialsBook
+    ? env.APP_ORIGIN +
+      "/livros/" +
+      encodeURIComponent(materialsBook) +
+      "/materiais"
+    : "";
+  const materialsNote =
+    "Chegou no meio do livro? Os resumos, slides e gravações dos encontros anteriores ficam reunidos por capítulo:";
+  const textMaterials = materialsUrl
+    ? `${materialsNote}\n${materialsUrl}\n\n`
+    : "";
+  const htmlMaterials = materialsUrl
+    ? `<p>${materialsNote} <a href="${escapeHtml(materialsUrl)}">${escapeHtml(materialsUrl)}</a></p>`
+    : "";
   const steps = [
     {
       title: "Entre no grupo do WhatsApp.",
@@ -95,7 +117,7 @@ export function approvalMessage(
     to: recipient.email,
     replyTo: env.EMAIL_FROM,
     subject: "Seu acesso ao readline club foi aprovado",
-    text: `Olá${firstName ? ", " + firstName : ""}!\n\nSeu acesso ao readline club foi aprovado. Entre com o e-mail e a senha que você cadastrou: ${loginUrl}\n\n${textMeeting}Seus primeiros passos:\n${textSteps}\n\nAbrir a página da comunidade: ${communityUrl}\n\nreadline club — clube do livro de computação`,
-    html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#202024;line-height:1.6"><p><strong>readline club</strong><br>clube do livro de computação</p><p>Olá${firstName ? ", " + escapeHtml(firstName) : ""}!</p><h1 style="font-size:26px">Seu acesso foi aprovado.</h1><p>Entre com o e-mail e a senha que você cadastrou: <a href="${escapeHtml(loginUrl)}">${escapeHtml(loginUrl)}</a></p>${htmlMeeting}<p><strong>Seus primeiros passos:</strong></p><ol>${htmlSteps}</ol><p><a href="${escapeHtml(communityUrl)}" style="display:inline-block;padding:12px 20px;background:#202024;color:white;border-radius:8px;text-decoration:none">Abrir a página da comunidade</a></p><p style="font-size:13px">Se o botão não abrir: <a href="${escapeHtml(communityUrl)}">${escapeHtml(communityUrl)}</a></p></div>`,
+    text: `Olá${firstName ? ", " + firstName : ""}!\n\nSeu acesso ao readline club foi aprovado. Entre com o e-mail e a senha que você cadastrou: ${loginUrl}\n\n${textMeeting}Seus primeiros passos:\n${textSteps}\n\n${textMaterials}Abrir a página da comunidade: ${communityUrl}\n\nreadline club — clube do livro de computação`,
+    html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#202024;line-height:1.6"><p><strong>readline club</strong><br>clube do livro de computação</p><p>Olá${firstName ? ", " + escapeHtml(firstName) : ""}!</p><h1 style="font-size:26px">Seu acesso foi aprovado.</h1><p>Entre com o e-mail e a senha que você cadastrou: <a href="${escapeHtml(loginUrl)}">${escapeHtml(loginUrl)}</a></p>${htmlMeeting}<p><strong>Seus primeiros passos:</strong></p><ol>${htmlSteps}</ol>${htmlMaterials}<p><a href="${escapeHtml(communityUrl)}" style="display:inline-block;padding:12px 20px;background:#202024;color:white;border-radius:8px;text-decoration:none">Abrir a página da comunidade</a></p><p style="font-size:13px">Se o botão não abrir: <a href="${escapeHtml(communityUrl)}">${escapeHtml(communityUrl)}</a></p></div>`,
   };
 }

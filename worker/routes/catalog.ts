@@ -9,6 +9,7 @@ import type {
   Settings,
   MeetingRsvp,
   CommunityAccess,
+  BookMaterials,
 } from "../../shared/contracts";
 import { HTTPException } from "hono/http-exception";
 import { input, missing } from "../errors";
@@ -54,6 +55,29 @@ catalog.get("/books/:id", async (c) => {
     .bind(book.id)
     .all<Meeting>();
   return c.json({ book, cycles: cycles.results, meetings: meetings.results });
+});
+catalog.get("/books/:id/materials", async (c) => {
+  const book = (await books(c.env.DB)).find((b) => b.id === c.req.param("id"));
+  if (!book) return missing();
+  // Only what is published: recordings marked as published and the
+  // materials attached to each meeting. Never the call link or the agenda.
+  const meetings = await c.env.DB.prepare(
+    "SELECT m.id,m.title,m.chapters,m.starts_at,r.youtube_id FROM meetings m JOIN reading_cycles cy ON cy.id=m.cycle_id LEFT JOIN recordings r ON r.meeting_id=m.id AND r.published=1 WHERE cy.book_id=? AND (r.youtube_id IS NOT NULL OR EXISTS (SELECT 1 FROM resources WHERE meeting_id=m.id)) ORDER BY m.starts_at IS NULL,m.starts_at",
+  )
+    .bind(book.id)
+    .all<Omit<BookMaterials["meetings"][number], "resources">>();
+  const resources = await c.env.DB.prepare(
+    "SELECT s.id,s.meeting_id,s.title,s.url,s.kind FROM resources s JOIN meetings m ON m.id=s.meeting_id JOIN reading_cycles cy ON cy.id=m.cycle_id WHERE cy.book_id=? ORDER BY CASE s.kind WHEN 'summary_pdf' THEN 0 WHEN 'summary_epub' THEN 1 WHEN 'slides' THEN 2 WHEN 'transcript' THEN 3 ELSE 4 END,s.title",
+  )
+    .bind(book.id)
+    .all<Resource>();
+  return c.json<BookMaterials>({
+    book: { id: book.id, title: book.title, author: book.author },
+    meetings: meetings.results.map((m) => ({
+      ...m,
+      resources: resources.results.filter((r) => r.meeting_id === m.id),
+    })),
+  });
 });
 catalog.get("/meetings", async (c) => {
   const rows = await c.env.DB.prepare(
