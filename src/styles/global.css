@@ -1302,6 +1302,9 @@ main {
   list-style: none;
   padding: 0;
 }
+.materials-chapter {
+  padding-top: 35px;
+}
 .resource-list a {
   display: flex;
   justify-content: space-between;

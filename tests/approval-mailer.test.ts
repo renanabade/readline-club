@@ -85,6 +85,9 @@ test("approval email brings the next meeting, the reading and three steps in HTM
   // Every link of the HTML part is also in the plain text part.
   const links = [...message.html.matchAll(/href="([^"]+)"/g)].map((m) => m[1]);
   expect(links).toContain("https://readline.club/encontros/" + meetingId);
+  expect(links).toContain(
+    "https://readline.club/livros/entendendo-algoritmos/materiais",
+  );
   for (const link of links) expect(message.text).toContain(link);
   await f.DB.prepare("DELETE FROM meetings WHERE id=?").bind(meetingId).run();
 });
@@ -95,6 +98,10 @@ test("without a scheduled meeting, approval email shows the current reading and 
   expect(message.text).toContain("https://readline.club/agenda");
   expect(message.html).toContain('href="https://readline.club/agenda"');
   expect(message.text).toContain("https://readline.club/comunidade");
+  for (const part of [message.text, message.html])
+    expect(part).toContain(
+      "https://readline.club/livros/entendendo-algoritmos/materiais",
+    );
 });
 test("pending and suspended applicants cannot receive approval notifications", async () => {
   const send = vi.fn();

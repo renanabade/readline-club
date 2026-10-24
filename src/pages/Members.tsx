@@ -173,6 +173,7 @@ export function BookPage() {
       </div>
       <BookArchive
         key={data.book.id}
+        bookId={data.book.id}
         cycles={data.cycles}
         meetings={data.meetings}
       />
@@ -291,6 +292,12 @@ export function MeetingPage() {
                 : "Depois do encontro, o resumo em PDF e EPUB, os slides e os materiais ficam aqui."}
             </p>
           )}
+          <Link
+            className="text-link"
+            to={"/livros/" + m.book_id + "/materiais"}
+          >
+            Materiais de todos os encontros <ArrowUpRight size={16} />
+          </Link>
         </aside>
       </div>
     </div>
