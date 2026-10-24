@@ -36,6 +36,18 @@ test("invalid signup does not persist an account", async () => {
   expect(r.status).toBe(400);
   expect(await f.DB.prepare("SELECT count(*) n FROM users").first("n")).toBe(0);
 });
+test("signup requires an experience level, with a message in Portuguese", async () => {
+  const withoutExperience: Partial<typeof data> = { ...data };
+  delete withoutExperience.experience;
+  for (const body of [withoutExperience, { ...data, experience: "" }]) {
+    const r = await post("/api/auth/register", body);
+    expect(r.status).toBe(400);
+    expect(await r.json()).toEqual({
+      error: "Conte como está sua jornada na computação.",
+    });
+  }
+  expect(await f.DB.prepare("SELECT count(*) n FROM users").first("n")).toBe(0);
+});
 test("signup fails closed when challenge verification is unavailable", async () => {
   const r = await app.request(
     "/api/auth/register",
