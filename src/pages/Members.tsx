@@ -1,6 +1,7 @@
 import { NextMeetingNotice } from "../components/NextMeetingNotice";
 import { CalendarActions } from "../components/CalendarActions";
 import { MeetingRsvp } from "../components/MeetingRsvp";
+import { MeetingQuestions } from "../components/MeetingQuestions";
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
@@ -248,6 +249,7 @@ export function MeetingPage() {
               <p className="prose preserve">{m.summary}</p>
             </section>
           )}
+          <MeetingQuestions meetingId={m.id} />
         </div>
         <aside className="meeting-sidebar">
           <h3>Antes de chegar</h3>
@@ -653,9 +655,9 @@ function DeleteAccount() {
     <form className="password-form delete-account" onSubmit={remove}>
       <h2>Excluir minha conta</h2>
       <p>
-        Apaga seu cadastro, suas respostas de presença e suas sessões abertas.
-        Não dá para desfazer: para voltar ao clube, será preciso se inscrever e
-        aguardar uma nova aprovação.
+        Apaga seu cadastro, suas respostas de presença, suas perguntas para os
+        encontros e suas sessões abertas. Não dá para desfazer: para voltar ao
+        clube, será preciso se inscrever e aguardar uma nova aprovação.
       </p>
       {open ? (
         <>

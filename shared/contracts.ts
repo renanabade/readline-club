@@ -150,6 +150,32 @@ export interface AdminData {
   // Totals only: how many confirmed the introduction and clicked each group.
   communityFunnel: { acknowledged: number; whatsapp: number; discord: number };
 }
+// What other members see: the first name only, and totals of who also wants
+// to discuss it, never who.
+export interface MeetingQuestion {
+  id: string;
+  body: string;
+  first_name: string;
+  votes: number;
+  voted: boolean;
+  mine: boolean;
+  agenda: boolean;
+  created_at: string;
+}
+export interface MeetingQuestions {
+  open: boolean;
+  remaining: number;
+  questions: MeetingQuestion[];
+}
+export interface AdminQuestion {
+  id: string;
+  body: string;
+  author: string;
+  votes: number;
+  hidden: boolean;
+  agenda: boolean;
+  created_at: string;
+}
 export interface InvitationQueue {
   added: number;
   queued: number;

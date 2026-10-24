@@ -12,8 +12,10 @@ import {
   Mail,
   Search,
   UserMinus,
+  MessageCircleQuestion,
   X,
 } from "lucide-react";
+import { AdminQuestions } from "../components/AdminQuestions";
 import { useData } from "../lib/useData";
 import { save, api } from "../lib/api";
 import { inputDate, dateLabel } from "../lib/dates";
@@ -272,6 +274,7 @@ export default function Admin() {
           ["applications", "Integrantes", Users],
           ["books", "Biblioteca", BookOpen],
           ["meetings", "Encontros", CalendarDays],
+          ["questions", "Perguntas", MessageCircleQuestion],
           ["settings", "O clube", Settings2],
         ].map(([id, label, Icon]) => {
           const I = Icon as typeof Users;
@@ -782,6 +785,7 @@ export default function Admin() {
           </button>
         </div>
       )}
+      {tab === "questions" && <AdminQuestions meetings={data.meetings} />}
       {draft && (
         <Editor
           draft={draft}
