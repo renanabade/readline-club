@@ -8,6 +8,7 @@ import { requireUser, requireMember, requireAdmin } from "./auth/guards";
 import { getIdentity } from "./auth/sessions";
 import { admin } from "./routes/admin";
 import { rsvp } from "./routes/rsvp";
+import { questions, questionsAdmin } from "./routes/questions";
 export function createApp() {
   const app = new Hono<AppEnv>();
   app.use("/api/*", async (c, next) => {
@@ -61,6 +62,7 @@ export function createApp() {
   app.route("/api/rsvp", rsvp);
   app.use("/api/admin/*", requireUser, requireMember, requireAdmin);
   app.route("/api/admin", admin);
+  app.route("/api/admin", questionsAdmin);
   app.use("/api/books/*", requireUser, requireMember);
   app.use("/api/books", requireUser, requireMember);
   app.use("/api/meetings/*", requireUser, requireMember);
@@ -68,6 +70,7 @@ export function createApp() {
   app.use("/api/community", requireUser, requireMember);
   app.use("/api/community/*", requireUser, requireMember);
   app.route("/api", catalog);
+  app.route("/api", questions);
   app.notFound((c) => c.json({ error: "Não encontramos este endereço." }, 404));
   app.onError((err, c) => {
     if (err instanceof HTTPException)
