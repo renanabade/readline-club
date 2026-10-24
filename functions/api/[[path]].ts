@@ -1,7 +1,12 @@
 import legacy from "../../worker/legacy-redirect";
 import app from "../../worker/index";
 import type { Env } from "../../worker/env";
-export function onRequest(context: { request: Request; env: Env }) {
+export function onRequest(context: {
+  request: Request;
+  env: Env;
+  waitUntil?(promise: Promise<unknown>): void;
+  passThroughOnException?(): void;
+}) {
   if (
     new URL(context.request.url).hostname === "readlineclub.pages.dev" ||
     new URL(context.request.url).hostname === "www.readline.club"
@@ -20,5 +25,18 @@ export function onRequest(context: { request: Request; env: Env }) {
       },
     );
   }
-  return app.fetch(context.request, context.env);
+  // waitUntil lets a route finish work after answering (password reset).
+  const { waitUntil, passThroughOnException } = context;
+  return app.fetch(
+    context.request,
+    context.env,
+    waitUntil && passThroughOnException
+      ? {
+          waitUntil: (promise: Promise<unknown>) =>
+            waitUntil.call(context, promise),
+          passThroughOnException: () => passThroughOnException.call(context),
+          props: {},
+        }
+      : undefined,
+  );
 }

@@ -62,6 +62,10 @@ export const signupSchema = z.object({
   consent: z.literal(true),
   turnstileToken: z.string().max(2048).default(""),
 });
+export const forgotPasswordSchema = z.object({
+  email: emailSchema,
+  turnstileToken: z.string().max(2048).default(""),
+});
 export const bookSchema = z.object({
   title: short,
   author: short,

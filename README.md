@@ -11,13 +11,13 @@ Código da plataforma do [readline club](https://readline.club), um clube do liv
 - **Encontros.** Os encontros são on-line. A agenda e a página inicial mostram o próximo encontro com o link da chamada, a confirmação de presença e os atalhos para o calendário. O convite por e-mail e os lembretes da véspera e de 1 hora antes trazem botões pessoais para responder a presença com um clique, sem login.
 - **Gravações e acervo.** Os vídeos ficam no YouTube como não listados e são exibidos dentro da plataforma para membros aprovados. Cada encontro pode ter resumo escrito em PDF e EPUB, slides e transcrição, publicados como links na página do encontro. Não há upload de arquivos para o site.
 - **Comunidade.** O grupo no WhatsApp e o servidor no Discord são os canais oficiais. Os convites são liberados para membros aprovados, depois de lerem como o clube funciona. As redes sociais do clube aparecem no site.
-- **Administração.** A organização aprova, recusa ou suspende cadastros e gerencia livros, ciclos, encontros, gravações, materiais e convites pelo painel. A recuperação de senha é feita com um link de uso único, entregue em conversa privada depois de confirmar a identidade da pessoa.
+- **Administração.** A organização aprova, recusa ou suspende cadastros e gerencia livros, ciclos, encontros, gravações, materiais e convites pelo painel. Quem esquece a senha pede em **Esqueci minha senha** um link de uso único, válido por 30 minutos, enviado por e-mail; a organização também pode gerar o link no painel e entregar em conversa privada. A conta administrativa fica fora desses fluxos.
 
 ## Dados e privacidade
 
 A [política de privacidade](https://readline.club/privacidade) completa fica no site. Em resumo:
 
-**O que é guardado:** nome, e-mail, celular, senha (somente em formato protegido, nunca o texto original), nível de experiência, motivação informada no cadastro, status da aprovação, a confirmação de leitura das orientações da comunidade, as respostas de presença nos encontros e a escolha de receber ou não os convites de encontros por e-mail. Também a data em que o e-mail do cadastro foi confirmado. Dos links de presença e de confirmação de e-mail, guarda-se só o hash. Para limitar tentativas de login e cadastro, o endereço IP é registrado apenas em formato de hash.
+**O que é guardado:** nome, e-mail, celular, senha (somente em formato protegido, nunca o texto original), nível de experiência, motivação informada no cadastro, status da aprovação, a confirmação de leitura das orientações da comunidade, as respostas de presença nos encontros e a escolha de receber ou não os convites de encontros por e-mail. Também a data em que o e-mail do cadastro foi confirmado. Dos links de presença e de confirmação de e-mail, guarda-se só o hash. Para limitar tentativas de login, cadastro e recuperação de senha, o endereço IP e o e-mail são registrados apenas em formato de hash. Dos links de recuperação de senha, também se guarda só o hash.
 
 **Quem vê o quê:**
 
@@ -39,7 +39,7 @@ Nenhum membro vê dados de outros membros.
 - **Transcrição e resumos:** a organização pode usar ferramentas de transcrição e de IA, fora da plataforma, sobre as gravações para preparar os resumos e slides de cada encontro.
 - **Google Agenda:** só é acessado se a pessoa clicar para adicionar um encontro ao calendário, na plataforma ou no convite por e-mail. A plataforma nunca envia e-mails de membros ao Google.
 
-**O que a plataforma não faz:** não tem pagamentos, anúncios de terceiros, ferramentas de análise ou rastreamento, nem login com redes sociais. O navegador guarda apenas o cookie de sessão, a preferência de tema claro/escuro e, se a pessoa fechar o aviso de divulgação do topo, o nome do aviso fechado. Os e-mails enviados são o link de confirmação do e-mail do cadastro, o aviso de aprovação, o convite de cada encontro e os lembretes da véspera e de 1 hora antes (que o membro pode desligar em **Minha conta**; quem respondeu que não vai não recebe lembrete) e um resumo para a organização com a quantidade de cadastros pendentes, sem nomes ou endereços.
+**O que a plataforma não faz:** não tem pagamentos, anúncios de terceiros, ferramentas de análise ou rastreamento, nem login com redes sociais. O navegador guarda apenas o cookie de sessão, a preferência de tema claro/escuro e, se a pessoa fechar o aviso de divulgação do topo, o nome do aviso fechado. Os e-mails enviados são o link de confirmação do e-mail do cadastro, o link de recuperação de senha (só quando a pessoa pede), o aviso de aprovação, o convite de cada encontro e os lembretes da véspera e de 1 hora antes (que o membro pode desligar em **Minha conta**; quem respondeu que não vai não recebe lembrete) e um resumo para a organização com a quantidade de cadastros pendentes, sem nomes ou endereços.
 
 ## Segurança
 

@@ -3,7 +3,7 @@ import type { Env } from "../env";
 // Without the binding (local, preview) the result is "unavailable".
 export async function requestAccountEmail(
   env: Env,
-  path: "/email-verification",
+  path: "/email-verification" | "/password-reset",
   body: object,
 ): Promise<string> {
   if (!env.APPROVAL_EMAIL) return "unavailable";
