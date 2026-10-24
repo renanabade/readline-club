@@ -44,8 +44,11 @@ export default function Privacy() {
         </li>
         <li>
           <strong>Para segurança:</strong> o endereço IP e o e-mail usados em
-          tentativas de login e cadastro, guardados apenas em formato de hash,
-          para limitar tentativas repetidas.
+          tentativas de login, cadastro e recuperação de senha, guardados apenas
+          em formato de hash, para limitar tentativas repetidas. Se você pedir
+          para redefinir a senha, enviamos ao e-mail da conta um link de uso
+          único, válido por 30 minutos; o banco guarda só uma versão protegida
+          (hash) dele e o registro do envio.
         </li>
       </ul>
 

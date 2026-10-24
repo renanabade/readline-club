@@ -5,6 +5,7 @@ import type { AppEnv } from "../env";
 import { input } from "../errors";
 import {
   signupSchema,
+  forgotPasswordSchema,
   emailSchema,
   passwordSchema,
   preferencesSchema,
@@ -20,6 +21,7 @@ import { startSession, endSession, getIdentity } from "../auth/sessions";
 import { requireUser } from "../auth/guards";
 import { rateLimit } from "../auth/limits";
 import { requestAccountEmail } from "../lib/account-email";
+import { verifyTurnstile } from "../auth/turnstile";
 const auth = new Hono<AppEnv>();
 export const expireDepartures = (db: D1Database, now = new Date()) =>
   db
@@ -28,45 +30,11 @@ export const expireDepartures = (db: D1Database, now = new Date()) =>
 auth.post("/register", async (c) => {
   const data = await input(c, signupSchema);
   await rateLimit(c, "signup", 10);
-  if (!c.env.TURNSTILE_SECRET)
-    throw new HTTPException(503, {
-      message:
-        "As inscrições estão sendo preparadas. Tente novamente em breve.",
-    });
-  let valid = false;
-  try {
-    const response = await fetch(
-      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-      {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          secret: c.env.TURNSTILE_SECRET,
-          response: data.turnstileToken,
-          remoteip: c.req.header("cf-connecting-ip"),
-        }),
-        signal: AbortSignal.timeout(10000),
-      },
-    );
-    const result = (await response.json()) as {
-      success?: boolean;
-      hostname?: string;
-      action?: string;
-    };
-    valid =
-      response.ok &&
-      result.success === true &&
-      result.hostname === new URL(c.env.APP_ORIGIN).hostname &&
-      result.action === "signup";
-  } catch {
-    throw new HTTPException(503, {
-      message: "Não foi possível verificar a inscrição. Tente novamente.",
-    });
-  }
-  if (!valid)
-    throw new HTTPException(400, {
-      message: "Refaça a verificação de segurança.",
-    });
+  await verifyTurnstile(c, data.turnstileToken, "signup", {
+    unavailable:
+      "As inscrições estão sendo preparadas. Tente novamente em breve.",
+    failed: "Não foi possível verificar a inscrição. Tente novamente.",
+  });
   const existing = await c.env.DB.prepare("SELECT id FROM users WHERE email=?")
     .bind(data.email)
     .first();
@@ -321,6 +289,45 @@ auth.patch("/profile", requireUser, async (c) => {
     .run();
   return c.json({ phone });
 });
+auth.post("/forgot", async (c) => {
+  const data = await input(c, forgotPasswordSchema);
+  await rateLimit(c, "forgot-ip", 10);
+  // Counted for any address, existing or not, so the limit reveals nothing.
+  await rateLimit(c, "forgot-email", 3, data.email);
+  await verifyTurnstile(c, data.turnstileToken, "reset", {
+    unavailable:
+      "A recuperação de senha está indisponível no momento. Tente novamente mais tarde.",
+    failed:
+      "Não foi possível fazer a verificação de segurança. Tente novamente.",
+  });
+  // Administrators stay out: their recovery needs authenticated access to
+  // Cloudflare, so a stolen mailbox cannot take over the panel.
+  const user = await c.env.DB.prepare(
+    "SELECT id FROM users WHERE email=? AND role='member'",
+  )
+    .bind(data.email)
+    .first<string>("id");
+  if (
+    user &&
+    !(c.env.ADMIN_EMAIL && data.email === c.env.ADMIN_EMAIL.toLowerCase())
+  ) {
+    const sending = requestAccountEmail(c.env, "/password-reset", {
+      userId: user,
+    });
+    // In the background when the runtime allows, so the response takes the
+    // same time whether or not the account exists.
+    try {
+      c.executionCtx.waitUntil(sending);
+    } catch {
+      await sending;
+    }
+  }
+  return c.json({
+    ok: true,
+    message:
+      "Se houver uma conta com este e-mail, enviamos um link para criar uma nova senha. Ele vale por 30 minutos e só pode ser usado uma vez.",
+  });
+});
 auth.post("/reset", async (c) => {
   const data = await input(
     c,
@@ -335,7 +342,7 @@ auth.post("/reset", async (c) => {
   if (!reset)
     throw new HTTPException(400, {
       message:
-        "Este link expirou ou já foi utilizado. Solicite outro ao organizador.",
+        "Este link expirou ou já foi utilizado. Peça outro em Esqueci minha senha, na tela de login.",
     });
   await c.env.DB.batch([
     c.env.DB.prepare(
