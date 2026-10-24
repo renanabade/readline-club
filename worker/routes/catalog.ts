@@ -14,6 +14,7 @@ import { HTTPException } from "hono/http-exception";
 import { input, missing } from "../errors";
 import { rsvpSchema } from "../../shared/validation";
 import { meetingToIcs } from "../lib/calendar";
+import { nextMeetingWhere } from "../lib/next-meeting";
 type CommunityMeeting = NonNullable<CommunityAccess["nextMeeting"]>;
 export async function books(db: Env["DB"], all = false): Promise<Book[]> {
   const rows = await db
@@ -35,10 +36,7 @@ export async function books(db: Env["DB"], all = false): Promise<Book[]> {
       .map(({ id, name }) => ({ id, name })),
   }));
 }
-// Scheduled and not over yet: the same rule the agenda applies with
-// isUpcoming (src/lib/dates.ts), so every "next meeting" agrees with it.
-export const nextMeetingWhere =
-  "m.status='scheduled' AND m.starts_at IS NOT NULL AND b.status!='archived' AND strftime('%Y-%m-%dT%H:%M:%fZ',m.starts_at,'+'||m.duration_minutes||' minutes')>?";
+export { nextMeetingWhere };
 export const meetingQuery = `SELECT m.*,b.title book_title,b.id book_id,r.youtube_id,(SELECT group_concat(DISTINCT kind) FROM resources WHERE meeting_id=m.id) material_kinds FROM meetings m JOIN reading_cycles cy ON cy.id=m.cycle_id JOIN books b ON b.id=cy.book_id LEFT JOIN recordings r ON r.meeting_id=m.id AND r.published=1`;
 const catalog = new Hono<AppEnv>();
 catalog.get("/books", async (c) => c.json(await books(c.env.DB)));

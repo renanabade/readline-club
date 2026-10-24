@@ -12,10 +12,13 @@ export function Turnstile({
   siteKey,
   onToken,
   attempt,
+  action = "signup",
 }: {
   siteKey: string;
   onToken: (token: string) => void;
   attempt: number;
+  // Checked by the server, so a token from one form does not pass another.
+  action?: "signup" | "reset";
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const callback = useRef(onToken);
@@ -30,7 +33,7 @@ export function Turnstile({
       if (window.turnstile && ref.current) {
         id = window.turnstile.render(ref.current, {
           sitekey: siteKey,
-          action: "signup",
+          action,
           theme: "auto",
           callback: (t: string) => callback.current(t),
           "expired-callback": () => callback.current(""),
@@ -52,6 +55,6 @@ export function Turnstile({
       clearTimeout(timer);
       if (id) window.turnstile?.remove(id);
     };
-  }, [siteKey, attempt]);
+  }, [siteKey, attempt, action]);
   return <div ref={ref} className="turnstile" />;
 }

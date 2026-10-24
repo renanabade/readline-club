@@ -1,7 +1,9 @@
+import { approvalContext, approvalMessage } from "./lib/approval-message";
 import { drainInvitations } from "./lib/meeting-invitation";
 import { sendReminders } from "./lib/meeting-reminder";
 import { sendPendingDigest } from "./lib/admin-digest";
 import { sendEmailVerification } from "./lib/email-verification";
+import { sendPasswordReset } from "./lib/password-reset-email";
 // Must match the every-15-minutes trigger in wrangler.mailer.jsonc.
 export const meetingEmailsCron = "*/15 * * * *";
 interface MailerEnv {
@@ -11,15 +13,17 @@ interface MailerEnv {
   APP_ORIGIN: string;
   ADMIN_NOTIFY_EMAIL?: string;
 }
-async function emailVerification(request: Request, env: MailerEnv) {
+async function accountEmail(
+  request: Request,
+  env: MailerEnv,
+  send: typeof sendEmailVerification | typeof sendPasswordReset,
+) {
   const body = (await request.json().catch(() => null)) as {
     userId?: unknown;
   } | null;
   if (typeof body?.userId !== "string" || body.userId.length > 100)
     return new Response(null, { status: 400 });
-  return Response.json({
-    status: await sendEmailVerification(env, body.userId),
-  });
+  return Response.json({ status: await send(env, body.userId) });
 }
 
 export default {
@@ -47,8 +51,11 @@ export default {
   },
   async fetch(request: Request, env: MailerEnv): Promise<Response> {
     if (request.method !== "POST") return new Response(null, { status: 405 });
-    if (new URL(request.url).pathname === "/email-verification")
-      return emailVerification(request, env);
+    const path = new URL(request.url).pathname;
+    if (path === "/email-verification")
+      return accountEmail(request, env, sendEmailVerification);
+    if (path === "/password-reset")
+      return accountEmail(request, env, sendPasswordReset);
     const body = (await request.json().catch(() => null)) as {
       applicationId?: unknown;
     } | null;
@@ -59,10 +66,10 @@ export default {
       return new Response(null, { status: 400 });
     const id = body.applicationId;
     const member = await env.DB.prepare(
-      "SELECT email FROM applications WHERE id=? AND status='approved'",
+      "SELECT email,name FROM applications WHERE id=? AND status='approved'",
     )
       .bind(id)
-      .first<{ email: string }>();
+      .first<{ email: string; name: string }>();
     if (!member)
       return Response.json(
         {
@@ -71,6 +78,8 @@ export default {
         },
         { status: 409 },
       );
+    // Read before the claim: a failure here must not lock the notice as sent.
+    const context = await approvalContext(env.DB);
 
     // Claim once in D1 before sending. Concurrent requests and repeated approvals
     // cannot send the same welcome message twice. Only explicit failures retry.
@@ -102,15 +111,9 @@ export default {
     }
     let providerId: string;
     try {
-      const url = env.APP_ORIGIN + "/entrar";
-      const result = await env.EMAIL.send({
-        from: { email: env.EMAIL_FROM, name: "readline club" },
-        to: member.email,
-        replyTo: env.EMAIL_FROM,
-        subject: "Seu acesso ao readline club foi aprovado",
-        text: `Seu acesso ao readline club foi aprovado!\n\nEntre com o e-mail e a senha que você cadastrou: ${url}\n\nNa plataforma você encontra a leitura atual, os encontros e as gravações disponíveis. Sua conta aprovada também libera o grupo do WhatsApp. Após fazer login, clique em Entrar no grupo do WhatsApp na página inicial, em O clube ou em Minha conta.\n\nreadline club — clube do livro de computação`,
-        html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#202024;line-height:1.6"><p><strong>readline club</strong><br>clube do livro de computação</p><h1 style="font-size:26px">Seu acesso foi aprovado.</h1><p>Entre com o e-mail e a senha que você cadastrou.</p><p><a href="${url}" style="display:inline-block;padding:12px 20px;background:#202024;color:white;border-radius:8px;text-decoration:none">Entrar no clube</a></p><p>Na plataforma você encontra a leitura atual, os encontros e as gravações disponíveis. Sua conta aprovada também libera o grupo do WhatsApp. Após fazer login, clique em Entrar no grupo do WhatsApp na página inicial, em O clube ou em Minha conta.</p><p style="font-size:13px">Se o botão não abrir: <a href="${url}">${url}</a></p></div>`,
-      });
+      const result = await env.EMAIL.send(
+        approvalMessage(context, member, env),
+      );
       providerId = result.messageId;
       if (!providerId) throw new Error("Missing provider confirmation");
     } catch (error) {

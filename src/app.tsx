@@ -222,6 +222,10 @@ function Layout() {
           />
           <Route path="/entrar" element={<Auth key="login" mode="login" />} />
           <Route
+            path="/recuperar-senha"
+            element={<Auth key="forgot" mode="forgot" />}
+          />
+          <Route
             path="/redefinir-senha"
             element={<Auth key="reset" mode="reset" />}
           />

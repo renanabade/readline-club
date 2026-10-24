@@ -50,6 +50,52 @@ test("concurrent notifications send once and keep the group invitation out of ma
   await sendRequest(member.id, send);
   expect(send).toHaveBeenCalledOnce();
 });
+const sentMessage = async () => {
+  const member = await session(f.DB);
+  const send = vi.fn(async (_message: EmailMessage | EmailMessageBuilder) => ({
+    messageId: "message-" + member.id,
+  }));
+  await sendRequest(member.id, send);
+  return send.mock.calls[0]![0] as EmailMessageBuilder & {
+    text: string;
+    html: string;
+  };
+};
+test("approval email brings the next meeting, the reading and three steps in HTML and plain text", async () => {
+  const meetingId = crypto.randomUUID();
+  const startsAt = new Date(Date.now() + 3 * 86400000).toISOString();
+  await f.DB.prepare(
+    "INSERT INTO meetings(id,cycle_id,title,chapters,starts_at) VALUES(?,'primeira-leitura',?,?,?)",
+  )
+    .bind(meetingId, "Busca <binária>", "Capítulos 1 e 2", startsAt)
+    .run();
+  const message = await sentMessage();
+  for (const part of [message.text, message.html]) {
+    expect(part).toContain("Entendendo Algoritmos");
+    expect(part).toContain("Capítulos 1 e 2");
+    expect(part).toContain("horário de Brasília");
+    expect(part).toContain("Entre no grupo do WhatsApp.");
+    expect(part).toContain("Confirme presença no próximo encontro.");
+    expect(part).toContain("Mande uma pergunta.");
+  }
+  expect(message.text).toContain("Busca <binária>");
+  expect(message.html).toContain("Busca &lt;binária&gt;");
+  expect(message.html).not.toContain("<binária>");
+  expect(message.html).toContain('href="https://readline.club/comunidade"');
+  // Every link of the HTML part is also in the plain text part.
+  const links = [...message.html.matchAll(/href="([^"]+)"/g)].map((m) => m[1]);
+  expect(links).toContain("https://readline.club/encontros/" + meetingId);
+  for (const link of links) expect(message.text).toContain(link);
+  await f.DB.prepare("DELETE FROM meetings WHERE id=?").bind(meetingId).run();
+});
+test("without a scheduled meeting, approval email shows the current reading and the agenda", async () => {
+  const message = await sentMessage();
+  expect(message.text).toContain("Leitura atual: Entendendo Algoritmos");
+  expect(message.text).not.toContain("Próximo encontro:");
+  expect(message.text).toContain("https://readline.club/agenda");
+  expect(message.html).toContain('href="https://readline.club/agenda"');
+  expect(message.text).toContain("https://readline.club/comunidade");
+});
 test("pending and suspended applicants cannot receive approval notifications", async () => {
   const send = vi.fn();
   for (const status of ["pending", "suspended"]) {

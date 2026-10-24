@@ -14,7 +14,7 @@ npm run dev
 
 Abra http://127.0.0.1:8794. O banco local é independente do banco de produção. O comando de desenvolvimento compila a interface e inicia o Worker; após editar a interface, execute `npm run build` para atualizá-la. O Worker recarrega alterações no backend automaticamente.
 
-Copie `.dev.vars.example` para `.dev.vars` e preencha `TURNSTILE_SITE_KEY` e `TURNSTILE_SECRET` para habilitar inscrições. Sem as chaves, o cadastro fica indisponível, sem bypass. Use um widget e segredo de testes em um ambiente isolado; a aplicação confere também hostname e action `signup`.
+Copie `.dev.vars.example` para `.dev.vars` e preencha `TURNSTILE_SITE_KEY` e `TURNSTILE_SECRET` para habilitar inscrições e a recuperação de senha por e-mail. Sem as chaves, as duas ficam indisponíveis, sem bypass. Use um widget e segredo de testes em um ambiente isolado; a aplicação confere também o hostname e a action (`signup` no cadastro, `reset` em **Esqueci minha senha**).
 
 ## Conta administrativa
 
@@ -38,9 +38,9 @@ No painel é possível:
 - Colar links do YouTube e publicar ou retirar a publicação da gravação.
 - Adicionar materiais com tipo (resumo em PDF, resumo em EPUB, slides, transcrição ou material complementar). Resumos e slides aparecem em destaque na página do encontro e como indicação na lista de encontros do livro.
 - Configurar os convites do WhatsApp e do Discord e as redes sociais do clube (Instagram, X, LinkedIn e YouTube), exibidas publicamente no site.
-- Gerar um link de recuperação de senha, de uso único, válido por 30 minutos.
+- Gerar um link de recuperação de senha, de uso único, válido por 30 minutos, para entregar em conversa privada (por exemplo, quando o e-mail não chega).
 
-**Recuperação nesta versão:** a pessoa solicita ajuda ao organizador; após confirmar sua identidade pelo canal conhecido, o organizador envia o link em conversa privada. Não há envio automático de recuperação de senha. É possível alterar a senha dentro da própria conta.
+**Recuperação de senha:** em `/entrar`, **Esqueci minha senha** leva a `/recuperar-senha`, que pede o e-mail e a verificação anti-robô (Turnstile). A resposta é sempre a mesma, exista ou não uma conta com o endereço, e o envio acontece depois da resposta (`waitUntil`), para o tempo de resposta também não revelar nada. Se a conta existir e for de membro, o mailer envia pela rota `/password-reset` um link para `/redefinir-senha`, com o token no fragmento da URL, de uso único e válido por 30 minutos. O link fica em `password_resets` (só o hash), como os gerados no painel: cada link novo substitui o anterior, e trocar a senha encerra as sessões abertas. A tabela `password_reset_emails` registra o envio antes de mandar: no máximo um e-mail por minuto por conta, e um resultado desconhecido fica bloqueado por 15 minutos. Há limite de 3 pedidos por e-mail e 10 por IP a cada 15 minutos, contados para qualquer endereço. É possível alterar a senha dentro da própria conta.
 
 **Confirmação de e-mail:** cada pendente mostra no painel se o e-mail do cadastro foi confirmado. A confirmação não aprova ninguém: a aprovação continua manual. **Aceitar confirmados** só inclui pendentes com e-mail confirmado; os outros (inclusive os cadastrados antes da confirmação existir) são aceitos um a um, depois de conferir o endereço.
 
@@ -48,7 +48,7 @@ No painel é possível:
 
 Entre em `/entrar` com a conta administrativa e a senha inicial salva no arquivo privado. A tela `/conta` exige escolher uma senha diferente da inicial; as rotas administrativas ficam bloqueadas no servidor até essa troca. Depois, abra **Minha conta → Abrir administração** para aprovar participantes e organizar o conteúdo. A barra não contém atalhos administrativos. Alterar a senha revoga sessões anteriores e links de recuperação ainda pendentes.
 
-A recuperação pela interface atende aos membros: o administrador emite o link, confirma a identidade e compartilha em privado. Se o único administrador perder a senha, a recuperação exige intervenção técnica autenticada na Cloudflare/D1; o botão de recuperação de membros não redefine administradores. Guarde a senha em seu gerenciador. Não há envio automático de recuperação por e-mail nem recuperação pública de contas administrativas.
+A recuperação pela interface atende só aos membros: por e-mail ou pelo link que o administrador emite e compartilha em privado. A conta administrativa fica fora dos dois fluxos (o pedido recebe a mesma resposta, mas nenhum e-mail sai), para que o acesso a uma caixa de entrada não entregue o painel. Se o único administrador perder a senha, a recuperação exige intervenção técnica autenticada na Cloudflare/D1. Guarde a senha em seu gerenciador.
 
 ## E-mails
 
@@ -86,7 +86,7 @@ O mesmo Worker envia um resumo para o endereço do secret `ADMIN_NOTIFY_EMAIL` �
 
 Pendentes aparecem primeiro (mais antigos antes), seguidos de integrantes aprovados, suspensos e recusados, com separação visual. **Aceitar confirmados** confirma uma fotografia dos IDs pendentes com e-mail confirmado e envia lotes de até 20; o servidor só altera os que ainda estiverem pendentes, com e-mail confirmado, e forem membros. Novos cadastros que chegarem depois ficam para a próxima revisão. Suspensos e recusados nunca são incluídos no lote. A liberação de uma pessoa suspensa reutiliza a conta e a senha existentes.
 
-O domínio precisa estar habilitado e autenticado em Cloudflare Email Sending, com plano elegível. `wrangler.mailer.jsonc` restringe o remetente e preserva o link de entrada no domínio oficial. Os avisos de aprovação orientam a encontrar o botão do WhatsApp na página inicial, em O clube ou em Minha conta. Não são enviados senhas ou dados de outros membros. Respostas vão para o endereço de `EMAIL_FROM`. Os testes usam envio simulado e nunca mandam e-mails reais.
+O domínio precisa estar habilitado e autenticado em Cloudflare Email Sending, com plano elegível. `wrangler.mailer.jsonc` restringe o remetente e preserva o link de entrada no domínio oficial. O aviso de aprovação traz o link de entrada, o próximo encontro (data, horário e leitura, com livro e capítulos) ou, sem encontro marcado, a leitura atual, três passos curtos (entrar no grupo do WhatsApp, confirmar presença e mandar uma pergunta) e um botão para a página da comunidade (`/comunidade`). Sai com versão em HTML e em texto simples, com o mesmo conteúdo e os mesmos links. O convite do grupo não vai no e-mail. Não são enviados senhas ou dados de outros membros. Respostas vão para o endereço de `EMAIL_FROM`. Os testes usam envio simulado e nunca mandam e-mails reais.
 
 ## Verificações
 
