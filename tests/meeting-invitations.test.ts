@@ -384,6 +384,43 @@ test("members confirm presence and the panel shows only totals", async () => {
   expect(JSON.stringify(overview.rsvps)).not.toContain(member.id);
 });
 
+test("the panel counts members without an answer, and only approved members", async () => {
+  const member = await session(f.DB);
+  const suspended = await session(f.DB, "member", "suspended");
+  const m = await meeting();
+  const done = await meeting({
+    starts_at: new Date(Date.now() - 86400000).toISOString(),
+    status: "completed",
+  });
+  const now = new Date().toISOString();
+  await f.DB.batch(
+    [member, suspended].map((u) =>
+      f.DB.prepare(
+        "INSERT INTO meeting_rsvps(meeting_id,user_id,response,updated_at) VALUES(?,?,'yes',?)",
+      ).bind(m.id, u.id, now),
+    ),
+  );
+  const members = await f.DB.prepare(
+    "SELECT COUNT(*) AS total FROM users u JOIN applications a ON a.email=u.email WHERE a.status='approved' AND u.role='member'",
+  ).first<number>("total");
+  const overview = (await (
+    await app.request(
+      "/api/admin/overview",
+      { headers: { cookie: admin.cookie } },
+      f.env,
+    )
+  ).json()) as AdminData;
+  const totals = overview.rsvps.filter((r) => r.meeting_id === m.id);
+  expect(totals).toHaveLength(2);
+  expect(totals).toEqual(
+    expect.arrayContaining([
+      { meeting_id: m.id, response: "yes", total: 1 },
+      { meeting_id: m.id, response: "none", total: members! - 1 },
+    ]),
+  );
+  expect(overview.rsvps.some((r) => r.meeting_id === done.id)).toBe(false);
+});
+
 test("members can turn meeting emails off, and deleting the account removes invitations and answers", async () => {
   const member = await session(f.DB);
   const testEnv = f.env;
