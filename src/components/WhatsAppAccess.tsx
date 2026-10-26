@@ -210,8 +210,8 @@ function AccountStatus({ user }: { user: Identity }) {
             "Você pode conversar com a organização sobre a sua inscrição.",
           ]
         : [
-            "Seu cadastro está em análise.",
-            "A organização revisa cada inscrição e avisa por e-mail quando o acesso for liberado. Com a aprovação, os convites do grupo do WhatsApp e do Discord aparecem aqui, depois de você ler como o clube funciona.",
+            "Confirme seu e-mail para entrar.",
+            "Seu acesso é liberado assim que você abre o link que enviamos para o e-mail do cadastro. Com ele, os convites do grupo do WhatsApp e do Discord aparecem aqui, depois de você ler como o clube funciona.",
           ];
   return (
     <>
