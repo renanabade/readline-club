@@ -17,6 +17,7 @@
       "migrations_dir": "migrations",
     },
   ],
+  "r2_buckets": [{ "binding": "FILES", "bucket_name": "readlineclub-files" }],
   "vars": {
     "APP_ORIGIN": "http://127.0.0.1:8794",
   },

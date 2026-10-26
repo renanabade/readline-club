@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { AdminAttendance } from "../components/AdminAttendance";
 import { useData } from "../lib/useData";
-import { save, api } from "../lib/api";
+import { save, api, upload } from "../lib/api";
 import { inputDate, dateLabel } from "../lib/dates";
 import { Loading, Notice, Empty } from "../components/ui";
 import { materialLabels } from "../lib/meeting";
@@ -1005,6 +1005,12 @@ function Editor({
     setBusy(true);
     setError("");
     try {
+      const file = form.get("file");
+      if (kind === "resources" && file instanceof File && file.size) {
+        await upload("/admin/files", form);
+        await saved();
+        return;
+      }
       const editing =
         !!value.id && kind !== "recordings" && kind !== "settings";
       await save(
@@ -1238,12 +1244,29 @@ function Editor({
                 </select>
               </label>
               {field("title", "Nome do material", { required: true, max: 200 })}
-              {field("url", "Link HTTPS", { required: true, type: "url" })}
+              {value.id ? (
+                // An uploaded file keeps its address; only the details change.
+                !v("url").includes("/api/files/") &&
+                field("url", "Link HTTPS", { required: true, type: "url" })
+              ) : (
+                <>
+                  <label>
+                    Arquivo PDF ou EPUB
+                    <input
+                      name="file"
+                      type="file"
+                      accept=".pdf,.epub,application/pdf,application/epub+zip"
+                    />
+                  </label>
+                  {field("url", "Ou um link HTTPS", { type: "url" })}
+                </>
+              )}
               <p className="small muted">
                 Resumos, slides e transcrições aparecem em destaque na página do
-                encontro, para quem não pôde assistir. Use um link de
-                visualização (por exemplo, do Google Drive) com acesso restrito
-                a quem tem o link.
+                encontro, para quem não pôde assistir. Arquivos enviados (até 20
+                MB) ficam no site e só membros aprovados conseguem baixar. Links
+                externos, como do Google Drive, podem ser repassados por quem
+                tem o link.
               </p>
             </>
           )}

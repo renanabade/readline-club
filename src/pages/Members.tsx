@@ -500,14 +500,14 @@ export function Status() {
           ? "Seu acesso está suspenso."
           : status === "rejected"
             ? "Sobre sua inscrição."
-            : "Recebemos seu cadastro."}
+            : "Confirme seu e-mail."}
       </h1>
       <p>
         {status === "suspended"
           ? "Fale com a organização para entender o motivo e os próximos passos."
           : status === "rejected"
             ? "Sua inscrição não foi aprovada neste momento. Você pode conversar com a organização."
-            : "A organização revisa cada inscrição e avisa por e-mail quando o acesso for liberado. Com a aprovação, você confirma presença nos encontros, assiste às gravações, lê os resumos e recebe os convites dos canais oficiais no WhatsApp e no Discord, depois de ler como o clube funciona."}
+            : "Seu acesso é liberado assim que você confirma o e-mail do cadastro. Com ele, você confirma presença nos encontros, assiste às gravações, lê os resumos e recebe os convites dos canais oficiais no WhatsApp e no Discord, depois de ler como o clube funciona."}
       </p>
       {status === "pending" && <EmailConfirmation />}
       <button className="button" onClick={() => void refresh()}>
@@ -689,12 +689,16 @@ function DeleteAccount() {
     }
   }
   return (
-    <form className="password-form delete-account" onSubmit={remove}>
+    <form
+      id="excluir-conta"
+      className="password-form delete-account"
+      onSubmit={remove}
+    >
       <h2>Excluir minha conta</h2>
       <p>
         Apaga seu cadastro, suas respostas de presença, seu histórico de
         participação e suas sessões abertas. Não dá para desfazer: para voltar
-        ao clube, será preciso se inscrever e aguardar uma nova aprovação.
+        ao clube, será preciso se inscrever de novo e confirmar o e-mail.
       </p>
       {open ? (
         <>

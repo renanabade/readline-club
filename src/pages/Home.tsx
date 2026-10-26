@@ -100,8 +100,8 @@ const journey = [
     text: "Nome, e-mail e celular. Leva um minuto e não custa nada.",
   },
   {
-    title: "Aguarde a aprovação",
-    text: "A organização revisa cada inscrição e avisa por e-mail quando o acesso é liberado.",
+    title: "Confirme seu e-mail",
+    text: "Abra o link que enviamos para o seu e-mail. O acesso é liberado na hora.",
   },
   {
     title: "Entre nos canais oficiais",
@@ -222,7 +222,7 @@ export default function Home() {
             </p>
           </div>
           <p className="hero-whatsapp">
-            Já teve o cadastro aprovado?{" "}
+            Já confirmou seu e-mail?{" "}
             <Link to="/comunidade">
               Veja como o clube funciona <ArrowUpRight size={14} />
             </Link>
@@ -348,7 +348,8 @@ export default function Home() {
                 <h3>Convites só para membros</h3>
                 <p>
                   Os links dos grupos são liberados dentro da plataforma, depois
-                  da aprovação. Assim o espaço continua seguro e sem spam.
+                  que você confirma o e-mail. Assim o espaço continua seguro e
+                  sem spam.
                 </p>
               </div>
             </article>
