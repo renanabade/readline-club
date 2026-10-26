@@ -9,6 +9,7 @@ navegador (React, src/)
 Cloudflare Pages Functions (functions/) ──► app Hono (worker/index.ts)
                                                 │
                                                 ├─ D1 (migrations/)
+                                                ├─ R2 (materiais enviados)
                                                 └─ service binding ──► mailer (worker/approval-mailer.ts)
                                                                         ├─ D1 (mesmo banco)
                                                                         ├─ Cloudflare Email Service
@@ -24,7 +25,7 @@ Cloudflare Pages Functions (functions/) ──► app Hono (worker/index.ts)
 | `src/instance.ts` | Marca da instância (crédito, banner).                                             |
 | `worker/routes/`  | Rotas da API agrupadas por área (`auth`, `catalog`, `admin`).                     |
 | `worker/auth/`    | Senhas, sessões, guards e limite de tentativas.                                   |
-| `worker/lib/`     | Regras de domínio sem HTTP: e-mails, calendário, YouTube.                         |
+| `worker/lib/`     | Regras de domínio sem HTTP: e-mails, calendário, YouTube, arquivos.               |
 | `shared/`         | Contratos (`contracts.ts`) e validação (`validation.ts`) usados pelos dois lados. |
 | `migrations/`     | Schema e dados iniciais do D1, em ordem numérica.                                 |
 | `tests/`          | Testes de API (D1 real via Miniflare) e de interface (jsdom).                     |

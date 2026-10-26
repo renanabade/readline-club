@@ -48,6 +48,12 @@ export default function Privacy() {
           quero discutir&quot;.
         </li>
         <li>
+          <strong>Participação:</strong> depois de cada encontro, a organização
+          registra quem esteve presente, para acompanhar quem volta de um
+          encontro para o outro. Você vê o seu histórico em{" "}
+          <Link to="/conta">Minha conta</Link>.
+        </li>
+        <li>
           <strong>Acesso aos grupos:</strong> a data do primeiro clique em
           &quot;Entrar no grupo do WhatsApp&quot; e em &quot;Entrar no
           Discord&quot;, para a organização acompanhar quantas pessoas chegam
@@ -66,31 +72,32 @@ export default function Privacy() {
 
       <h2>Para que usamos</h2>
       <p className="prose">
-        Para avaliar sua inscrição, liberar seu acesso, avisar por e-mail quando
-        ele for aprovado, enviar o convite e os lembretes de cada encontro e
-        manter a plataforma segura. O celular serve para a organização
-        identificar você no grupo do WhatsApp do clube, que é exclusivo para
-        membros. Você pode deixar de receber os convites e lembretes de
-        encontros a qualquer momento em <Link to="/conta">Minha conta</Link>.
-        Tratamos os dados com base no consentimento que você dá no cadastro e no
-        que é necessário para oferecer a plataforma. Não vendemos dados, não
-        exibimos anúncios de terceiros e não usamos ferramentas de análise ou
-        rastreamento.
+        Para confirmar seu e-mail, liberar seu acesso, dar as boas-vindas por
+        e-mail, enviar o convite e os lembretes de cada encontro e manter a
+        plataforma segura. O celular serve para a organização identificar você
+        no grupo do WhatsApp do clube, que é exclusivo para membros. Você pode
+        deixar de receber os convites e lembretes de encontros a qualquer
+        momento em <Link to="/conta">Minha conta</Link>. Tratamos os dados com
+        base no consentimento que você dá no cadastro e no que é necessário para
+        oferecer a plataforma. Não vendemos dados, não exibimos anúncios de
+        terceiros e não usamos ferramentas de análise ou rastreamento.
       </p>
 
       <h2>Quem vê seus dados</h2>
       <p className="prose">
         A organização do clube vê os cadastros (nome, e-mail, celular,
-        experiência e motivação) para aprovar as inscrições e cuidar dos grupos.
-        Das confirmações de presença, a organização vê apenas o total de cada
-        encontro, não quem respondeu. Outros membros não veem seus dados pela
-        plataforma, com uma exceção: as perguntas para discussão que você enviar
-        aparecem para os membros com o seu primeiro nome. De quem marcou
-        &quot;também quero discutir&quot;, os membros e a organização veem só o
-        total. A organização vê o nome completo de quem enviou cada pergunta e
-        pode ocultá-la. A página inicial mostra apenas o número total de
-        membros. Nos grupos do WhatsApp e do Discord, as outras pessoas veem o
-        que esses serviços mostram, como seu número no WhatsApp.
+        experiência e motivação) para acompanhar as inscrições e cuidar dos
+        grupos. Das confirmações de presença, a organização vê apenas o total de
+        cada encontro, não quem respondeu. A presença registrada depois do
+        encontro aparece para a organização por pessoa e para você no seu
+        histórico. Outros membros não veem seus dados pela plataforma, com uma
+        exceção: as perguntas para discussão que você enviar aparecem para os
+        membros com o seu primeiro nome. De quem marcou &quot;também quero
+        discutir&quot;, os membros e a organização veem só o total. A
+        organização vê o nome completo de quem enviou cada pergunta e pode
+        ocultá-la. A página inicial mostra apenas o número total de membros. Nos
+        grupos do WhatsApp e do Discord, as outras pessoas veem o que esses
+        serviços mostram, como seu número no WhatsApp.
       </p>
 
       <h2>Gravações, transcrições e resumos</h2>

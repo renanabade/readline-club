@@ -57,7 +57,10 @@ export const signupSchema = z.object({
   email: emailSchema,
   phone: phoneSchema,
   password: passwordSchema,
-  experience: z.enum(["beginner", "learning", "experienced"]),
+  experience: z.enum(
+    ["beginner", "learning", "experienced"],
+    "Conte como está sua jornada na computação.",
+  ),
   motivation: z.string().trim().max(2000).default(""),
   consent: z.literal(true),
   turnstileToken: z.string().max(2048).default(""),
@@ -175,3 +178,12 @@ export const questionReviewSchema = z
     (data) => data.hidden !== undefined || data.agenda !== undefined,
     "Envie ao menos um campo.",
   );
+// The full list of who was present: what is left out is unmarked.
+export const attendanceSchema = z.object({
+  userIds: z.array(z.string().min(1).max(100)).max(1000),
+});
+export const uploadSchema = z.object({
+  meeting_id: z.string().min(1).max(100),
+  title: z.string().trim().min(1, "Dê um nome ao material.").max(200),
+  kind: z.enum(resourceKinds).default("link"),
+});

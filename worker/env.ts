@@ -7,5 +7,6 @@ export interface Env {
   TURNSTILE_SECRET?: string;
   ADMIN_EMAIL?: string;
   APPROVAL_EMAIL?: Fetcher;
+  FILES?: R2Bucket;
 }
 export type AppEnv = { Bindings: Env; Variables: { identity: Identity } };

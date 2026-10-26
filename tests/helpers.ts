@@ -7,10 +7,12 @@ export async function fixture() {
       modules: true,
       script: 'export default {fetch(){return new Response("ok")}}',
       d1Databases: ["DB"],
+      r2Buckets: ["FILES"],
       compatibilityDate: "2026-09-27",
     }),
   );
   const DB = await mf.getD1Database("DB");
+  const FILES = await mf.getR2Bucket("FILES");
   for (const file of [
     "0001_initial.sql",
     "0002_initial_book.sql",
@@ -32,6 +34,7 @@ export async function fixture() {
     "0018_email_verification.sql",
     "0019_password_reset_emails.sql",
     "0020_community_group_clicks.sql",
+    "0021_meeting_attendance.sql",
     "0022_meeting_questions.sql",
   ])
     for (const stmt of readFileSync("migrations/" + file, "utf8")
@@ -41,6 +44,7 @@ export async function fixture() {
       await DB.prepare(stmt).run();
   const env = {
     DB,
+    FILES,
     APP_ORIGIN: "https://club.example",
     TURNSTILE_SECRET: "test-secret",
     TURNSTILE_SITE_KEY: "test-site",

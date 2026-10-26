@@ -13,11 +13,13 @@ import {
   Search,
   UserMinus,
   MessageCircleQuestion,
+  UserCheck,
   X,
 } from "lucide-react";
 import { AdminQuestions } from "../components/AdminQuestions";
+import { AdminAttendance } from "../components/AdminAttendance";
 import { useData } from "../lib/useData";
-import { save, api } from "../lib/api";
+import { save, api, upload } from "../lib/api";
 import { inputDate, dateLabel } from "../lib/dates";
 import { Loading, Notice, Empty } from "../components/ui";
 import { materialLabels } from "../lib/meeting";
@@ -275,6 +277,7 @@ export default function Admin() {
           ["books", "Biblioteca", BookOpen],
           ["meetings", "Encontros", CalendarDays],
           ["questions", "Perguntas", MessageCircleQuestion],
+          ["attendance", "Presença", UserCheck],
           ["settings", "O clube", Settings2],
         ].map(([id, label, Icon]) => {
           const I = Icon as typeof Users;
@@ -786,6 +789,7 @@ export default function Admin() {
         </div>
       )}
       {tab === "questions" && <AdminQuestions meetings={data.meetings} />}
+      {tab === "attendance" && <AdminAttendance />}
       {draft && (
         <Editor
           draft={draft}
@@ -955,18 +959,53 @@ function MeetingTotals({
     failed = count(["failed"]),
     unknown = count(["unknown"]),
     yes = answer("yes"),
-    no = answer("no");
-  if (!sent && !pending && !failed && !unknown && !yes && !no) return null;
+    no = answer("no"),
+    none = answer("none");
+  // The meeting page answers in one click once logged in, so its address is
+  // the link to paste in the group.
+  const [copied, setCopied] = useState("");
+  const meeting = data.meetings.find((m) => m.id === meetingId);
+  const open =
+    meeting?.status === "scheduled" &&
+    !!meeting.starts_at &&
+    Date.parse(meeting.starts_at) > Date.now();
+  const link = window.location.origin + "/encontros/" + meetingId;
+  const invited = sent || pending || failed || unknown;
+  if (!invited && !yes && !no && !none && !open) return null;
   return (
-    <p className="muted">
-      {sent} {sent === 1 ? "convite enviado" : "convites enviados"}
-      {pending > 0 && ` · ${pending} na fila`}
-      {failed > 0 &&
-        ` · ${failed} com falha (envie de novo para tentar outra vez)`}
-      {unknown > 0 && ` · ${unknown} sem confirmação do envio`} · {yes}{" "}
-      {yes === 1 ? "confirmou presença" : "confirmaram presença"} · {no}{" "}
-      {no === 1 ? "não vai" : "não vão"}
-    </p>
+    <>
+      {!!invited && (
+        <p className="muted">
+          {sent} {sent === 1 ? "convite enviado" : "convites enviados"}
+          {pending > 0 && ` · ${pending} na fila`}
+          {failed > 0 &&
+            ` · ${failed} com falha (envie de novo para tentar outra vez)`}
+          {unknown > 0 && ` · ${unknown} sem confirmação do envio`}
+        </p>
+      )}
+      <p className="muted">
+        Presença: {yes} {yes === 1 ? "vai" : "vão"} · {no}{" "}
+        {no === 1 ? "não vai" : "não vão"}
+        {none > 0 && ` · ${none} sem resposta`}
+        {open && (
+          <>
+            {" · "}
+            <button
+              className="text-button"
+              onClick={() =>
+                void navigator.clipboard
+                  .writeText(link)
+                  .then(() => setCopied("Link copiado."))
+                  .catch(() => setCopied(link))
+              }
+            >
+              Copiar link para o grupo
+            </button>
+            {copied && <span role="status"> {copied}</span>}
+          </>
+        )}
+      </p>
+    </>
   );
 }
 function Editor({
@@ -1005,6 +1044,12 @@ function Editor({
     setBusy(true);
     setError("");
     try {
+      const file = form.get("file");
+      if (kind === "resources" && file instanceof File && file.size) {
+        await upload("/admin/files", form);
+        await saved();
+        return;
+      }
       const editing =
         !!value.id && kind !== "recordings" && kind !== "settings";
       await save(
@@ -1238,12 +1283,29 @@ function Editor({
                 </select>
               </label>
               {field("title", "Nome do material", { required: true, max: 200 })}
-              {field("url", "Link HTTPS", { required: true, type: "url" })}
+              {value.id ? (
+                // An uploaded file keeps its address; only the details change.
+                !v("url").includes("/api/files/") &&
+                field("url", "Link HTTPS", { required: true, type: "url" })
+              ) : (
+                <>
+                  <label>
+                    Arquivo PDF ou EPUB
+                    <input
+                      name="file"
+                      type="file"
+                      accept=".pdf,.epub,application/pdf,application/epub+zip"
+                    />
+                  </label>
+                  {field("url", "Ou um link HTTPS", { type: "url" })}
+                </>
+              )}
               <p className="small muted">
                 Resumos, slides e transcrições aparecem em destaque na página do
-                encontro, para quem não pôde assistir. Use um link de
-                visualização (por exemplo, do Google Drive) com acesso restrito
-                a quem tem o link.
+                encontro, para quem não pôde assistir. Arquivos enviados (até 20
+                MB) ficam no site e só membros aprovados conseguem baixar. Links
+                externos, como do Google Drive, podem ser repassados por quem
+                tem o link.
               </p>
             </>
           )}

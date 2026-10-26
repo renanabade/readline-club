@@ -15,6 +15,7 @@
       "migrations_dir": "migrations",
     },
   ],
+  "r2_buckets": [{ "binding": "FILES", "bucket_name": "readlineclub-files" }],
   "vars": {
     "APP_ORIGIN": "https://readline.club",
     "TURNSTILE_SITE_KEY": "0x4AAAAAAFFqjumFUxHqIhJD",
@@ -23,6 +24,7 @@
     "preview": {
       "services": [],
       "d1_databases": [],
+      "r2_buckets": [],
       "vars": {
         "APP_ORIGIN": "https://readline.club",
         "TURNSTILE_SITE_KEY": "",

@@ -9,6 +9,9 @@ import { getIdentity } from "./auth/sessions";
 import { admin } from "./routes/admin";
 import { rsvp } from "./routes/rsvp";
 import { questions, questionsAdmin } from "./routes/questions";
+import { attendance, attendanceAdmin } from "./routes/attendance";
+import { files } from "./routes/files";
+import { maxFileBytes } from "./lib/files";
 export function createApp() {
   const app = new Hono<AppEnv>();
   app.use("/api/*", async (c, next) => {
@@ -21,12 +24,17 @@ export function createApp() {
       return c.json({ error: "Origem não permitida." }, 403);
     await next();
   });
-  app.use(
-    "/api/*",
-    bodyLimit({
-      maxSize: 64000,
-      onError: (c) => c.json({ error: "Formulário muito grande." }, 413),
-    }),
+  const formLimit = bodyLimit({
+    maxSize: 64000,
+    onError: (c) => c.json({ error: "Formulário muito grande." }, 413),
+  });
+  // Room for the file plus the multipart envelope; the route checks the file.
+  const uploadLimit = bodyLimit({
+    maxSize: maxFileBytes + 64000,
+    onError: (c) => c.json({ error: "O arquivo passa de 20 MB." }, 413),
+  });
+  app.use("/api/*", (c, next) =>
+    (c.req.path === "/api/admin/files" ? uploadLimit : formLimit)(c, next),
   );
   app.get("/api/health", (c) => c.json({ ok: true }));
   app.get("/api/me", async (c) => c.json(await getIdentity(c.req.raw, c.env)));
@@ -63,10 +71,15 @@ export function createApp() {
   app.use("/api/admin/*", requireUser, requireMember, requireAdmin);
   app.route("/api/admin", admin);
   app.route("/api/admin", questionsAdmin);
+  app.route("/api/admin", attendanceAdmin);
+  app.use("/api/attendance", requireUser, requireMember);
+  app.route("/api/attendance", attendance);
   app.use("/api/books/*", requireUser, requireMember);
   app.use("/api/books", requireUser, requireMember);
   app.use("/api/meetings/*", requireUser, requireMember);
   app.use("/api/meetings", requireUser, requireMember);
+  app.use("/api/files/*", requireUser, requireMember);
+  app.route("/api/files", files);
   app.use("/api/community", requireUser, requireMember);
   app.use("/api/community/*", requireUser, requireMember);
   app.route("/api", catalog);

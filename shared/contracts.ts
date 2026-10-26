@@ -52,6 +52,15 @@ export interface MeetingDetail {
   resources: Resource[];
   rsvp: MeetingRsvp | null;
 }
+// Every meeting of a book with something published: the recording, the
+// summaries, slides and other materials.
+export interface BookMaterials {
+  book: Pick<Book, "id" | "title" | "author">;
+  meetings: (Pick<
+    Meeting,
+    "id" | "title" | "chapters" | "starts_at" | "youtube_id"
+  > & { resources: Resource[] })[];
+}
 export type ResourceKind =
   "summary_pdf" | "summary_epub" | "slides" | "transcript" | "link";
 // What a personal email link may reveal: the meeting announcement and the
@@ -145,7 +154,13 @@ export interface AdminData {
     status: "queued" | "sending" | "sent" | "failed" | "unknown" | "skipped";
     total: number;
   }[];
-  rsvps: { meeting_id: string; response: MeetingRsvp; total: number }[];
+  // Totals among approved members; 'none' (no answer yet) only for
+  // scheduled meetings.
+  rsvps: {
+    meeting_id: string;
+    response: MeetingRsvp | "none";
+    total: number;
+  }[];
   departures: MemberDeparture[];
   // Totals only: how many confirmed the introduction and clicked each group.
   communityFunnel: { acknowledged: number; whatsapp: number; discord: number };
@@ -176,6 +191,30 @@ export interface AdminQuestion {
   agenda: boolean;
   created_at: string;
 }
+// A held meeting, with how many were present and how many of them were also
+// present at the meeting held before it.
+export interface AttendanceSummary {
+  meeting_id: string;
+  title: string;
+  book_title: string;
+  starts_at: string;
+  previous_title: string | null;
+  present: number;
+  also_previous: number;
+}
+export interface AttendanceMember {
+  user_id: string;
+  name: string;
+  email: string;
+  present: boolean;
+}
+export interface AttendanceSheet {
+  meeting: Pick<Meeting, "id" | "title" | "starts_at">;
+  members: AttendanceMember[];
+}
+export type AttendedMeeting = Pick<Meeting, "id" | "title" | "starts_at"> & {
+  book_title: string;
+};
 export interface InvitationQueue {
   added: number;
   queued: number;
