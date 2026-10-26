@@ -154,11 +154,41 @@ export interface AdminData {
     status: "queued" | "sending" | "sent" | "failed" | "unknown" | "skipped";
     total: number;
   }[];
-  rsvps: { meeting_id: string; response: MeetingRsvp; total: number }[];
+  // Totals among approved members; 'none' (no answer yet) only for
+  // scheduled meetings.
+  rsvps: {
+    meeting_id: string;
+    response: MeetingRsvp | "none";
+    total: number;
+  }[];
   departures: MemberDeparture[];
   // Totals only: how many confirmed the introduction and clicked each group.
   communityFunnel: { acknowledged: number; whatsapp: number; discord: number };
 }
+// A held meeting, with how many were present and how many of them were also
+// present at the meeting held before it.
+export interface AttendanceSummary {
+  meeting_id: string;
+  title: string;
+  book_title: string;
+  starts_at: string;
+  previous_title: string | null;
+  present: number;
+  also_previous: number;
+}
+export interface AttendanceMember {
+  user_id: string;
+  name: string;
+  email: string;
+  present: boolean;
+}
+export interface AttendanceSheet {
+  meeting: Pick<Meeting, "id" | "title" | "starts_at">;
+  members: AttendanceMember[];
+}
+export type AttendedMeeting = Pick<Meeting, "id" | "title" | "starts_at"> & {
+  book_title: string;
+};
 export interface InvitationQueue {
   added: number;
   queued: number;

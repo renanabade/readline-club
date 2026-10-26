@@ -39,6 +39,7 @@ import type {
   Cycle,
   Resource,
   MeetingDetail,
+  AttendedMeeting,
 } from "../../shared/contracts";
 export function Library() {
   const { home, user } = useSession();
@@ -506,14 +507,14 @@ export function Status() {
           ? "Seu acesso está suspenso."
           : status === "rejected"
             ? "Sobre sua inscrição."
-            : "Recebemos seu cadastro."}
+            : "Confirme seu e-mail."}
       </h1>
       <p>
         {status === "suspended"
           ? "Fale com a organização para entender o motivo e os próximos passos."
           : status === "rejected"
             ? "Sua inscrição não foi aprovada neste momento. Você pode conversar com a organização."
-            : "A organização revisa cada inscrição e avisa por e-mail quando o acesso for liberado. Com a aprovação, você confirma presença nos encontros, assiste às gravações, lê os resumos e recebe os convites dos canais oficiais no WhatsApp e no Discord, depois de ler como o clube funciona."}
+            : "Seu acesso é liberado assim que você confirma o e-mail do cadastro. Com ele, você confirma presença nos encontros, assiste às gravações, lê os resumos e recebe os convites dos canais oficiais no WhatsApp e no Discord, depois de ler como o clube funciona."}
       </p>
       {status === "pending" && <EmailConfirmation />}
       <button className="button" onClick={() => void refresh()}>
@@ -566,6 +567,44 @@ function MeetingEmails() {
         Receber avisos de encontros por e-mail
       </label>
       {(error || saveError) && <Notice>{error || saveError}</Notice>}
+    </section>
+  );
+}
+export function AttendanceHistory() {
+  const { data, error, loading } = useData<AttendedMeeting[]>("/attendance");
+  return (
+    <section className="password-form">
+      <h2>Encontros em que você esteve</h2>
+      <p>
+        A organização registra a presença depois de cada encontro. Só você e a
+        organização veem este histórico.
+      </p>
+      {loading ? (
+        <p className="muted">Carregando…</p>
+      ) : error ? (
+        <Notice>{error}</Notice>
+      ) : data?.length ? (
+        <ul className="resource-list">
+          {data.map((m) => (
+            <li key={m.id}>
+              <Link to={"/encontros/" + m.id}>
+                <span>
+                  <span className="resource-kind">
+                    {dateLabel(m.starts_at, false)}
+                  </span>
+                  {m.title} · {m.book_title}
+                </span>
+                <ArrowRight size={16} />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="muted">
+          Ainda não há presença registrada. Depois do seu primeiro encontro, ele
+          aparece aqui.
+        </p>
+      )}
     </section>
   );
 }
@@ -657,12 +696,16 @@ function DeleteAccount() {
     }
   }
   return (
-    <form className="password-form delete-account" onSubmit={remove}>
+    <form
+      id="excluir-conta"
+      className="password-form delete-account"
+      onSubmit={remove}
+    >
       <h2>Excluir minha conta</h2>
       <p>
-        Apaga seu cadastro, suas respostas de presença e suas sessões abertas.
-        Não dá para desfazer: para voltar ao clube, será preciso se inscrever e
-        aguardar uma nova aprovação.
+        Apaga seu cadastro, suas respostas de presença, seu histórico de
+        participação e suas sessões abertas. Não dá para desfazer: para voltar
+        ao clube, será preciso se inscrever de novo e confirmar o e-mail.
       </p>
       {open ? (
         <>
@@ -802,6 +845,9 @@ export function Account({ required = false }: { required?: boolean }) {
         {!required && user?.role !== "admin" && <MemberPhone />}
         {!required && user?.role !== "admin" && user?.status === "approved" && (
           <MeetingEmails />
+        )}
+        {!required && user?.role !== "admin" && user?.status === "approved" && (
+          <AttendanceHistory />
         )}
         {!required && user?.role !== "admin" && <DeleteAccount />}
       </div>

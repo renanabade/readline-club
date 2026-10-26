@@ -63,6 +63,7 @@ beforeEach(() => {
     rsvps: [
       { meeting_id: "next", response: "yes", total: 2 },
       { meeting_id: "next", response: "no", total: 1 },
+      { meeting_id: "next", response: "none", total: 5 },
     ],
   };
 });
@@ -76,12 +77,32 @@ test("upcoming meetings show totals and offer the invitation; past ones do not",
   openMeetings();
   expect(
     screen.getByText(
-      "3 convites enviados · 3 na fila · 1 com falha (envie de novo para tentar outra vez) · 1 sem confirmação do envio · 2 confirmaram presença · 1 não vai",
+      "3 convites enviados · 3 na fila · 1 com falha (envie de novo para tentar outra vez) · 1 sem confirmação do envio",
     ),
   ).toBeTruthy();
   expect(
+    screen.getByText(/^Presença: 2 vão · 1 não vai · 5 sem resposta/),
+  ).toBeTruthy();
+  expect(
+    screen.getAllByRole("button", { name: "Copiar link para o grupo" }),
+  ).toHaveLength(1);
+  expect(
     screen.getAllByRole("button", { name: "Enviar convite por e-mail" }),
   ).toHaveLength(1);
+});
+
+test("the panel copies the meeting page as the link for the group", async () => {
+  const writeText = vi.fn(async () => {});
+  vi.stubGlobal("navigator", { ...navigator, clipboard: { writeText } });
+  openMeetings();
+  fireEvent.click(
+    screen.getByRole("button", { name: "Copiar link para o grupo" }),
+  );
+  expect(await screen.findByText("Link copiado.")).toBeTruthy();
+  expect(writeText).toHaveBeenCalledWith(
+    window.location.origin + "/encontros/next",
+  );
+  vi.unstubAllGlobals();
 });
 
 test("confirming only queues the invitation and says the page can be closed", async () => {

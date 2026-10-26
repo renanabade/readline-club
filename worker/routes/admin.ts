@@ -11,10 +11,18 @@ import {
   settingsSchema,
   httpsUrl,
   resourceKinds,
+  uploadSchema,
 } from "../../shared/validation";
 import { expireDepartures } from "./auth";
 import { books, meetingQuery, onboardingVersion } from "./catalog";
 import { parseYouTubeId } from "../lib/youtube";
+import {
+  detectFileType,
+  fileContentType,
+  fileKey,
+  filePath,
+  maxFileBytes,
+} from "../lib/files";
 import { digest, randomToken } from "../auth/password";
 import { notifyApproval } from "../lib/approval-email";
 const admin = new Hono<AppEnv>();
@@ -52,8 +60,10 @@ admin.get("/overview", async (c) => {
     c.env.DB.prepare(
       "SELECT meeting_id,CASE WHEN status='sending' AND error_code IS NOT NULL THEN 'unknown' ELSE status END AS status,COUNT(*) AS total FROM meeting_invitations GROUP BY 1,2",
     ).all(),
+    // Answers among approved members; scheduled meetings also count the
+    // members who have not answered yet ('none').
     c.env.DB.prepare(
-      "SELECT meeting_id,response,COUNT(*) AS total FROM meeting_rsvps GROUP BY meeting_id,response",
+      "WITH members AS (SELECT u.id FROM users u JOIN applications a ON a.email=u.email WHERE a.status='approved' AND u.role='member') SELECT meeting_id,response,COUNT(*) AS total FROM meeting_rsvps WHERE user_id IN members GROUP BY meeting_id,response UNION ALL SELECT m.id,'none',COUNT(*) FROM meetings m JOIN members u LEFT JOIN meeting_rsvps r ON r.meeting_id=m.id AND r.user_id=u.id WHERE m.status='scheduled' AND r.user_id IS NULL GROUP BY m.id",
     ).all(),
     c.env.DB.prepare(
       "SELECT id,name,phone,left_at FROM member_departures ORDER BY left_at",
@@ -231,7 +241,7 @@ const entities = {
     schema: z.object({
       meeting_id: z.string().min(1).max(100),
       title: z.string().trim().min(1).max(200),
-      url: httpsUrl.refine((v) => !!v),
+      url: httpsUrl.refine((v) => !!v, "Envie um arquivo ou cole um link."),
       kind: z.enum(resourceKinds).default("link"),
     }),
     fields: ["meeting_id", "title", "url", "kind"],
@@ -390,10 +400,69 @@ admin.patch("/settings", async (c) => {
     .run();
   return c.json({ ok: true });
 });
-admin.delete("/resources/:id", async (c) => {
-  await c.env.DB.prepare("DELETE FROM resources WHERE id=?")
-    .bind(c.req.param("id"))
+admin.post("/files", async (c) => {
+  if (!c.env.FILES)
+    throw new HTTPException(503, {
+      message: "O envio de arquivos não está configurado.",
+    });
+  let form: Record<string, string | File>;
+  try {
+    form = await c.req.parseBody();
+  } catch {
+    throw new HTTPException(400, { message: "Envie um formulário válido." });
+  }
+  const parsed = uploadSchema.safeParse(form);
+  if (!parsed.success)
+    throw new HTTPException(400, {
+      message: parsed.error.issues[0]?.message || "Confira os campos.",
+    });
+  const file = form.file;
+  if (!(file instanceof File) || !file.size)
+    throw new HTTPException(400, { message: "Escolha um arquivo." });
+  if (file.size > maxFileBytes)
+    throw new HTTPException(413, {
+      message: "O arquivo passa de 20 MB.",
+    });
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const type = detectFileType(bytes);
+  if (!type)
+    throw new HTTPException(400, {
+      message: "Envie um arquivo PDF ou EPUB.",
+    });
+  const data = parsed.data;
+  if (
+    !(await c.env.DB.prepare("SELECT id FROM meetings WHERE id=?")
+      .bind(data.meeting_id)
+      .first())
+  )
+    throw new HTTPException(400, { message: "Encontro inválido." });
+  const key = crypto.randomUUID();
+  await c.env.FILES.put(key, bytes, {
+    httpMetadata: { contentType: fileContentType(type) },
+    customMetadata: { type },
+  });
+  const id = crypto.randomUUID();
+  await c.env.DB.prepare(
+    "INSERT INTO resources(id,meeting_id,title,url,kind) VALUES(?,?,?,?,?)",
+  )
+    .bind(
+      id,
+      data.meeting_id,
+      data.title,
+      c.env.APP_ORIGIN + filePath + key,
+      data.kind,
+    )
     .run();
+  return c.json({ id }, 201);
+});
+admin.delete("/resources/:id", async (c) => {
+  const resource = await c.env.DB.prepare(
+    "DELETE FROM resources WHERE id=? RETURNING url",
+  )
+    .bind(c.req.param("id"))
+    .first<{ url: string }>();
+  const key = resource && fileKey(resource.url, c.env.APP_ORIGIN);
+  if (key) await c.env.FILES?.delete(key);
   return c.json({ ok: true });
 });
 export { admin };

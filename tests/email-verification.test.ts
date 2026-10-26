@@ -297,3 +297,51 @@ test("deleting the account removes its pending confirmation link", async () => {
       .first("n"),
   ).toBe(0);
 });
+async function confirmFor(userId: string, env: object = {}) {
+  const token = crypto.randomUUID().replace(/-/g, "").repeat(2);
+  await f.DB.prepare(
+    "INSERT INTO email_verifications(user_id,token_hash,expires_at,status,attempted_at) VALUES(?,?,?,'sent',?) ON CONFLICT(user_id) DO UPDATE SET token_hash=excluded.token_hash,expires_at=excluded.expires_at",
+  )
+    .bind(
+      userId,
+      createHash("sha256").update(token).digest("hex"),
+      Date.now() + 60000,
+      new Date().toISOString(),
+    )
+    .run();
+  return call("/api/auth/verify-email", { body: { token }, env });
+}
+const statusOf = (userId: string) =>
+  f.DB.prepare(
+    "SELECT a.status FROM applications a JOIN users u ON u.email=a.email WHERE u.id=?",
+  )
+    .bind(userId)
+    .first<string>("status");
+test("confirming the email releases member access and sends the welcome email", async () => {
+  const pending = await session(f.DB, "member", "pending");
+  const blocked = await call("/api/meetings", {
+    cookie: pending.cookie,
+    method: "GET",
+  });
+  expect(blocked.status).toBe(403);
+  const send = sender();
+  const confirm = await confirmFor(pending.id, {
+    APPROVAL_EMAIL: mailerBinding(send),
+  });
+  expect(confirm.status).toBe(200);
+  expect(await statusOf(pending.id)).toBe("approved");
+  expect(send).toHaveBeenCalledOnce();
+  const open = await call("/api/meetings", {
+    cookie: pending.cookie,
+    method: "GET",
+  });
+  expect(open.status).toBe(200);
+});
+test("confirming the email never lifts a suspension or a rejection", async () => {
+  for (const status of ["suspended", "rejected"]) {
+    const member = await session(f.DB, "member", status);
+    expect((await confirmFor(member.id)).status).toBe(200);
+    expect(await statusOf(member.id)).toBe(status);
+    expect(await verifiedAt(member.id)).toBeTruthy();
+  }
+});

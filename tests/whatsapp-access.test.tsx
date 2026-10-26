@@ -29,7 +29,7 @@ test("visitors and unapproved accounts see approval instructions without request
     [null, "A conversa continua no WhatsApp e no Discord."],
     [
       { role: "member", status: "pending", mustChangePassword: false },
-      "Seu cadastro está em análise.",
+      "Confirme seu e-mail para entrar.",
     ],
     [
       { role: "member", status: "suspended", mustChangePassword: false },
