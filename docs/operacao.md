@@ -12,6 +12,8 @@ npm run db:migrate:local
 npm run dev
 ```
 
+A partir do npm 11, scripts de instalação só rodam para os pacotes listados em `allowScripts` no `package.json`: hoje, `esbuild` e `workerd`, que baixam os binários usados no build e no Worker local. A aprovação vale para a versão exata; ao atualizar um deles, rode `npm install-scripts approve esbuild workerd` e inclua a mudança no mesmo PR.
+
 Abra http://127.0.0.1:8794. O banco local é independente do banco de produção. O comando de desenvolvimento compila a interface e inicia o Worker; após editar a interface, execute `npm run build` para atualizá-la. O Worker recarrega alterações no backend automaticamente.
 
 Copie `.dev.vars.example` para `.dev.vars` e preencha `TURNSTILE_SITE_KEY` e `TURNSTILE_SECRET` para habilitar inscrições e a recuperação de senha por e-mail. Sem as chaves, as duas ficam indisponíveis, sem bypass. Use um widget e segredo de testes em um ambiente isolado; a aplicação confere também o hostname e a action (`signup` no cadastro, `reset` em **Esqueci minha senha**).
