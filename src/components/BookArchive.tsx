@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { FolderOpen, ChevronDown, Play, ArrowUpRight } from "lucide-react";
 import type { Cycle, Meeting } from "../../shared/contracts";
 import { Empty, MeetingRow } from "./ui";
+import { hasRecording } from "../lib/meeting";
 
 export function BookArchive({
   bookId,
@@ -14,7 +15,7 @@ export function BookArchive({
   meetings: Meeting[];
 }) {
   const [filter, setFilter] = useState("all");
-  const recordings = meetings.filter((meeting) => !!meeting.youtube_id);
+  const recordings = meetings.filter(hasRecording);
   const visible = filter === "recordings" ? recordings : meetings;
   const folders = cycles.filter(
     (cycle) =>
@@ -62,9 +63,7 @@ export function BookArchive({
           const items = visible.filter(
             (meeting) => meeting.cycle_id === cycle.id,
           );
-          const recorded = items.filter(
-            (meeting) => !!meeting.youtube_id,
-          ).length;
+          const recorded = items.filter(hasRecording).length;
           return (
             <details
               key={cycle.id + filter}

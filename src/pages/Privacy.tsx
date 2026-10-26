@@ -120,8 +120,8 @@ export default function Privacy() {
         </li>
         <li>
           <strong>YouTube:</strong> as gravações são exibidas pelo player do
-          YouTube em modo de privacidade aprimorada, apenas para membros
-          aprovados e só quando você abre uma gravação.
+          YouTube em modo de privacidade aprimorada, apenas para membros com o
+          e-mail confirmado e só quando você abre uma gravação.
         </li>
         <li>
           <strong>Google Agenda:</strong> só é acessado se você clicar para

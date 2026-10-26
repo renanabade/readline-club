@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import type { Context } from "hono";
 import type { AppEnv, Env } from "../env";
 import type {
   Book,
@@ -16,7 +17,11 @@ import { input, missing } from "../errors";
 import { rsvpSchema, groupClickSchema } from "../../shared/validation";
 import { meetingToIcs } from "../lib/calendar";
 import { nextMeetingWhere } from "../lib/next-meeting";
+import { lockRecording, lockResource } from "../lib/email-gate";
 type CommunityMeeting = NonNullable<CommunityAccess["nextMeeting"]>;
+// Groups, recordings and materials wait for the signup email to be confirmed.
+const emailLocked = (c: Context<AppEnv>) =>
+  c.get("identity").emailConfirmationPending;
 export async function books(db: Env["DB"], all = false): Promise<Book[]> {
   const rows = await db
     .prepare(
@@ -54,7 +59,13 @@ catalog.get("/books/:id", async (c) => {
   )
     .bind(book.id)
     .all<Meeting>();
-  return c.json({ book, cycles: cycles.results, meetings: meetings.results });
+  return c.json({
+    book,
+    cycles: cycles.results,
+    meetings: emailLocked(c)
+      ? meetings.results.map(lockRecording)
+      : meetings.results,
+  });
 });
 catalog.get("/books/:id/materials", async (c) => {
   const book = (await books(c.env.DB)).find((b) => b.id === c.req.param("id"));
@@ -71,11 +82,14 @@ catalog.get("/books/:id/materials", async (c) => {
   )
     .bind(book.id)
     .all<Resource>();
+  const locked = emailLocked(c);
   return c.json<BookMaterials>({
     book: { id: book.id, title: book.title, author: book.author },
     meetings: meetings.results.map((m) => ({
-      ...m,
-      resources: resources.results.filter((r) => r.meeting_id === m.id),
+      ...(locked ? lockRecording(m) : m),
+      resources: resources.results
+        .filter((r) => r.meeting_id === m.id)
+        .map((r) => (locked ? lockResource(r) : r)),
     })),
   });
 });
@@ -84,7 +98,9 @@ catalog.get("/meetings", async (c) => {
     meetingQuery +
       " WHERE b.status!='archived' ORDER BY m.starts_at IS NULL,m.starts_at",
   ).all<Meeting>();
-  return c.json(rows.results);
+  return c.json(
+    emailLocked(c) ? rows.results.map(lockRecording) : rows.results,
+  );
 });
 catalog.get("/meetings/:id", async (c) => {
   const meeting = await c.env.DB.prepare(
@@ -103,7 +119,12 @@ catalog.get("/meetings/:id", async (c) => {
   )
     .bind(meeting.id, c.get("identity").userId)
     .first<MeetingRsvp>("response");
-  return c.json({ meeting, resources: resources.results, rsvp: rsvp ?? null });
+  const locked = emailLocked(c);
+  return c.json({
+    meeting: locked ? lockRecording(meeting) : meeting,
+    resources: locked ? resources.results.map(lockResource) : resources.results,
+    rsvp: rsvp ?? null,
+  });
 });
 catalog.put("/meetings/:id/rsvp", async (c) => {
   const { response } = await input(c, rsvpSchema);
@@ -155,6 +176,8 @@ catalog.get("/community", async (c) => {
     .bind(c.get("identity").userId)
     .first<string>("version");
   const onboardingRequired = accepted !== onboardingVersion;
+  const emailConfirmationRequired = emailLocked(c);
+  const invitations = !onboardingRequired && !emailConfirmationRequired;
   const book = await c.env.DB.prepare(
     "SELECT b.title FROM books b JOIN reading_cycles cy ON cy.book_id=b.id WHERE cy.is_current=1",
   ).first<string>("title");
@@ -176,13 +199,14 @@ catalog.get("/community", async (c) => {
   };
   return c.json({
     ...settings,
-    whatsapp_url: onboardingRequired ? "" : settings?.whatsapp_url,
-    discord_url: onboardingRequired ? "" : settings?.discord_url,
+    whatsapp_url: invitations ? settings?.whatsapp_url : "",
+    discord_url: invitations ? settings?.discord_url : "",
     // Lets the page leave the optional Discord out before the invitation is
     // released, without revealing the invitation itself.
     discordAvailable: !!settings?.discord_url?.trim(),
     onboardingRequired,
     onboardingVersion,
+    emailConfirmationRequired,
     currentBookTitle: book,
     nextMeeting,
   });
@@ -204,6 +228,10 @@ catalog.post("/community/acknowledge", async (c) => {
 // Funnel only: the first click per person and group, shown as totals.
 catalog.post("/community/join", async (c) => {
   const { channel } = await input(c, groupClickSchema);
+  if (emailLocked(c))
+    throw new HTTPException(409, {
+      message: "Confirme seu e-mail para liberar os convites.",
+    });
   const accepted = await c.env.DB.prepare(
     "SELECT version FROM community_onboarding WHERE user_id=?",
   )

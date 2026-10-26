@@ -25,6 +25,7 @@ import {
 } from "../lib/files";
 import { digest, randomToken } from "../auth/password";
 import { notifyApproval } from "../lib/approval-email";
+import { emailConfirmedSql } from "../lib/email-gate";
 const admin = new Hono<AppEnv>();
 admin.get("/overview", async (c) => {
   await expireDepartures(c.env.DB).run();
@@ -181,7 +182,7 @@ admin.post("/meetings/:id/invitations", async (c) => {
     c.env.DB.prepare(
       `INSERT INTO meeting_invitations(meeting_id,user_id)
       SELECT ?,u.id FROM users u JOIN applications a ON a.email=u.email
-      WHERE a.status='approved' AND u.role='member' AND u.meeting_emails=1
+      WHERE a.status='approved' AND u.role='member' AND u.meeting_emails=1 AND ${emailConfirmedSql}
       ON CONFLICT(meeting_id,user_id) DO NOTHING`,
     ).bind(id),
     c.env.DB.prepare(

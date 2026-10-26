@@ -2,7 +2,8 @@ import { Link, useParams } from "react-router-dom";
 import { ArrowUpRight, Play } from "lucide-react";
 import { useData } from "../lib/useData";
 import { dateLabel } from "../lib/dates";
-import { materialLabels } from "../lib/meeting";
+import { ResourceLink } from "../components/ResourceLink";
+import { hasRecording } from "../lib/meeting";
 import { Empty, Loading, Notice } from "../components/ui";
 import type { BookMaterials as Materials } from "../../shared/contracts";
 
@@ -44,7 +45,7 @@ export default function BookMaterials() {
             <h2 id={"materials-" + m.id}>{m.chapters || m.title}</h2>
             {m.chapters && <p className="muted">{m.title}</p>}
             <ul className="resource-list">
-              {m.youtube_id && (
+              {hasRecording(m) && (
                 <li>
                   <Link to={"/encontros/" + m.id}>
                     <span>
@@ -57,15 +58,7 @@ export default function BookMaterials() {
               )}
               {m.resources.map((r) => (
                 <li key={r.id}>
-                  <a href={r.url} target="_blank" rel="noreferrer">
-                    <span>
-                      <span className="resource-kind">
-                        {materialLabels[r.kind] ?? materialLabels.link}
-                      </span>
-                      {r.title}
-                    </span>
-                    <ArrowUpRight size={16} />
-                  </a>
+                  <ResourceLink resource={r} />
                 </li>
               ))}
             </ul>

@@ -5,6 +5,7 @@ import {
   rsvpToken,
   type InvitationEnv,
 } from "./meeting-invitation";
+import { emailConfirmedSql } from "./email-gate";
 export type ReminderKind = "d1" | "h1";
 const minute = 60_000;
 // How long before the meeting each reminder goes out. The windows are as
@@ -67,7 +68,7 @@ async function sendReminderBatch(
   const claimed = await env.DB.prepare(
     `INSERT INTO meeting_reminders(meeting_id,user_id,kind,attempted_at)
     SELECT ?1,u.id,?2,?3 FROM users u JOIN applications a ON a.email=u.email
-    WHERE a.status='approved' AND u.role='member' AND u.meeting_emails=1
+    WHERE a.status='approved' AND u.role='member' AND u.meeting_emails=1 AND ${emailConfirmedSql}
       AND NOT EXISTS (SELECT 1 FROM meeting_rsvps r WHERE r.meeting_id=?1 AND r.user_id=u.id AND r.response='no')
       AND NOT EXISTS (SELECT 1 FROM meeting_reminders x WHERE x.meeting_id=?1 AND x.user_id=u.id AND x.kind=?2
         AND (x.status!='failed' OR x.attempted_at>=?3))

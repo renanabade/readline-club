@@ -1,6 +1,7 @@
 import type { Meeting } from "../../shared/contracts";
 import { googleCalendarUrl } from "../../shared/calendar";
 import { meetingToIcs } from "./calendar";
+import { emailConfirmedSql } from "./email-gate";
 export interface InvitationEnv {
   DB: D1Database;
   EMAIL: SendEmail;
@@ -131,7 +132,7 @@ export async function sendInvitationBatch(
     ? (
         await env.DB.prepare(
           `SELECT u.id,u.email,u.name FROM users u JOIN applications a ON a.email=u.email
-          WHERE u.id IN (SELECT value FROM json_each(?)) AND a.status='approved' AND u.role='member' AND u.meeting_emails=1`,
+          WHERE u.id IN (SELECT value FROM json_each(?)) AND a.status='approved' AND u.role='member' AND u.meeting_emails=1 AND ${emailConfirmedSql}`,
         )
           .bind(JSON.stringify(ids))
           .all<{ id: string; email: string; name: string }>()

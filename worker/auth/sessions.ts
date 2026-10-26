@@ -16,7 +16,7 @@ export async function getIdentity(
     ?.slice(SESSION_COOKIE.length + 1);
   if (!raw || raw.length > 256) return null;
   const row = await env.DB.prepare(
-    "SELECT u.id,u.email,u.name,u.role,u.must_change_password,a.status FROM sessions s JOIN users u ON u.id=s.user_id LEFT JOIN applications a ON a.email=u.email WHERE s.token_hash=? AND s.expires_at>?",
+    "SELECT u.id,u.email,u.name,u.role,u.must_change_password,a.status,a.email_confirmation_required,a.email_verified_at FROM sessions s JOIN users u ON u.id=s.user_id LEFT JOIN applications a ON a.email=u.email WHERE s.token_hash=? AND s.expires_at>?",
   )
     .bind(digest(raw), Date.now())
     .first<{
@@ -26,20 +26,27 @@ export async function getIdentity(
       role: "member" | "admin";
       must_change_password: number;
       status: ApplicationStatus | null;
+      email_confirmation_required: number | null;
+      email_verified_at: string | null;
     }>();
   if (!row) return null;
+  const role =
+    row.role === "admin" &&
+    !!env.ADMIN_EMAIL?.trim() &&
+    row.email.trim().toLowerCase() === env.ADMIN_EMAIL.trim().toLowerCase()
+      ? "admin"
+      : "member";
   return {
     userId: row.id,
     email: row.email,
     name: row.name,
-    role:
-      row.role === "admin" &&
-      !!env.ADMIN_EMAIL?.trim() &&
-      row.email.trim().toLowerCase() === env.ADMIN_EMAIL.trim().toLowerCase()
-        ? "admin"
-        : "member",
+    role,
     status: row.status,
     mustChangePassword: !!row.must_change_password,
+    emailConfirmationPending:
+      role !== "admin" &&
+      row.email_confirmation_required === 1 &&
+      !row.email_verified_at,
   };
 }
 export async function startSession(c: Context<AppEnv>, userId: string) {

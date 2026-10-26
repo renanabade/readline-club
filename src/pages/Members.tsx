@@ -19,9 +19,11 @@ import { BookArchive } from "../components/BookArchive";
 import { WhatsAppAccess } from "../components/WhatsAppAccess";
 import { HomeStatus } from "../components/HomeStatus";
 import { EmailConfirmation } from "../components/EmailConfirmation";
+import { LockedButton } from "../components/EmailGate";
+import { ResourceLink } from "../components/ResourceLink";
 import { SocialLinks } from "../components/SocialLinks";
 import { MemberNextMeeting } from "../components/MemberNextMeeting";
-import { callLabel, materialLabels } from "../lib/meeting";
+import { callLabel } from "../lib/meeting";
 import { useSession } from "../lib/session";
 import { useData } from "../lib/useData";
 import { save } from "../lib/api";
@@ -227,6 +229,15 @@ export function MeetingPage() {
                 allowFullScreen
               />
             </div>
+          ) : m.recording_locked ? (
+            <div className="video-empty">
+              <LockKeyhole size={40} strokeWidth={1.2} />
+              <h2>A gravação deste encontro está disponível.</h2>
+              <p>Confirme seu e-mail para assistir.</p>
+              <LockedButton className="button primary">
+                <Play size={16} aria-hidden="true" /> Assistir à gravação
+              </LockedButton>
+            </div>
           ) : (
             <div className="video-empty">
               <Play size={40} strokeWidth={1.2} />
@@ -276,15 +287,7 @@ export function MeetingPage() {
             <ul className="resource-list">
               {data.resources.map((r) => (
                 <li key={r.id}>
-                  <a href={r.url} target="_blank" rel="noreferrer">
-                    <span>
-                      <span className="resource-kind">
-                        {materialLabels[r.kind] ?? materialLabels.link}
-                      </span>
-                      {r.title}
-                    </span>
-                    <ArrowUpRight size={16} />
-                  </a>
+                  <ResourceLink resource={r} />
                 </li>
               ))}
             </ul>
@@ -437,8 +440,8 @@ export function Community() {
             compartilhar referências, trocar experiências e falar de outros
             assuntos de tecnologia. O Discord é opcional e serve para calls de
             estudo, leitura em conjunto, projetos e o que a comunidade quiser
-            organizar. Os convites dos dois são liberados só para membros
-            aprovados, dentro da plataforma.
+            organizar. Os convites dos dois são liberados dentro da plataforma,
+            para membros com o e-mail do cadastro confirmado.
           </p>
           <SocialLinks title="Redes sociais do clube" />
           <h2>Comunidade e networking.</h2>

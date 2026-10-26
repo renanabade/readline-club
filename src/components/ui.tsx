@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import type { Book, Meeting } from "../../shared/contracts";
 import { dateLabel } from "../lib/dates";
-import { materialSummary } from "../lib/meeting";
+import { hasRecording, materialSummary } from "../lib/meeting";
 import type { ReactNode } from "react";
 export const Arrow = () => <ArrowRight size={18} aria-hidden="true" />;
 export function Notice({ children }: { children: ReactNode }) {
@@ -174,7 +174,7 @@ export function MeetingRow({ meeting }: { meeting: Meeting }) {
         )}
       </div>
       <span className="meeting-status">
-        {meeting.youtube_id ? (
+        {hasRecording(meeting) ? (
           <>
             <Video size={16} />
             Assistir gravação

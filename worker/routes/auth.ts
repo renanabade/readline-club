@@ -57,8 +57,9 @@ auth.post("/register", async (c) => {
       c.env.DB.prepare(
         "INSERT INTO users(id,email,name,password_hash) VALUES(?,?,?,?)",
       ).bind(id, data.email, data.name, hash),
+      // Access starts now; what needs the confirmed email stays locked.
       c.env.DB.prepare(
-        "INSERT INTO applications(id,email,name,phone,experience,motivation) VALUES(?,?,?,?,?,?)",
+        "INSERT INTO applications(id,email,name,phone,experience,motivation,status,email_confirmation_required) VALUES(?,?,?,?,?,?,'approved',1)",
       ).bind(
         id,
         data.email,
@@ -80,7 +81,7 @@ auth.post("/register", async (c) => {
       {
         ok: true,
         message:
-          "Cadastro recebido. Confirme seu e-mail pelo link que enviamos para liberar o acesso.",
+          "Cadastro feito. Entre com sua senha e confirme seu e-mail pelo link que enviamos para liberar os grupos, as gravações e os resumos.",
       },
       201,
     );
@@ -92,7 +93,7 @@ auth.post("/register", async (c) => {
     {
       ok: true,
       message:
-        "Cadastro recebido. Abra o link que enviamos para o seu e-mail para liberar o acesso.",
+        "Cadastro feito. Entre com sua senha e confirme seu e-mail pelo link que enviamos para liberar os grupos, as gravações e os resumos.",
     },
     201,
   );
@@ -141,17 +142,22 @@ auth.post("/verify-email", async (c) => {
         "Este link expirou ou já foi usado. Entre na plataforma para pedir outro.",
     });
   const now = new Date().toISOString();
-  // Confirming the email is what grants access. Rejected or suspended
-  // accounts keep their status, and only members are approved this way.
-  const [, approved] = await c.env.DB.batch([
+  // Confirming the email unlocks groups, recordings and materials, and
+  // approves accounts still pending from before access became immediate.
+  // Rejected or suspended accounts keep their status; only members count.
+  const [, , member] = await c.env.DB.batch([
     c.env.DB.prepare(
       "UPDATE applications SET email_verified_at=COALESCE(email_verified_at,?) WHERE email=(SELECT email FROM users WHERE id=?)",
     ).bind(now, verification.user_id),
     c.env.DB.prepare(
-      "UPDATE applications SET status='approved',updated_at=? WHERE status='pending' AND email=(SELECT email FROM users WHERE id=? AND role='member') RETURNING id",
+      "UPDATE applications SET status='approved',updated_at=? WHERE status='pending' AND email=(SELECT email FROM users WHERE id=? AND role='member')",
     ).bind(now, verification.user_id),
+    c.env.DB.prepare(
+      "SELECT id FROM applications WHERE status='approved' AND email=(SELECT email FROM users WHERE id=? AND role='member')",
+    ).bind(verification.user_id),
   ]);
-  const application = (approved?.results as { id: string }[] | undefined)?.[0];
+  // The welcome email goes out once, now that the address is confirmed.
+  const application = (member?.results as { id: string }[] | undefined)?.[0];
   if (application) await notifyApproval(c.env, application.id);
   return c.json({ ok: true });
 });
