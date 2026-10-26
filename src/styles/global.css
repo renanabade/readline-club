@@ -1298,6 +1298,27 @@ main {
 .notes h2 {
   margin-bottom: 20px;
 }
+.question-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+}
+.question-list li {
+  border-top: 1px solid var(--line);
+  padding: 16px 0;
+}
+.question-list .tag {
+  margin-left: 8px;
+}
+.question-form {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+.question-form label {
+  display: grid;
+  gap: 8px;
+}
 .resource-list {
   list-style: none;
   padding: 0;

@@ -12,9 +12,11 @@ import {
   Mail,
   Search,
   UserMinus,
+  MessageCircleQuestion,
   UserCheck,
   X,
 } from "lucide-react";
+import { AdminQuestions } from "../components/AdminQuestions";
 import { AdminAttendance } from "../components/AdminAttendance";
 import { useData } from "../lib/useData";
 import { save, api, upload } from "../lib/api";
@@ -274,6 +276,7 @@ export default function Admin() {
           ["applications", "Integrantes", Users],
           ["books", "Biblioteca", BookOpen],
           ["meetings", "Encontros", CalendarDays],
+          ["questions", "Perguntas", MessageCircleQuestion],
           ["attendance", "Presença", UserCheck],
           ["settings", "O clube", Settings2],
         ].map(([id, label, Icon]) => {
@@ -785,6 +788,7 @@ export default function Admin() {
           </button>
         </div>
       )}
+      {tab === "questions" && <AdminQuestions meetings={data.meetings} />}
       {tab === "attendance" && <AdminAttendance />}
       {draft && (
         <Editor

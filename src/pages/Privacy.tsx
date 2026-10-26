@@ -43,6 +43,11 @@ export default function Privacy() {
           para responder àquele encontro e deixa de valer quando ele começa.
         </li>
         <li>
+          <strong>Perguntas para discussão:</strong> as perguntas que você
+          enviar para um encontro e em quais perguntas você marcou &quot;também
+          quero discutir&quot;.
+        </li>
+        <li>
           <strong>Participação:</strong> depois de cada encontro, a organização
           registra quem esteve presente, para acompanhar quem volta de um
           encontro para o outro. Você vê o seu histórico em{" "}
@@ -85,10 +90,14 @@ export default function Privacy() {
         grupos. Das confirmações de presença, a organização vê apenas o total de
         cada encontro, não quem respondeu. A presença registrada depois do
         encontro aparece para a organização por pessoa e para você no seu
-        histórico. Outros membros não veem seus dados pela plataforma. A página
-        inicial mostra apenas o número total de membros. Nos grupos do WhatsApp
-        e do Discord, as outras pessoas veem o que esses serviços mostram, como
-        seu número no WhatsApp.
+        histórico. Outros membros não veem seus dados pela plataforma, com uma
+        exceção: as perguntas para discussão que você enviar aparecem para os
+        membros com o seu primeiro nome. De quem marcou &quot;também quero
+        discutir&quot;, os membros e a organização veem só o total. A
+        organização vê o nome completo de quem enviou cada pergunta e pode
+        ocultá-la. A página inicial mostra apenas o número total de membros. Nos
+        grupos do WhatsApp e do Discord, as outras pessoas veem o que esses
+        serviços mostram, como seu número no WhatsApp.
       </p>
 
       <h2>Gravações, transcrições e resumos</h2>

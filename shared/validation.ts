@@ -163,6 +163,21 @@ export const resourceKinds = [
   "transcript",
   "link",
 ] as const;
+export const maxQuestionsPerMeeting = 3;
+export const questionSchema = z.object({
+  body: z
+    .string()
+    .trim()
+    .min(1, "Escreva a pergunta.")
+    .max(500, "Use até 500 caracteres."),
+});
+export const questionVoteSchema = z.object({ vote: z.boolean() });
+export const questionReviewSchema = z
+  .object({ hidden: z.boolean().optional(), agenda: z.boolean().optional() })
+  .refine(
+    (data) => data.hidden !== undefined || data.agenda !== undefined,
+    "Envie ao menos um campo.",
+  );
 // The full list of who was present: what is left out is unmarked.
 export const attendanceSchema = z.object({
   userIds: z.array(z.string().min(1).max(100)).max(1000),
