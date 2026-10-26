@@ -60,7 +60,7 @@ test("signup fails closed when challenge verification is unavailable", async () 
   );
   expect(r.status).toBe(503);
 });
-test("signup stores a hashed password and pending status; login works", async () => {
+test("signup stores a hashed password and enters right away, pending the email; login works", async () => {
   vi.stubGlobal(
     "fetch",
     vi.fn().mockResolvedValue(
@@ -81,10 +81,16 @@ test("signup stores a hashed password and pending status; login works", async ()
   expect(row?.password_hash).toMatch(/^scrypt:/);
   expect(row?.role).toBe("member");
   expect(
-    await f.DB.prepare("SELECT status FROM applications WHERE email=?")
+    await f.DB.prepare(
+      "SELECT status,email_confirmation_required,email_verified_at FROM applications WHERE email=?",
+    )
       .bind(data.email)
-      .first("status"),
-  ).toBe("pending");
+      .first(),
+  ).toEqual({
+    status: "approved",
+    email_confirmation_required: 1,
+    email_verified_at: null,
+  });
   const login = await post("/api/auth/login", {
     email: data.email,
     password: data.password,

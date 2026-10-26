@@ -36,6 +36,7 @@ export async function fixture() {
     "0020_community_group_clicks.sql",
     "0021_meeting_attendance.sql",
     "0022_meeting_questions.sql",
+    "0023_email_confirmation_gate.sql",
   ])
     for (const stmt of readFileSync("migrations/" + file, "utf8")
       .split(";")

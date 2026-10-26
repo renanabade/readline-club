@@ -7,6 +7,9 @@ export interface Identity {
   role: "member" | "admin";
   status: ApplicationStatus | null;
   mustChangePassword: boolean;
+  // Signed up after access became immediate and has not confirmed the email:
+  // groups, recordings and materials stay locked.
+  emailConfirmationPending: boolean;
 }
 export interface Category {
   id: string;
@@ -43,6 +46,8 @@ export interface Meeting {
   book_title?: string;
   book_id?: string;
   youtube_id?: string | null;
+  // There is a recording, held back until the person confirms the email.
+  recording_locked?: boolean;
   // Comma-separated kinds of the materials attached to the meeting.
   material_kinds?: string | null;
 }
@@ -58,7 +63,12 @@ export interface BookMaterials {
   book: Pick<Book, "id" | "title" | "author">;
   meetings: (Pick<
     Meeting,
-    "id" | "title" | "chapters" | "starts_at" | "youtube_id"
+    | "id"
+    | "title"
+    | "chapters"
+    | "starts_at"
+    | "youtube_id"
+    | "recording_locked"
   > & { resources: Resource[] })[];
 }
 export type ResourceKind =
@@ -76,6 +86,8 @@ export interface Resource {
   title: string;
   url: string;
   kind: ResourceKind;
+  // Without the address until the person confirms the email.
+  locked?: boolean;
 }
 export interface SocialLinks {
   instagram_url: string;
@@ -94,6 +106,8 @@ export interface CommunityAccess extends Settings {
   onboardingRequired: boolean;
   onboardingVersion: string;
   discordAvailable: boolean;
+  // The invitations wait for the signup email to be confirmed.
+  emailConfirmationRequired: boolean;
   currentBookTitle: string | null;
   nextMeeting:
     | (Pick<

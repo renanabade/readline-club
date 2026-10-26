@@ -20,6 +20,7 @@ import { useSession } from "../lib/session";
 import { BookArt, Empty, MeetingRow } from "../components/ui";
 import { useData } from "../lib/useData";
 import type { Meeting, PublicMeeting } from "../../shared/contracts";
+import { hasRecording } from "../lib/meeting";
 import { WhatsAppAccess } from "../components/WhatsAppAccess";
 import { NextMeetingNotice } from "../components/NextMeetingNotice";
 import { MemberNextMeeting } from "../components/MemberNextMeeting";
@@ -27,7 +28,7 @@ import { HomeStatus } from "../components/HomeStatus";
 import { SocialLinks } from "../components/SocialLinks";
 function MemberNext({ next }: { next: PublicMeeting | null }) {
   const { data } = useData<Meeting[]>("/meetings");
-  const recording = data?.filter((m) => m.youtube_id).at(-1);
+  const recording = data?.filter(hasRecording).at(-1);
   return (
     <section className="container section member-next">
       <div className="section-heading">
@@ -152,7 +153,7 @@ const questions = [
   },
   {
     q: "Quais são os canais oficiais do clube?",
-    a: "A plataforma, o grupo do WhatsApp e o servidor do Discord. Os convites dos grupos são liberados só para membros aprovados, dentro da plataforma. Desconfie de links compartilhados por outros caminhos.",
+    a: "A plataforma, o grupo do WhatsApp e o servidor do Discord. Os convites dos grupos são liberados só para membros com o e-mail confirmado, dentro da plataforma. Desconfie de links compartilhados por outros caminhos.",
   },
   {
     q: "Por que vocês pedem meu celular?",

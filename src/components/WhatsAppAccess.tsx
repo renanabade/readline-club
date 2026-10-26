@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowUpRight, MessagesSquare } from "lucide-react";
+import { ArrowUpRight, LockKeyhole, MessagesSquare } from "lucide-react";
 import { useSession } from "../lib/session";
 import { useData } from "../lib/useData";
 import { save } from "../lib/api";
 import { dateLabel } from "../lib/dates";
+import { LockedButton } from "./EmailGate";
 import type { CommunityAccess, Identity } from "../../shared/contracts";
 
 function ApprovedAccess({ guidelines }: { guidelines: boolean }) {
@@ -153,6 +154,19 @@ function ApprovedAccess({ guidelines }: { guidelines: boolean }) {
             {saving ? "Salvando…" : "Confirmar e liberar os convites"}
           </button>
         </div>
+      ) : data?.emailConfirmationRequired ? (
+        // The invitations stay on the server until the email is confirmed.
+        <div className="whatsapp-actions">
+          <LockedButton className="button primary">
+            <LockKeyhole size={17} aria-hidden="true" /> Entrar no grupo do
+            WhatsApp
+          </LockedButton>
+          {discord && (
+            <LockedButton className="button">
+              <LockKeyhole size={17} aria-hidden="true" /> Entrar no Discord
+            </LockedButton>
+          )}
+        </div>
       ) : (
         <div className="whatsapp-actions">
           {data?.whatsapp_url && (
@@ -260,7 +274,8 @@ export function WhatsAppAccess({
             </p>
             <p>
               <strong>
-                O acesso aos grupos é liberado com a conta aprovada.
+                O acesso aos grupos é liberado com o e-mail do cadastro
+                confirmado.
               </strong>{" "}
               Depois de fazer login, leia a apresentação do clube e confirme que
               está por dentro. Os convites aparecem aqui, em{" "}

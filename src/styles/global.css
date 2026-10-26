@@ -1326,7 +1326,8 @@ main {
 .materials-chapter {
   padding-top: 35px;
 }
-.resource-list a {
+.resource-list a,
+.resource-list .resource-locked {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1334,6 +1335,42 @@ main {
   border-bottom: 1px solid var(--line);
   padding-block: 15px;
   font-size: 0.87rem;
+}
+.resource-list .resource-locked {
+  width: 100%;
+  background: none;
+  border-inline: 0;
+  border-top: 0;
+  color: inherit;
+  font: inherit;
+  font-size: 0.87rem;
+  text-align: left;
+  cursor: pointer;
+}
+.email-gate-banner {
+  background: var(--accent-soft);
+  border-bottom: 1px solid var(--line);
+  font-size: 0.86rem;
+}
+.email-gate-banner .container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding-block: 10px;
+}
+.email-gate-banner button {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.email-gate .email-confirmation {
+  margin-bottom: 20px;
 }
 .quiet-card {
   display: flex;

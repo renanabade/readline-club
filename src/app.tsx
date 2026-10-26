@@ -31,6 +31,7 @@ import type { ReactNode } from "react";
 import { instance } from "./instance";
 import { SocialLinks } from "./components/SocialLinks";
 import { BrandMark } from "./components/BrandMark";
+import { EmailGateProvider, EmailGateBanner } from "./components/EmailGate";
 // Login page that returns here afterwards, e.g. a meeting opened from the
 // invitation email.
 export function loginPath(location: { pathname: string; search: string }) {
@@ -203,13 +204,15 @@ function Layout() {
           </div>
         </div>
       </header>
+      <EmailGateBanner />
       <main id="conteudo">
         {error && (
           <div className="container">
             <Notice>{error}</Notice>
           </div>
         )}
-        <Routes>
+        {/* Confirming the email changes what the pages receive: load them again. */}
+        <Routes key={user?.emailConfirmationPending ? "locked" : "open"}>
           <Route
             path="/"
             element={
@@ -336,7 +339,9 @@ function Layout() {
 export default function App() {
   return (
     <SessionProvider>
-      <Layout />
+      <EmailGateProvider>
+        <Layout />
+      </EmailGateProvider>
     </SessionProvider>
   );
 }

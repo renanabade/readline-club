@@ -1,4 +1,8 @@
 import type { Meeting, ResourceKind } from "../../shared/contracts";
+// Locked recordings count too: the page asks for the email confirmation.
+export const hasRecording = (
+  m: Pick<Meeting, "youtube_id" | "recording_locked">,
+) => !!(m.youtube_id || m.recording_locked);
 export function callLabel(url: string) {
   try {
     const host = new URL(url).hostname;

@@ -1,9 +1,14 @@
 import { Hono } from "hono";
+import { HTTPException } from "hono/http-exception";
 import type { AppEnv } from "../env";
 import { missing } from "../errors";
 import { filePath, fileKey } from "../lib/files";
 const files = new Hono<AppEnv>();
 files.get("/:key", async (c) => {
+  if (c.get("identity").emailConfirmationPending)
+    throw new HTTPException(403, {
+      message: "Confirme seu e-mail para baixar os materiais.",
+    });
   const url = c.env.APP_ORIGIN + filePath + c.req.param("key");
   const key = fileKey(url, c.env.APP_ORIGIN);
   // Only serve objects still attached to a material.

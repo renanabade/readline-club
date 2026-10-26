@@ -70,7 +70,15 @@ test("public data and identity contain only their intended fields", async () => 
     f.env,
   );
   expect(Object.keys(await identity.json()).sort()).toEqual(
-    ["userId", "email", "name", "role", "status", "mustChangePassword"].sort(),
+    [
+      "userId",
+      "email",
+      "name",
+      "role",
+      "status",
+      "mustChangePassword",
+      "emailConfirmationPending",
+    ].sort(),
   );
 });
 
