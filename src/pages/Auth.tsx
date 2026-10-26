@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowRight, BookOpen, Check } from "lucide-react";
 import { useSession } from "../lib/session";
@@ -27,15 +27,33 @@ export default function Auth({
     [done, setDone] = useState(false),
     [token, setToken] = useState(""),
     [attempt, setAttempt] = useState(0),
-    [sent, setSent] = useState("");
+    [sent, setSent] = useState(""),
+    [showPassword, setShowPassword] = useState(false),
+    [mismatch, setMismatch] = useState(false);
+  const errorRef = useRef<HTMLDivElement>(null),
+    confirmRef = useRef<HTMLInputElement>(null);
   const signup = mode === "signup",
     reset = mode === "reset",
     forgot = mode === "forgot";
+  // A server error moves focus to its message, so keyboards and screen
+  // readers land on what went wrong.
+  useEffect(() => {
+    if (error && !mismatch) errorRef.current?.focus();
+  }, [error, mismatch, attempt]);
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
+    setMismatch(false);
+    const { passwordConfirm, ...d } = Object.fromEntries(
+      new FormData(e.currentTarget),
+    );
+    if (signup && d.password !== passwordConfirm) {
+      setMismatch(true);
+      setError("As senhas não conferem. Digite a mesma senha nos dois campos.");
+      confirmRef.current?.focus();
+      return;
+    }
     setBusy(true);
-    const d = Object.fromEntries(new FormData(e.currentTarget));
     try {
       if (signup) {
         await save("/auth/register", {
@@ -122,7 +140,7 @@ export default function Auth({
         </h2>
         <p>
           {signup
-            ? "Leva um minuto. A organização revisa cada inscrição e avisa por e-mail quando seu acesso for liberado."
+            ? "Pedimos nome, e-mail, celular e uma senha para você entrar na plataforma. Leva um minuto: depois é só confirmar o e-mail pelo link que enviamos para liberar seu acesso."
             : reset
               ? "O link é individual e só pode ser usado uma vez."
               : forgot
@@ -141,7 +159,7 @@ export default function Auth({
             </h3>
             <p>
               {signup
-                ? "Se o cadastro é novo, enviamos um link para confirmar seu e-mail. Você recebe outro e-mail quando o acesso for liberado; enquanto isso, entre para acompanhar o status. Se já tinha cadastro, use sua senha anterior."
+                ? "Se o cadastro é novo, enviamos um link para confirmar seu e-mail: abrir esse link libera seu acesso na hora. Para acompanhar, entre com a senha que você acabou de criar. Se este e-mail já estava cadastrado, a conta continua a mesma: entre com a senha de antes ou use “Esqueci minha senha”."
                 : forgot
                   ? sent + " Não chegou? Confira a caixa de spam."
                   : "Agora você pode entrar com sua nova senha."}
@@ -204,7 +222,7 @@ export default function Auth({
               <label>
                 {reset ? "Nova senha" : "Senha"}
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   autoComplete={
                     signup || reset ? "new-password" : "current-password"
@@ -215,8 +233,44 @@ export default function Auth({
                   placeholder={
                     signup || reset ? "Pelo menos 10 caracteres" : "Sua senha"
                   }
+                  aria-describedby={
+                    signup || reset ? "password-rules" : undefined
+                  }
                 />
+                {(signup || reset) && (
+                  <span className="field-help" id="password-rules">
+                    Use de 10 a 128 caracteres. Uma frase com algumas palavras
+                    fica forte e é fácil de lembrar.
+                  </span>
+                )}
               </label>
+            )}
+            {signup && (
+              <>
+                <label>
+                  Confirme a senha
+                  <input
+                    ref={confirmRef}
+                    type={showPassword ? "text" : "password"}
+                    name="passwordConfirm"
+                    autoComplete="new-password"
+                    required
+                    maxLength={128}
+                    placeholder="Digite a senha de novo"
+                    aria-invalid={mismatch || undefined}
+                    aria-describedby={mismatch ? "form-error" : undefined}
+                    onChange={() => mismatch && setMismatch(false)}
+                  />
+                </label>
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={showPassword}
+                    onChange={(e) => setShowPassword(e.target.checked)}
+                  />
+                  <span>Mostrar senha</span>
+                </label>
+              </>
             )}
             {forgot &&
               (home?.turnstileSiteKey ? (
@@ -236,7 +290,10 @@ export default function Auth({
               <>
                 <label>
                   Como está sua jornada na computação?
-                  <select name="experience">
+                  <select name="experience" required defaultValue="">
+                    <option value="" disabled>
+                      Escolha uma opção
+                    </option>
                     <option value="beginner">Estou começando</option>
                     <option value="learning">
                       Já estudo ou programo um pouco
@@ -292,7 +349,11 @@ export default function Auth({
                 )}
               </>
             )}
-            {error && <Notice>{error}</Notice>}
+            {error && (
+              <div ref={errorRef} id="form-error" tabIndex={-1}>
+                <Notice>{error}</Notice>
+              </div>
+            )}
             <button
               className="button primary full"
               disabled={busy || ((signup || forgot) && !token)}
