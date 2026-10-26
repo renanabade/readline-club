@@ -57,7 +57,10 @@ export const signupSchema = z.object({
   email: emailSchema,
   phone: phoneSchema,
   password: passwordSchema,
-  experience: z.enum(["beginner", "learning", "experienced"]),
+  experience: z.enum(
+    ["beginner", "learning", "experienced"],
+    "Conte como está sua jornada na computação.",
+  ),
   motivation: z.string().trim().max(2000).default(""),
   consent: z.literal(true),
   turnstileToken: z.string().max(2048).default(""),
