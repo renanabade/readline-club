@@ -150,6 +150,30 @@ export interface AdminData {
   // Totals only: how many confirmed the introduction and clicked each group.
   communityFunnel: { acknowledged: number; whatsapp: number; discord: number };
 }
+// A held meeting, with how many were present and how many of them were also
+// present at the meeting held before it.
+export interface AttendanceSummary {
+  meeting_id: string;
+  title: string;
+  book_title: string;
+  starts_at: string;
+  previous_title: string | null;
+  present: number;
+  also_previous: number;
+}
+export interface AttendanceMember {
+  user_id: string;
+  name: string;
+  email: string;
+  present: boolean;
+}
+export interface AttendanceSheet {
+  meeting: Pick<Meeting, "id" | "title" | "starts_at">;
+  members: AttendanceMember[];
+}
+export type AttendedMeeting = Pick<Meeting, "id" | "title" | "starts_at"> & {
+  book_title: string;
+};
 export interface InvitationQueue {
   added: number;
   queued: number;

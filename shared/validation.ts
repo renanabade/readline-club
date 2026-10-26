@@ -163,6 +163,10 @@ export const resourceKinds = [
   "transcript",
   "link",
 ] as const;
+// The full list of who was present: what is left out is unmarked.
+export const attendanceSchema = z.object({
+  userIds: z.array(z.string().min(1).max(100)).max(1000),
+});
 export const uploadSchema = z.object({
   meeting_id: z.string().min(1).max(100),
   title: z.string().trim().min(1, "Dê um nome ao material.").max(200),

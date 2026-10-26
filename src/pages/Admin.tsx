@@ -12,8 +12,10 @@ import {
   Mail,
   Search,
   UserMinus,
+  UserCheck,
   X,
 } from "lucide-react";
+import { AdminAttendance } from "../components/AdminAttendance";
 import { useData } from "../lib/useData";
 import { save, api, upload } from "../lib/api";
 import { inputDate, dateLabel } from "../lib/dates";
@@ -272,6 +274,7 @@ export default function Admin() {
           ["applications", "Integrantes", Users],
           ["books", "Biblioteca", BookOpen],
           ["meetings", "Encontros", CalendarDays],
+          ["attendance", "Presença", UserCheck],
           ["settings", "O clube", Settings2],
         ].map(([id, label, Icon]) => {
           const I = Icon as typeof Users;
@@ -782,6 +785,7 @@ export default function Admin() {
           </button>
         </div>
       )}
+      {tab === "attendance" && <AdminAttendance />}
       {draft && (
         <Editor
           draft={draft}

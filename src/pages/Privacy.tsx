@@ -43,6 +43,12 @@ export default function Privacy() {
           para responder àquele encontro e deixa de valer quando ele começa.
         </li>
         <li>
+          <strong>Participação:</strong> depois de cada encontro, a organização
+          registra quem esteve presente, para acompanhar quem volta de um
+          encontro para o outro. Você vê o seu histórico em{" "}
+          <Link to="/conta">Minha conta</Link>.
+        </li>
+        <li>
           <strong>Acesso aos grupos:</strong> a data do primeiro clique em
           &quot;Entrar no grupo do WhatsApp&quot; e em &quot;Entrar no
           Discord&quot;, para a organização acompanhar quantas pessoas chegam
@@ -77,10 +83,12 @@ export default function Privacy() {
         A organização do clube vê os cadastros (nome, e-mail, celular,
         experiência e motivação) para acompanhar as inscrições e cuidar dos
         grupos. Das confirmações de presença, a organização vê apenas o total de
-        cada encontro, não quem respondeu. Outros membros não veem seus dados
-        pela plataforma. A página inicial mostra apenas o número total de
-        membros. Nos grupos do WhatsApp e do Discord, as outras pessoas veem o
-        que esses serviços mostram, como seu número no WhatsApp.
+        cada encontro, não quem respondeu. A presença registrada depois do
+        encontro aparece para a organização por pessoa e para você no seu
+        histórico. Outros membros não veem seus dados pela plataforma. A página
+        inicial mostra apenas o número total de membros. Nos grupos do WhatsApp
+        e do Discord, as outras pessoas veem o que esses serviços mostram, como
+        seu número no WhatsApp.
       </p>
 
       <h2>Gravações, transcrições e resumos</h2>
