@@ -36,7 +36,7 @@ No painel é possível:
 - Criar ciclos e escolher a leitura atual.
 - Cadastrar datas, capítulos, duração, pauta, notas e links de reunião.
 - Colar links do YouTube e publicar ou retirar a publicação da gravação.
-- Adicionar materiais com tipo (resumo em PDF, resumo em EPUB, slides, transcrição ou material complementar). Resumos e slides aparecem em destaque na página do encontro e como indicação na lista de encontros do livro.
+- Adicionar materiais enviando um arquivo PDF ou EPUB (até 20 MB, guardado no R2 e baixado só por membros aprovados) ou colando um link, com tipo (resumo em PDF, resumo em EPUB, slides, transcrição ou material complementar). Resumos e slides aparecem em destaque na página do encontro e como indicação na lista de encontros do livro.
 - Configurar os convites do WhatsApp e do Discord e as redes sociais do clube (Instagram, X, LinkedIn e YouTube), exibidas publicamente no site.
 - Gerar um link de recuperação de senha, de uso único, válido por 30 minutos, para entregar em conversa privada (por exemplo, quando o e-mail não chega).
 
@@ -113,11 +113,14 @@ Nome, apresentação, combinados e convites do clube são editados no painel adm
 
 ```sh
 npx wrangler login
+npx wrangler r2 bucket create readlineclub-files
 npm run db:migrate:remote
 npx wrangler pages secret put TURNSTILE_SECRET --project-name readlineclub
 npx wrangler pages secret put ADMIN_EMAIL --project-name readlineclub
 npm run deploy
 ```
+
+O bucket R2 `readlineclub-files` (binding `FILES`) guarda os materiais enviados pelo painel e só precisa ser criado uma vez. Sem o binding, o envio de arquivos responde que não está configurado e os links continuam funcionando. Os arquivos ficam privados: não habilite acesso público nem domínio no bucket, porque o download passa pela API, que confere se a pessoa é membro aprovado.
 
 Antes do primeiro deploy, copie `.env.mailer.example` para `.env.mailer` e preencha `ADMIN_NOTIFY_EMAIL`. O arquivo fica fora do git e é enviado como secret do mailer a cada `npm run deploy`; sem ele, o deploy do mailer falha.
 
