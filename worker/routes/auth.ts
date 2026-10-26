@@ -22,6 +22,7 @@ import { requireUser } from "../auth/guards";
 import { rateLimit } from "../auth/limits";
 import { requestAccountEmail } from "../lib/account-email";
 import { verifyTurnstile } from "../auth/turnstile";
+import { notifyApproval } from "../lib/approval-email";
 const auth = new Hono<AppEnv>();
 export const expireDepartures = (db: D1Database, now = new Date()) =>
   db
@@ -78,7 +79,8 @@ auth.post("/register", async (c) => {
     return c.json(
       {
         ok: true,
-        message: "Cadastro recebido. Entre para acompanhar sua aprovação.",
+        message:
+          "Cadastro recebido. Confirme seu e-mail pelo link que enviamos para liberar o acesso.",
       },
       201,
     );
@@ -90,7 +92,7 @@ auth.post("/register", async (c) => {
     {
       ok: true,
       message:
-        "Cadastro recebido. Enviamos um link para confirmar seu e-mail. Entre para acompanhar sua aprovação.",
+        "Cadastro recebido. Abra o link que enviamos para o seu e-mail para liberar o acesso.",
     },
     201,
   );
@@ -138,11 +140,19 @@ auth.post("/verify-email", async (c) => {
       message:
         "Este link expirou ou já foi usado. Entre na plataforma para pedir outro.",
     });
-  await c.env.DB.prepare(
-    "UPDATE applications SET email_verified_at=COALESCE(email_verified_at,?) WHERE email=(SELECT email FROM users WHERE id=?)",
-  )
-    .bind(new Date().toISOString(), verification.user_id)
-    .run();
+  const now = new Date().toISOString();
+  // Confirming the email is what grants access. Rejected or suspended
+  // accounts keep their status, and only members are approved this way.
+  const [, approved] = await c.env.DB.batch([
+    c.env.DB.prepare(
+      "UPDATE applications SET email_verified_at=COALESCE(email_verified_at,?) WHERE email=(SELECT email FROM users WHERE id=?)",
+    ).bind(now, verification.user_id),
+    c.env.DB.prepare(
+      "UPDATE applications SET status='approved',updated_at=? WHERE status='pending' AND email=(SELECT email FROM users WHERE id=? AND role='member') RETURNING id",
+    ).bind(now, verification.user_id),
+  ]);
+  const application = (approved?.results as { id: string }[] | undefined)?.[0];
+  if (application) await notifyApproval(c.env, application.id);
   return c.json({ ok: true });
 });
 auth.post("/login", async (c) => {
