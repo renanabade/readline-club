@@ -94,7 +94,7 @@ test("approved members see their next meeting and the group access instead of th
 
 test("pending, rejected and suspended accounts see where their approval stands", async () => {
   for (const [status, title] of [
-    ["pending", "Seu cadastro está em análise."],
+    ["pending", "Confirme seu e-mail para entrar."],
     ["rejected", "Sua inscrição não foi aprovada neste momento."],
     ["suspended", "Seu acesso está suspenso."],
   ]) {

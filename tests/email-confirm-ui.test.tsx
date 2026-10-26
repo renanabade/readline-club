@@ -46,7 +46,7 @@ test("opening the link does not confirm, one click does", async () => {
     }),
   );
   expect((await screen.findByRole("status")).textContent).toContain(
-    "Obrigado!",
+    "Seu acesso ao clube está liberado",
   );
 });
 test("an incomplete link explains what to do and offers no button", () => {
