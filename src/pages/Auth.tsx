@@ -140,7 +140,7 @@ export default function Auth({
         </h2>
         <p>
           {signup
-            ? "Pedimos nome, e-mail, celular e uma senha para você entrar na plataforma. Leva um minuto: a organização revisa cada inscrição e avisa por e-mail quando seu acesso for liberado."
+            ? "Pedimos nome, e-mail, celular e uma senha para você entrar na plataforma. Leva um minuto: depois é só confirmar o e-mail pelo link que enviamos para liberar seu acesso."
             : reset
               ? "O link é individual e só pode ser usado uma vez."
               : forgot
@@ -159,7 +159,7 @@ export default function Auth({
             </h3>
             <p>
               {signup
-                ? "Se o cadastro é novo, enviamos um link para confirmar seu e-mail. Você recebe outro e-mail quando o acesso for liberado; enquanto isso, entre com a senha que você acabou de criar para acompanhar o status. Se este e-mail já estava cadastrado, a conta continua a mesma: entre com a senha de antes ou use “Esqueci minha senha”."
+                ? "Se o cadastro é novo, enviamos um link para confirmar seu e-mail: abrir esse link libera seu acesso na hora. Para acompanhar, entre com a senha que você acabou de criar. Se este e-mail já estava cadastrado, a conta continua a mesma: entre com a senha de antes ou use “Esqueci minha senha”."
                 : forgot
                   ? sent + " Não chegou? Confira a caixa de spam."
                   : "Agora você pode entrar com sua nova senha."}
