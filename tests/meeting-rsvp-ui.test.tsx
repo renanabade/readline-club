@@ -9,6 +9,7 @@ import {
 } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { MeetingRsvp } from "../src/components/MeetingRsvp";
+import { MemberNextMeeting } from "../src/components/MemberNextMeeting";
 import { Account } from "../src/pages/Members";
 const state = vi.hoisted(() => ({
   user: null as null | Record<string, unknown>,
@@ -58,6 +59,44 @@ test("members confirm presence and can change the answer", async () => {
         .getByRole("button", { name: "Não vou poder" })
         .getAttribute("aria-pressed"),
     ).toBe("true"),
+  );
+});
+
+test("the next meeting card on the home page answers in one click", async () => {
+  const meeting = {
+    ...upcoming,
+    title: "Encontro futuro",
+    chapters: "",
+    duration_minutes: 60,
+    book_title: "Livro de teste",
+  };
+  const fetch = vi.fn(async (_url: string, init?: RequestInit) =>
+    Response.json(
+      init?.method === "PUT"
+        ? { rsvp: JSON.parse(String(init.body)).response }
+        : {
+            meeting: { ...meeting, meeting_url: "" },
+            resources: [],
+            rsvp: null,
+          },
+    ),
+  );
+  vi.stubGlobal("fetch", fetch);
+  render(
+    <MemoryRouter>
+      <MemberNextMeeting meeting={meeting} />
+    </MemoryRouter>,
+  );
+  fireEvent.click(await screen.findByRole("button", { name: "Não vou poder" }));
+  expect(
+    await screen.findByText(/Obrigado por avisar/, { selector: "p" }),
+  ).toBeTruthy();
+  expect(fetch).toHaveBeenCalledWith(
+    "/api/meetings/meeting-1/rsvp",
+    expect.objectContaining({
+      method: "PUT",
+      body: JSON.stringify({ response: "no" }),
+    }),
   );
 });
 

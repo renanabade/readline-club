@@ -60,8 +60,10 @@ admin.get("/overview", async (c) => {
     c.env.DB.prepare(
       "SELECT meeting_id,CASE WHEN status='sending' AND error_code IS NOT NULL THEN 'unknown' ELSE status END AS status,COUNT(*) AS total FROM meeting_invitations GROUP BY 1,2",
     ).all(),
+    // Answers among approved members; scheduled meetings also count the
+    // members who have not answered yet ('none').
     c.env.DB.prepare(
-      "SELECT meeting_id,response,COUNT(*) AS total FROM meeting_rsvps GROUP BY meeting_id,response",
+      "WITH members AS (SELECT u.id FROM users u JOIN applications a ON a.email=u.email WHERE a.status='approved' AND u.role='member') SELECT meeting_id,response,COUNT(*) AS total FROM meeting_rsvps WHERE user_id IN members GROUP BY meeting_id,response UNION ALL SELECT m.id,'none',COUNT(*) FROM meetings m JOIN members u LEFT JOIN meeting_rsvps r ON r.meeting_id=m.id AND r.user_id=u.id WHERE m.status='scheduled' AND r.user_id IS NULL GROUP BY m.id",
     ).all(),
     c.env.DB.prepare(
       "SELECT id,name,phone,left_at FROM member_departures ORDER BY left_at",

@@ -955,18 +955,53 @@ function MeetingTotals({
     failed = count(["failed"]),
     unknown = count(["unknown"]),
     yes = answer("yes"),
-    no = answer("no");
-  if (!sent && !pending && !failed && !unknown && !yes && !no) return null;
+    no = answer("no"),
+    none = answer("none");
+  // The meeting page answers in one click once logged in, so its address is
+  // the link to paste in the group.
+  const [copied, setCopied] = useState("");
+  const meeting = data.meetings.find((m) => m.id === meetingId);
+  const open =
+    meeting?.status === "scheduled" &&
+    !!meeting.starts_at &&
+    Date.parse(meeting.starts_at) > Date.now();
+  const link = window.location.origin + "/encontros/" + meetingId;
+  const invited = sent || pending || failed || unknown;
+  if (!invited && !yes && !no && !none && !open) return null;
   return (
-    <p className="muted">
-      {sent} {sent === 1 ? "convite enviado" : "convites enviados"}
-      {pending > 0 && ` · ${pending} na fila`}
-      {failed > 0 &&
-        ` · ${failed} com falha (envie de novo para tentar outra vez)`}
-      {unknown > 0 && ` · ${unknown} sem confirmação do envio`} · {yes}{" "}
-      {yes === 1 ? "confirmou presença" : "confirmaram presença"} · {no}{" "}
-      {no === 1 ? "não vai" : "não vão"}
-    </p>
+    <>
+      {!!invited && (
+        <p className="muted">
+          {sent} {sent === 1 ? "convite enviado" : "convites enviados"}
+          {pending > 0 && ` · ${pending} na fila`}
+          {failed > 0 &&
+            ` · ${failed} com falha (envie de novo para tentar outra vez)`}
+          {unknown > 0 && ` · ${unknown} sem confirmação do envio`}
+        </p>
+      )}
+      <p className="muted">
+        Presença: {yes} {yes === 1 ? "vai" : "vão"} · {no}{" "}
+        {no === 1 ? "não vai" : "não vão"}
+        {none > 0 && ` · ${none} sem resposta`}
+        {open && (
+          <>
+            {" · "}
+            <button
+              className="text-button"
+              onClick={() =>
+                void navigator.clipboard
+                  .writeText(link)
+                  .then(() => setCopied("Link copiado."))
+                  .catch(() => setCopied(link))
+              }
+            >
+              Copiar link para o grupo
+            </button>
+            {copied && <span role="status"> {copied}</span>}
+          </>
+        )}
+      </p>
+    </>
   );
 }
 function Editor({
