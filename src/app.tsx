@@ -25,6 +25,7 @@ import {
 import Admin from "./pages/Admin";
 import Privacy from "./pages/Privacy";
 import RsvpLink from "./pages/RsvpLink";
+import BookMaterials from "./pages/BookMaterials";
 import EmailConfirm from "./pages/EmailConfirm";
 import type { ReactNode } from "react";
 import { instance } from "./instance";
@@ -238,6 +239,14 @@ function Layout() {
             element={
               <Protected>
                 <BookPage />
+              </Protected>
+            }
+          />
+          <Route
+            path="/livros/:id/materiais"
+            element={
+              <Protected>
+                <BookMaterials />
               </Protected>
             }
           />
