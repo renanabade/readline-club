@@ -160,3 +160,8 @@ export const resourceKinds = [
   "transcript",
   "link",
 ] as const;
+export const uploadSchema = z.object({
+  meeting_id: z.string().min(1).max(100),
+  title: z.string().trim().min(1, "Dê um nome ao material.").max(200),
+  kind: z.enum(resourceKinds).default("link"),
+});
