@@ -36,13 +36,13 @@ No painel é possível:
 - Criar ciclos e escolher a leitura atual.
 - Cadastrar datas, capítulos, duração, pauta, notas e links de reunião.
 - Colar links do YouTube e publicar ou retirar a publicação da gravação.
-- Adicionar materiais com tipo (resumo em PDF, resumo em EPUB, slides, transcrição ou material complementar). Resumos e slides aparecem em destaque na página do encontro e como indicação na lista de encontros do livro.
+- Adicionar materiais enviando um arquivo PDF ou EPUB (até 20 MB, guardado no R2 e baixado só por membros aprovados) ou colando um link, com tipo (resumo em PDF, resumo em EPUB, slides, transcrição ou material complementar). Resumos e slides aparecem em destaque na página do encontro e como indicação na lista de encontros do livro.
 - Configurar os convites do WhatsApp e do Discord e as redes sociais do clube (Instagram, X, LinkedIn e YouTube), exibidas publicamente no site.
 - Gerar um link de recuperação de senha, de uso único, válido por 30 minutos, para entregar em conversa privada (por exemplo, quando o e-mail não chega).
 
 **Recuperação de senha:** em `/entrar`, **Esqueci minha senha** leva a `/recuperar-senha`, que pede o e-mail e a verificação anti-robô (Turnstile). A resposta é sempre a mesma, exista ou não uma conta com o endereço, e o envio acontece depois da resposta (`waitUntil`), para o tempo de resposta também não revelar nada. Se a conta existir e for de membro, o mailer envia pela rota `/password-reset` um link para `/redefinir-senha`, com o token no fragmento da URL, de uso único e válido por 30 minutos. O link fica em `password_resets` (só o hash), como os gerados no painel: cada link novo substitui o anterior, e trocar a senha encerra as sessões abertas. A tabela `password_reset_emails` registra o envio antes de mandar: no máximo um e-mail por minuto por conta, e um resultado desconhecido fica bloqueado por 15 minutos. Há limite de 3 pedidos por e-mail e 10 por IP a cada 15 minutos, contados para qualquer endereço. É possível alterar a senha dentro da própria conta.
 
-**Confirmação de e-mail:** cada pendente mostra no painel se o e-mail do cadastro foi confirmado. A confirmação não aprova ninguém: a aprovação continua manual. **Aceitar confirmados** só inclui pendentes com e-mail confirmado; os outros (inclusive os cadastrados antes da confirmação existir) são aceitos um a um, depois de conferir o endereço.
+**Confirmação de e-mail:** confirmar o e-mail aprova o cadastro pendente na hora e dispara o aviso de aprovação; contas suspensas ou recusadas continuam como estão. Cada pendente mostra no painel se o e-mail foi confirmado. **Aceitar confirmados** serve para quem confirmou antes dessa regra existir e só inclui pendentes com e-mail confirmado; os outros (inclusive os cadastrados antes da confirmação existir) são aceitos um a um, depois de conferir o endereço.
 
 ### Primeiro acesso
 
@@ -115,11 +115,14 @@ Nome, apresentação, combinados e convites do clube são editados no painel adm
 
 ```sh
 npx wrangler login
+npx wrangler r2 bucket create readlineclub-files
 npm run db:migrate:remote
 npx wrangler pages secret put TURNSTILE_SECRET --project-name readlineclub
 npx wrangler pages secret put ADMIN_EMAIL --project-name readlineclub
 npm run deploy
 ```
+
+O bucket R2 `readlineclub-files` (binding `FILES`) guarda os materiais enviados pelo painel e só precisa ser criado uma vez. Sem o binding, o envio de arquivos responde que não está configurado e os links continuam funcionando. Os arquivos ficam privados: não habilite acesso público nem domínio no bucket, porque o download passa pela API, que confere se a pessoa é membro aprovado.
 
 Antes do primeiro deploy, copie `.env.mailer.example` para `.env.mailer` e preencha `ADMIN_NOTIFY_EMAIL`. O arquivo fica fora do git e é enviado como secret do mailer a cada `npm run deploy`; sem ele, o deploy do mailer falha.
 

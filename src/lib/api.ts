@@ -11,7 +11,9 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
     ...init,
     credentials: "same-origin",
     headers: {
-      ...(init.body ? { "content-type": "application/json" } : {}),
+      ...(init.body && !(init.body instanceof FormData)
+        ? { "content-type": "application/json" }
+        : {}),
       ...init.headers,
     },
   });
@@ -31,3 +33,5 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
 }
 export const save = <T>(path: string, data: unknown, method = "POST") =>
   api<T>(path, { method, body: JSON.stringify(data) });
+export const upload = <T>(path: string, form: FormData) =>
+  api<T>(path, { method: "POST", body: form });
