@@ -337,15 +337,6 @@ test("confirming the email releases member access and sends the welcome email", 
   });
   expect(open.status).toBe(200);
 });
-test("confirming the email never lifts a suspension or a rejection", async () => {
-  for (const status of ["suspended", "rejected"]) {
-    const member = await session(f.DB, "member", status);
-    expect((await confirmFor(member.id)).status).toBe(200);
-    expect(await statusOf(member.id)).toBe(status);
-    expect(await verifiedAt(member.id)).toBeTruthy();
-  }
-});
-
 test("the panel shows a failed confirmation and the admin can send a new link", async () => {
   const member = await session(f.DB);
   await f.DB.prepare(
@@ -425,4 +416,13 @@ test("the panel shows a failed confirmation and the admin can send a new link", 
     "Esse e-mail já está confirmado.",
   );
   expect(send).toHaveBeenCalledTimes(1);
+});
+
+test("confirming the email never lifts a suspension or a rejection", async () => {
+  for (const status of ["suspended", "rejected"]) {
+    const member = await session(f.DB, "member", status);
+    expect((await confirmFor(member.id)).status).toBe(200);
+    expect(await statusOf(member.id)).toBe(status);
+    expect(await verifiedAt(member.id)).toBeTruthy();
+  }
 });
