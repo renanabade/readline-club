@@ -14,11 +14,11 @@ import type {
 } from "../../shared/contracts";
 import { HTTPException } from "hono/http-exception";
 import { input, missing } from "../errors";
+import { onboardingVersion } from "../lib/community";
 import { rsvpSchema, groupClickSchema } from "../../shared/validation";
 import { meetingToIcs } from "../lib/calendar";
 import { nextMeetingWhere } from "../lib/next-meeting";
 import { lockRecording, lockResource } from "../lib/email-gate";
-import { onboardingVersion } from "../lib/community";
 type CommunityMeeting = NonNullable<CommunityAccess["nextMeeting"]>;
 // Groups, recordings and materials wait for the signup email to be confirmed.
 const emailLocked = (c: Context<AppEnv>) =>
