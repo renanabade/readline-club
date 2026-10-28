@@ -229,7 +229,9 @@ export default function Admin() {
   const digits = query.replace(/\D/g, "");
   const filtered = data.applications.filter(
     (a) =>
-      (statusFilter === "all" || a.status === statusFilter) &&
+      (statusFilter === "all" ||
+        a.status === statusFilter ||
+        (statusFilter === "unconfirmed" && confirmationPending(a))) &&
       (!term ||
         searchable(a.name + " " + a.email).includes(term) ||
         (digits.length >= 4 && (a.phone || "").includes(digits))),
@@ -390,6 +392,10 @@ export default function Admin() {
                   {data.applications.filter((a) => a.status === status).length})
                 </option>
               ))}
+              <option value="unconfirmed">
+                E-mail não confirmado (
+                {data.applications.filter(confirmationPending).length})
+              </option>
             </select>
           </div>
           {(term || statusFilter !== "all") && (
@@ -467,6 +473,20 @@ export default function Admin() {
                         : "E-mail ainda não confirmado: confira o endereço antes de aceitar."}
                     </p>
                   )}
+                  {confirmationPending(a) && (
+                    <p className="small muted">
+                      {
+                        {
+                          failed:
+                            "E-mail não confirmado: o envio do link de confirmação falhou.",
+                          sending:
+                            "E-mail não confirmado: o envio do link está em andamento ou sem confirmação do serviço.",
+                          sent: "E-mail não confirmado: o link foi enviado.",
+                          none: "E-mail não confirmado e sem link pendente.",
+                        }[a.email_verification_status ?? "none"]
+                      }
+                    </p>
+                  )}
                   {a.motivation && <p className="preserve">{a.motivation}</p>}
                   {a.status === "approved" && (
                     <p className="small muted">
@@ -499,6 +519,23 @@ export default function Admin() {
                             : "Enviar aviso de aprovação"}
                         </button>
                       )}
+                    {confirmationPending(a) && (
+                      <button
+                        className="button small-button"
+                        disabled={busy}
+                        onClick={() =>
+                          void action(
+                            "/admin/applications/" +
+                              a.id +
+                              "/email-verification",
+                            {},
+                            "POST",
+                          )
+                        }
+                      >
+                        Reenviar link de confirmação
+                      </button>
+                    )}
                     {a.status !== "approved" && (
                       <button
                         className="button small-button primary"
@@ -939,6 +976,11 @@ export default function Admin() {
     </div>
   );
 }
+// Signed up after the email gate, still without the confirmation.
+const confirmationPending = (a: Application) =>
+  a.status === "approved" &&
+  a.email_confirmation_required === 1 &&
+  !a.email_verified_at;
 function MeetingTotals({
   data,
   meetingId,

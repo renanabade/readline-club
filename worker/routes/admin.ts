@@ -25,6 +25,7 @@ import {
 } from "../lib/files";
 import { digest, randomToken } from "../auth/password";
 import { notifyApproval } from "../lib/approval-email";
+import { requestAccountEmail } from "../lib/account-email";
 import { emailConfirmedSql } from "../lib/email-gate";
 const admin = new Hono<AppEnv>();
 admin.get("/overview", async (c) => {
@@ -44,7 +45,7 @@ admin.get("/overview", async (c) => {
     communityFunnel,
   ] = await Promise.all([
     c.env.DB.prepare(
-      "SELECT a.*,u.id user_id,n.status approval_email_status,n.sent_at approval_email_sent_at,n.error_code approval_email_error FROM applications a LEFT JOIN users u ON u.email=a.email LEFT JOIN approval_notifications n ON n.application_id=a.id ORDER BY CASE a.status WHEN 'pending' THEN 0 WHEN 'approved' THEN 1 WHEN 'suspended' THEN 2 ELSE 3 END, CASE WHEN a.status='pending' THEN a.created_at END ASC, a.created_at DESC,a.id",
+      "SELECT a.*,u.id user_id,n.status approval_email_status,n.sent_at approval_email_sent_at,n.error_code approval_email_error,v.status email_verification_status,v.error_code email_verification_error FROM applications a LEFT JOIN users u ON u.email=a.email LEFT JOIN approval_notifications n ON n.application_id=a.id LEFT JOIN email_verifications v ON v.user_id=u.id ORDER BY CASE a.status WHEN 'pending' THEN 0 WHEN 'approved' THEN 1 WHEN 'suspended' THEN 2 ELSE 3 END, CASE WHEN a.status='pending' THEN a.created_at END ASC, a.created_at DESC,a.id",
     ).all(),
     books(c.env.DB, true),
     c.env.DB.prepare("SELECT * FROM reading_cycles").all(),
@@ -153,6 +154,32 @@ admin.post("/applications/:id/notify", async (c) => {
   return c.json({
     ok: true,
     ...(await notifyApproval(c.env, c.req.param("id"))),
+  });
+});
+// For when the confirmation email failed or never arrived: same link and
+// limits as the person asking for it on the site.
+admin.post("/applications/:id/email-verification", async (c) => {
+  const user = await c.env.DB.prepare(
+    "SELECT u.id FROM applications a JOIN users u ON u.email=a.email WHERE a.id=? AND u.role='member'",
+  )
+    .bind(c.req.param("id"))
+    .first<string>("id");
+  if (!user) return missing();
+  const status = await requestAccountEmail(c.env, "/email-verification", {
+    userId: user,
+  });
+  if (status === "sent")
+    return c.json({ message: "Novo link de confirmação enviado." });
+  if (status === "ineligible")
+    return c.json({ message: "Esse e-mail já está confirmado." });
+  if (status === "throttled")
+    throw new HTTPException(429, {
+      message:
+        "Um link foi enviado há pouco. Aguarde um minuto antes de reenviar.",
+    });
+  throw new HTTPException(503, {
+    message:
+      "Não foi possível enviar o link agora. Tente novamente mais tarde.",
   });
 });
 async function invitableMeeting(c: Context<AppEnv>) {

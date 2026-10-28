@@ -337,6 +337,87 @@ test("confirming the email releases member access and sends the welcome email", 
   });
   expect(open.status).toBe(200);
 });
+test("the panel shows a failed confirmation and the admin can send a new link", async () => {
+  const member = await session(f.DB);
+  await f.DB.prepare(
+    "UPDATE applications SET email_confirmation_required=1 WHERE id=?",
+  )
+    .bind(member.id)
+    .run();
+  const failing = vi.fn(async () => {
+    throw Object.assign(new Error("domain"), {
+      code: "E_SENDER_DOMAIN_NOT_AVAILABLE",
+    });
+  });
+  // The signup email failed: the panel tells the organization.
+  await mailer.fetch(
+    new Request("https://approval.internal/email-verification", {
+      method: "POST",
+      body: JSON.stringify({ userId: member.id }),
+    }),
+    {
+      DB: f.DB,
+      EMAIL: { send: failing },
+      EMAIL_FROM: "club@example.test",
+      APP_ORIGIN: f.env.APP_ORIGIN,
+    },
+  );
+  const overview = async () =>
+    (
+      (await (
+        await call("/api/admin/overview", {
+          cookie: owner.cookie,
+          method: "GET",
+        })
+      ).json()) as {
+        applications: {
+          id: string;
+          email_verification_status: string | null;
+          email_verification_error: string | null;
+        }[];
+      }
+    ).applications.find((a) => a.id === member.id)!;
+  expect(await overview()).toMatchObject({
+    email_verification_status: "failed",
+    email_verification_error: "E_SENDER_DOMAIN_NOT_AVAILABLE",
+  });
+
+  const path = `/api/admin/applications/${member.id}/email-verification`;
+  const send = sender();
+  const env = { APPROVAL_EMAIL: mailerBinding(send) };
+  expect((await call(path, { env })).status).toBe(401);
+  expect((await call(path, { cookie: member.cookie, env })).status).toBe(403);
+  // Failed sends retry after a minute, like the person's own resend.
+  await f.DB.prepare(
+    "UPDATE email_verifications SET attempted_at=? WHERE user_id=?",
+  )
+    .bind(new Date(Date.now() - 120000).toISOString(), member.id)
+    .run();
+  const response = await call(path, { cookie: owner.cookie, env });
+  expect(response.status).toBe(200);
+  expect(((await response.json()) as { message: string }).message).toBe(
+    "Novo link de confirmação enviado.",
+  );
+  expect(send).toHaveBeenCalledTimes(1);
+  expect((send.mock.calls[0]![0] as Sent).to).toBe(member.email);
+  expect((await overview()).email_verification_status).toBe("sent");
+  // A second click right away does not send again.
+  expect((await call(path, { cookie: owner.cookie, env })).status).toBe(429);
+  expect(send).toHaveBeenCalledTimes(1);
+
+  // The new link confirms the email; after that there is nothing to resend.
+  const token = tokenOf(send.mock.calls[0]![0] as Sent);
+  expect(
+    (await call("/api/auth/verify-email", { body: { token } })).status,
+  ).toBe(200);
+  expect(await verifiedAt(member.id)).toBeTruthy();
+  const again = await call(path, { cookie: owner.cookie, env });
+  expect(((await again.json()) as { message: string }).message).toBe(
+    "Esse e-mail já está confirmado.",
+  );
+  expect(send).toHaveBeenCalledTimes(1);
+});
+
 test("confirming the email never lifts a suspension or a rejection", async () => {
   for (const status of ["suspended", "rejected"]) {
     const member = await session(f.DB, "member", status);
