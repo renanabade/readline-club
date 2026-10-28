@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { createApp } from "../worker/index";
 import mailer from "../worker/approval-mailer";
 import { fixture, session } from "./helpers";
+import { verificationMessage } from "../worker/lib/email-verification";
 const app = createApp();
 let f: Awaited<ReturnType<typeof fixture>>;
 let owner: Awaited<ReturnType<typeof session>>;
@@ -343,5 +344,18 @@ test("confirming the email never lifts a suspension or a rejection", async () =>
     expect((await confirmFor(member.id)).status).toBe(200);
     expect(await statusOf(member.id)).toBe(status);
     expect(await verifiedAt(member.id)).toBeTruthy();
+  }
+});
+
+test("the confirmation email says access is already open and what confirming unlocks", () => {
+  const message = verificationMessage(
+    { email: "pessoa@example.test", name: "Pessoa" },
+    { EMAIL_FROM: "club@example.test", APP_ORIGIN: "https://club.example" },
+    "a".repeat(64),
+  );
+  for (const part of [message.text!, message.html!]) {
+    expect(part).not.toContain("revisa cada cadastro");
+    expect(part).toContain("já está liberado");
+    expect(part).toContain("as gravações e os resumos");
   }
 });
