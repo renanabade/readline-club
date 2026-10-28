@@ -233,3 +233,26 @@ export interface InvitationQueue {
   added: number;
   queued: number;
 }
+export type ScheduledEmailStatus =
+  "scheduled" | "sending" | "done" | "cancelled";
+// Totals by version and status, never who: the panel follows the sending.
+export interface ScheduledEmail {
+  id: string;
+  meeting_id: string;
+  subject: string;
+  body: string;
+  send_at: string;
+  status: ScheduledEmailStatus;
+  created_at: string;
+  totals: {
+    version: "full" | "locked" | null;
+    status: "queued" | "sending" | "sent" | "failed" | "skipped" | "unknown";
+    total: number;
+  }[];
+}
+export interface ScheduledEmailPreview {
+  full: { subject: string; text: string };
+  locked: { subject: string; text: string };
+  // Who would get each version if it went out now.
+  recipients: { full: number; locked: number };
+}

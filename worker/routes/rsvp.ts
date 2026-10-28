@@ -10,9 +10,10 @@ import { input } from "../errors";
 import { rsvpLinkSchema, rsvpLinkAnswerSchema } from "../../shared/validation";
 import { digest } from "../auth/password";
 import { rateLimit } from "../auth/limits";
-// Answers a meeting invitation or reminder from the personal link in the email, without
-// a session. The token only works for that person, that meeting, while the
-// person is still an approved member and the meeting has not started.
+// Answers a meeting invitation, reminder or scheduled email from the personal
+// link in it, without a session. The token only works for that person, that
+// meeting, while the person is still an approved member and the meeting has
+// not started.
 const rsvp = new Hono<AppEnv>();
 async function invitation(c: Context<AppEnv>, token: string) {
   await rateLimit(c, "rsvp-link", 60);
@@ -21,6 +22,7 @@ async function invitation(c: Context<AppEnv>, token: string) {
     FROM (
       SELECT meeting_id,user_id FROM meeting_invitations WHERE rsvp_token_hash=?1
       UNION ALL SELECT meeting_id,user_id FROM meeting_reminders WHERE rsvp_token_hash=?1
+      UNION ALL SELECT e.meeting_id,r.user_id FROM scheduled_email_recipients r JOIN scheduled_emails e ON e.id=r.email_id WHERE r.rsvp_token_hash=?1
     ) i
     JOIN users u ON u.id=i.user_id AND u.role='member'
     JOIN applications a ON a.email=u.email AND a.status='approved'

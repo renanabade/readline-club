@@ -2735,6 +2735,27 @@ legend {
   display: inline;
   margin-right: 8px;
 }
+.scheduled-emails {
+  margin-top: 18px;
+}
+.scheduled-emails .application-card label {
+  display: block;
+  margin-top: 12px;
+}
+.email-previews figure {
+  margin: 16px 0 0;
+}
+.email-preview {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 320px;
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  font-size: 0.82rem;
+}
 
 /* Account and signup */
 .field-help {

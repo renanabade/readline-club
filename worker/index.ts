@@ -10,6 +10,7 @@ import { admin } from "./routes/admin";
 import { rsvp } from "./routes/rsvp";
 import { questions, questionsAdmin } from "./routes/questions";
 import { attendance, attendanceAdmin } from "./routes/attendance";
+import { scheduledEmails } from "./routes/scheduled-emails";
 import { files } from "./routes/files";
 import { maxFileBytes } from "./lib/files";
 export function createApp() {
@@ -72,6 +73,7 @@ export function createApp() {
   app.route("/api/admin", admin);
   app.route("/api/admin", questionsAdmin);
   app.route("/api/admin", attendanceAdmin);
+  app.route("/api/admin", scheduledEmails);
   app.use("/api/attendance", requireUser, requireMember);
   app.route("/api/attendance", attendance);
   app.use("/api/books/*", requireUser, requireMember);

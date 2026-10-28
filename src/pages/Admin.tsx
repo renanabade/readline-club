@@ -1,5 +1,6 @@
 import { Fragment, useRef, useState, type FormEvent } from "react";
 import { useDialogFocus } from "../lib/useDialogFocus";
+import { ScheduledEmails } from "../components/ScheduledEmails";
 import {
   Plus,
   ArrowRight,
@@ -723,6 +724,11 @@ export default function Admin() {
                     )}
                 </div>
                 <MeetingTotals data={data} meetingId={m.id} />
+                {m.status === "scheduled" &&
+                  !!m.starts_at &&
+                  Date.parse(m.starts_at) > Date.now() && (
+                    <ScheduledEmails meeting={m} />
+                  )}
                 {data.resources
                   .filter((r) => r.meeting_id === m.id)
                   .map((r) => (

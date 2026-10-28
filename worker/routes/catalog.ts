@@ -14,6 +14,7 @@ import type {
 } from "../../shared/contracts";
 import { HTTPException } from "hono/http-exception";
 import { input, missing } from "../errors";
+import { onboardingVersion } from "../lib/community";
 import { rsvpSchema, groupClickSchema } from "../../shared/validation";
 import { meetingToIcs } from "../lib/calendar";
 import { nextMeetingWhere } from "../lib/next-meeting";
@@ -165,7 +166,6 @@ catalog.get("/meetings/:id/calendar.ics", async (c) => {
   c.header("Content-Disposition", 'attachment; filename="encontro.ics"');
   return c.body(meetingToIcs(m, c.env.APP_ORIGIN));
 });
-export const onboardingVersion = "community-v1";
 catalog.get("/community", async (c) => {
   const settings = await c.env.DB.prepare(
     "SELECT * FROM settings WHERE id=1",

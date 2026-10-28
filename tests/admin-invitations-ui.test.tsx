@@ -16,8 +16,9 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("../src/lib/api", () => ({ save: mocks.save, api: vi.fn() }));
 vi.mock("../src/lib/useData", () => ({
-  useData: () => ({
-    data: mocks.data,
+  // Each upcoming meeting also lists its scheduled emails.
+  useData: (path: string) => ({
+    data: path.endsWith("/emails") ? [] : mocks.data,
     loading: false,
     error: "",
     reload: mocks.reload,
