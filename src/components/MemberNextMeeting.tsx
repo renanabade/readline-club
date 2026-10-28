@@ -10,6 +10,7 @@ import type {
 } from "../../shared/contracts";
 import { MeetingRsvp } from "./MeetingRsvp";
 import { CalendarActions } from "./CalendarActions";
+import { LockedCall } from "./EmailGate";
 
 // Everything a member needs before a meeting, in one place: join the call,
 // answer the RSVP and save the date. The announcement shows right away; the
@@ -56,6 +57,11 @@ export function MemberNextMeeting({
           <span className="muted small">
             Guarde este atalho: o mesmo botão fica na página do encontro.
           </span>
+        </div>
+      )}
+      {detail?.call_locked && m.status === "scheduled" && (
+        <div className="whatsapp-actions member-next-call">
+          <LockedCall className="button primary" />
         </div>
       )}
       {detail && (

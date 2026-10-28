@@ -100,6 +100,39 @@ test("the next meeting card on the home page answers in one click", async () => 
   );
 });
 
+test("before the email is confirmed the card asks for it instead of the call link", async () => {
+  const meeting = {
+    ...upcoming,
+    title: "Encontro futuro",
+    chapters: "",
+    duration_minutes: 60,
+    book_title: "Livro de teste",
+  };
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () =>
+      Response.json({
+        meeting: { ...meeting, meeting_url: "", call_locked: true },
+        resources: [],
+        rsvp: null,
+      }),
+    ),
+  );
+  render(
+    <MemoryRouter>
+      <MemberNextMeeting meeting={meeting} />
+    </MemoryRouter>,
+  );
+  expect(
+    await screen.findByRole("button", {
+      name: "Confirme seu e-mail para ver o link da chamada",
+    }),
+  ).toBeTruthy();
+  expect(screen.queryByRole("link", { name: /chamada|Meet/ })).toBeNull();
+  // Answering the RSVP still works.
+  expect(screen.getByRole("button", { name: "Vou participar" })).toBeTruthy();
+});
+
 test("past and cancelled meetings do not ask for confirmation", () => {
   for (const meeting of [
     { ...upcoming, starts_at: new Date(Date.now() - 60000).toISOString() },

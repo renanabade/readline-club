@@ -19,7 +19,7 @@ import { BookArchive } from "../components/BookArchive";
 import { WhatsAppAccess } from "../components/WhatsAppAccess";
 import { HomeStatus } from "../components/HomeStatus";
 import { EmailConfirmation } from "../components/EmailConfirmation";
-import { LockedButton } from "../components/EmailGate";
+import { LockedButton, LockedCall } from "../components/EmailGate";
 import { ResourceLink } from "../components/ResourceLink";
 import { SocialLinks } from "../components/SocialLinks";
 import { MemberNextMeeting } from "../components/MemberNextMeeting";
@@ -279,6 +279,9 @@ export function MeetingPage() {
             >
               {callLabel(m.meeting_url)} <ExternalLink size={16} />
             </a>
+          )}
+          {m.call_locked && m.status === "scheduled" && (
+            <LockedCall className="button primary full" />
           )}
           <CalendarActions meeting={m} />
           <hr />
