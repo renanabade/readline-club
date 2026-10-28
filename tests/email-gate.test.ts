@@ -218,3 +218,46 @@ test("meeting emails skip addresses that were never confirmed", async () => {
   expect(invited).toContain(confirmed.id);
   expect(invited).not.toContain(pending.id);
 });
+
+test("the call link stays out of the API until the email is confirmed", async () => {
+  const callUrl = "https://meet.example.test/call-link-sentinel";
+  const id = crypto.randomUUID();
+  await f.DB.prepare(
+    "INSERT INTO meetings(id,cycle_id,title,status,starts_at,meeting_url) VALUES(?,'primeira-leitura','Próximo encontro','scheduled',?,?)",
+  )
+    .bind(id, new Date(Date.now() + 86400000).toISOString(), callUrl)
+    .run();
+  const bookId = await f.DB.prepare(
+    "SELECT book_id FROM reading_cycles WHERE id='primeira-leitura'",
+  ).first<string>("book_id");
+  const paths = [
+    "/api/meetings",
+    "/api/meetings/" + id,
+    "/api/books/" + bookId,
+  ];
+  const pending = await newSignup();
+  for (const path of paths) {
+    const body = await (await get(path, pending.cookie)).text();
+    expect(body).not.toContain("call-link-sentinel");
+  }
+  const detail = await json<MeetingDetail>(
+    "/api/meetings/" + id,
+    pending.cookie,
+  );
+  expect(detail.meeting.call_locked).toBe(true);
+  expect(detail.meeting.meeting_url).toBe("");
+  // Confirmed accounts, accounts from before the gate and admins see it.
+  const confirmed = await newSignup();
+  await f.DB.prepare("UPDATE applications SET email_verified_at=? WHERE id=?")
+    .bind(new Date().toISOString(), confirmed.id)
+    .run();
+  for (const member of [
+    confirmed,
+    await session(f.DB),
+    await session(f.DB, "admin"),
+  ])
+    for (const path of paths)
+      expect(await (await get(path, member.cookie)).text()).toContain(
+        "call-link-sentinel",
+      );
+});

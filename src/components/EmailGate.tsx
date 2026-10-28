@@ -1,11 +1,11 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
-import { Lock, MailCheck, X } from "lucide-react";
+import { Lock, LockKeyhole, MailCheck, X } from "lucide-react";
 import { useSession } from "../lib/session";
 import { useDialogFocus } from "../lib/useDialogFocus";
 import { EmailConfirmation } from "./EmailConfirmation";
 
-// Access starts at signup, but the group invitations, recordings and
-// materials wait for the signup email to be confirmed. Locked items stay on
+// Access starts at signup, but the call links, group invitations, recordings
+// and materials wait for the signup email to be confirmed. Locked items stay on
 // the page and open this dialog instead.
 const Context = createContext<{ pending: boolean; ask: () => void }>({
   pending: false,
@@ -56,9 +56,10 @@ export function EmailGateProvider({ children }: { children: ReactNode }) {
             <MailCheck size={30} strokeWidth={1.5} aria-hidden="true" />
             <h2 id="email-gate-title">Confirme seu e-mail para liberar.</h2>
             <p>
-              Os grupos do WhatsApp e do Discord, as gravações e os resumos
-              ficam disponíveis assim que você abre o link que enviamos para o
-              e-mail do cadastro. O resto da plataforma já está liberado.
+              O link da chamada dos encontros, os grupos do WhatsApp e do
+              Discord, as gravações e os resumos ficam disponíveis assim que
+              você abre o link que enviamos para o e-mail do cadastro. O resto
+              da plataforma já está liberado.
             </p>
             <EmailConfirmation />
             {stillPending && (
@@ -119,5 +120,15 @@ export function LockedButton({
     <button type="button" className={className} onClick={ask}>
       {children}
     </button>
+  );
+}
+
+// Shown where the call link would be, while the email is not confirmed.
+export function LockedCall({ className }: { className?: string }) {
+  return (
+    <LockedButton className={className}>
+      <LockKeyhole size={16} aria-hidden="true" /> Confirme seu e-mail para ver
+      o link da chamada
+    </LockedButton>
   );
 }

@@ -48,6 +48,8 @@ export interface Meeting {
   youtube_id?: string | null;
   // There is a recording, held back until the person confirms the email.
   recording_locked?: boolean;
+  // Same for the call link.
+  call_locked?: boolean;
   // Comma-separated kinds of the materials attached to the meeting.
   material_kinds?: string | null;
 }

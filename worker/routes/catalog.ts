@@ -17,9 +17,10 @@ import { input, missing } from "../errors";
 import { rsvpSchema, groupClickSchema } from "../../shared/validation";
 import { meetingToIcs } from "../lib/calendar";
 import { nextMeetingWhere } from "../lib/next-meeting";
-import { lockRecording, lockResource } from "../lib/email-gate";
+import { lockMeeting, lockRecording, lockResource } from "../lib/email-gate";
 type CommunityMeeting = NonNullable<CommunityAccess["nextMeeting"]>;
-// Groups, recordings and materials wait for the signup email to be confirmed.
+// Groups, call links, recordings and materials wait for the signup email to be
+// confirmed.
 const emailLocked = (c: Context<AppEnv>) =>
   c.get("identity").emailConfirmationPending;
 export async function books(db: Env["DB"], all = false): Promise<Book[]> {
@@ -63,7 +64,7 @@ catalog.get("/books/:id", async (c) => {
     book,
     cycles: cycles.results,
     meetings: emailLocked(c)
-      ? meetings.results.map(lockRecording)
+      ? meetings.results.map(lockMeeting)
       : meetings.results,
   });
 });
@@ -98,9 +99,7 @@ catalog.get("/meetings", async (c) => {
     meetingQuery +
       " WHERE b.status!='archived' ORDER BY m.starts_at IS NULL,m.starts_at",
   ).all<Meeting>();
-  return c.json(
-    emailLocked(c) ? rows.results.map(lockRecording) : rows.results,
-  );
+  return c.json(emailLocked(c) ? rows.results.map(lockMeeting) : rows.results);
 });
 catalog.get("/meetings/:id", async (c) => {
   const meeting = await c.env.DB.prepare(
@@ -121,7 +120,7 @@ catalog.get("/meetings/:id", async (c) => {
     .first<MeetingRsvp>("response");
   const locked = emailLocked(c);
   return c.json({
-    meeting: locked ? lockRecording(meeting) : meeting,
+    meeting: locked ? lockMeeting(meeting) : meeting,
     resources: locked ? resources.results.map(lockResource) : resources.results,
     rsvp: rsvp ?? null,
   });
