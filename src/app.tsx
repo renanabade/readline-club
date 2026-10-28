@@ -39,6 +39,15 @@ export function loginPath(location: { pathname: string; search: string }) {
     "/entrar?voltar=" + encodeURIComponent(location.pathname + location.search)
   );
 }
+// Confirming the email changes what the pages receive, so they mount again.
+// The confirmation page stays mounted, or it would lose its success message.
+export function routesKey(
+  user: { emailConfirmationPending: boolean } | null | undefined,
+  pathname: string,
+) {
+  if (pathname.replace(/\/$/, "") === "/confirmar-email") return "confirm";
+  return user?.emailConfirmationPending ? "locked" : "open";
+}
 export function Protected({
   children,
   admin = false,
@@ -211,8 +220,7 @@ function Layout() {
             <Notice>{error}</Notice>
           </div>
         )}
-        {/* Confirming the email changes what the pages receive: load them again. */}
-        <Routes key={user?.emailConfirmationPending ? "locked" : "open"}>
+        <Routes key={routesKey(user, location.pathname)}>
           <Route
             path="/"
             element={
