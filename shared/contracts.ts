@@ -121,6 +121,11 @@ export interface Application {
   approval_email_sent_at?: string | null;
   approval_email_error?: string | null;
   email_verified_at?: string | null;
+  // Signed up after the email gate: the email must be confirmed.
+  email_confirmation_required?: number;
+  // The last confirmation link sent; null once it is used.
+  email_verification_status?: "sending" | "sent" | "failed" | null;
+  email_verification_error?: string | null;
   id: string;
   email: string;
   name: string;

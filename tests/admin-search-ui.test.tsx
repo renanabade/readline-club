@@ -100,3 +100,50 @@ test("departures are listed for group removal and cleared on confirmation", asyn
     ),
   ).toBeTruthy();
 });
+
+test("members without a confirmed email can be listed, with the send status and a resend button", async () => {
+  mocks.data.applications = [
+    {
+      ...person("falhou", "Pessoa Falhou", "approved"),
+      email_confirmation_required: 1,
+      email_verification_status: "failed",
+    },
+    {
+      ...person("enviado", "Pessoa Enviado", "approved"),
+      email_confirmation_required: 1,
+      email_verification_status: "sent",
+    },
+    // Accounts from before the email gate are not asked to confirm.
+    person("antiga", "Pessoa Antiga", "approved"),
+    {
+      ...person("confirmou", "Pessoa Confirmou", "approved"),
+      email_confirmation_required: 1,
+      email_verified_at: "2026-10-27T12:00:00Z",
+    },
+  ];
+  mocks.save.mockResolvedValue({
+    message: "Novo link de confirmação enviado.",
+  });
+  render(<Admin />);
+  fireEvent.change(
+    screen.getByRole("combobox", { name: "Filtrar por situação" }),
+    {
+      target: { value: "unconfirmed" },
+    },
+  );
+  expect(names()).toEqual(["Pessoa Falhou", "Pessoa Enviado"]);
+  expect(document.body.textContent).toContain(
+    "o envio do link de confirmação falhou",
+  );
+  fireEvent.click(
+    screen.getAllByRole("button", { name: "Reenviar link de confirmação" })[0]!,
+  );
+  expect(
+    await screen.findByText("Novo link de confirmação enviado."),
+  ).toBeTruthy();
+  expect(mocks.save).toHaveBeenCalledWith(
+    "/admin/applications/falhou/email-verification",
+    {},
+    "POST",
+  );
+});
