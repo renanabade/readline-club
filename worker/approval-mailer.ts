@@ -4,6 +4,10 @@ import { sendReminders } from "./lib/meeting-reminder";
 import { sendPendingDigest } from "./lib/admin-digest";
 import { sendEmailVerification } from "./lib/email-verification";
 import { sendPasswordReset } from "./lib/password-reset-email";
+import {
+  sendScheduledEmails,
+  sendScheduledEmailTest,
+} from "./lib/scheduled-email";
 // Must match the every-15-minutes trigger in wrangler.mailer.jsonc.
 export const meetingEmailsCron = "*/15 * * * *";
 interface MailerEnv {
@@ -44,6 +48,18 @@ export default {
         console.log(
           JSON.stringify({ event: "meeting_invitations", sent, failed }),
         );
+      const scheduled = await sendScheduledEmails(
+        env,
+        controller.scheduledTime,
+      );
+      if (scheduled.batches)
+        console.log(
+          JSON.stringify({
+            event: "scheduled_emails",
+            sent: scheduled.sent,
+            failed: scheduled.failed,
+          }),
+        );
       return;
     }
     const status = await sendPendingDigest(env, controller.scheduledTime);
@@ -56,6 +72,26 @@ export default {
       return accountEmail(request, env, sendEmailVerification);
     if (path === "/password-reset")
       return accountEmail(request, env, sendPasswordReset);
+    if (path === "/scheduled-email-test") {
+      // The API validates the draft; this only guards the shape.
+      const draft = (await request.json().catch(() => null)) as Record<
+        string,
+        unknown
+      > | null;
+      const fields = ["userId", "meetingId", "subject", "body"] as const;
+      if (
+        !draft ||
+        fields.some((k) => typeof draft[k] !== "string" || !draft[k])
+      )
+        return new Response(null, { status: 400 });
+      const { userId, meetingId, subject, body } = draft as Record<
+        (typeof fields)[number],
+        string
+      >;
+      return Response.json(
+        await sendScheduledEmailTest(env, { meetingId, subject, body }, userId),
+      );
+    }
     const body = (await request.json().catch(() => null)) as {
       applicationId?: unknown;
     } | null;

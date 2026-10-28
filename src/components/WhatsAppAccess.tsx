@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { ArrowUpRight, LockKeyhole, MessagesSquare } from "lucide-react";
 import { useSession } from "../lib/session";
 import { useData } from "../lib/useData";
@@ -248,6 +248,7 @@ export function WhatsAppAccess({
   guidelines?: boolean;
 }) {
   const { user, loading } = useSession();
+  const location = useLocation();
   // Until the session is known, show nothing rather than the visitor's calls.
   if (loading) return null;
   const member =
@@ -286,7 +287,11 @@ export function WhatsAppAccess({
                 Participe gratuitamente
                 <ArrowUpRight size={18} />
               </Link>
-              <Link className="text-link" to="/entrar">
+              {/* Back here after login: the meeting emails link to this page. */}
+              <Link
+                className="text-link"
+                to={"/entrar?voltar=" + encodeURIComponent(location.pathname)}
+              >
                 Já tenho conta · Entrar <ArrowUpRight size={16} />
               </Link>
             </div>

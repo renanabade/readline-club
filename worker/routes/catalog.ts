@@ -18,6 +18,7 @@ import { rsvpSchema, groupClickSchema } from "../../shared/validation";
 import { meetingToIcs } from "../lib/calendar";
 import { nextMeetingWhere } from "../lib/next-meeting";
 import { lockRecording, lockResource } from "../lib/email-gate";
+import { onboardingVersion } from "../lib/community";
 type CommunityMeeting = NonNullable<CommunityAccess["nextMeeting"]>;
 // Groups, recordings and materials wait for the signup email to be confirmed.
 const emailLocked = (c: Context<AppEnv>) =>
@@ -165,7 +166,6 @@ catalog.get("/meetings/:id/calendar.ics", async (c) => {
   c.header("Content-Disposition", 'attachment; filename="encontro.ics"');
   return c.body(meetingToIcs(m, c.env.APP_ORIGIN));
 });
-export const onboardingVersion = "community-v1";
 catalog.get("/community", async (c) => {
   const settings = await c.env.DB.prepare(
     "SELECT * FROM settings WHERE id=1",

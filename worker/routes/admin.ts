@@ -14,7 +14,8 @@ import {
   uploadSchema,
 } from "../../shared/validation";
 import { expireDepartures } from "./auth";
-import { books, meetingQuery, onboardingVersion } from "./catalog";
+import { books, meetingQuery } from "./catalog";
+import { onboardingVersion } from "../lib/community";
 import { parseYouTubeId } from "../lib/youtube";
 import {
   detectFileType,

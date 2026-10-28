@@ -187,3 +187,21 @@ export const uploadSchema = z.object({
   title: z.string().trim().min(1, "Dê um nome ao material.").max(200),
   kind: z.enum(resourceKinds).default("link"),
 });
+export const scheduledEmailDraftSchema = z.object({
+  meetingId: z.string().min(1).max(100),
+  subject: z
+    .string()
+    .trim()
+    .min(1, "Escreva o assunto.")
+    .max(150, "Use até 150 caracteres no assunto."),
+  body: z
+    .string()
+    .trim()
+    .min(1, "Escreva o texto.")
+    .max(4000, "Use até 4.000 caracteres no texto."),
+});
+export const scheduledEmailSchema = scheduledEmailDraftSchema.extend({
+  sendAt: z
+    .string()
+    .datetime({ offset: true, message: "Escolha a data e a hora." }),
+});
