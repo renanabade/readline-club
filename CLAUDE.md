@@ -12,6 +12,8 @@ Antes de qualquer mudança, siga a documentação interna:
 
 O `README.md` é só explicativo, para o público (o que é a plataforma e como os dados são tratados); instruções operacionais ficam em `docs/`.
 
+Sessão na nuvem: sem `node_modules`, rode primeiro `bash scripts/cloud-setup.sh` (dependências e D1 local, sem segredo). O merge na `main` publica pelo workflow `Deploy`.
+
 Regras que não podem ser quebradas:
 
 - Toda entrega em branch própria e PR; nunca commit direto na `main`. Commit e push só quando pedido.
